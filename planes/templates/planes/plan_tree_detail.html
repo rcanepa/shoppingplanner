@@ -67,14 +67,16 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block js %}
 <script>
 
 $(function() {
-    
+
     // Contar nodos a planificar (visibles)
     function definirVisibles(){
-        var nodos_visibles = 0;    
+        var nodos_visibles = 0;
         $("#itemstree").fancytree("getTree").visit(function(node){
             if (node.isVisible()){
                 nodos_visibles++;

@@ -29,25 +29,37 @@
 {% block content %}
 <h2>Categor&iacute;as</h2>
 
-<ul class="tree">
-    {% for categoria in categorias %}
-        {% for branch, obj in categoria.as_tree %}
-            {% if obj %}
+<div id="itemstree">
+    <ul id="treeData" style="display: none;">
+        {% for categoria in categorias %}
+            {% for branch, obj in categoria.as_tree %}
+                {% if obj %}
 
-                <li><b>{{ obj.get_nivel }}</b><a href="/categorias/cat/detail/{{ obj.id }}/"> {{ obj.nombre }} </a>
+                    <li id="{{ obj.id }}" class="folder expanded"><b>({{ obj.get_nivel }}) </b>{{ obj.nombre }}
 
-                {% if branch %}
-                    <ul>
+                    {% if branch %}
+                        <ul>
+                    {% else %}
+                        </li>
+                    {% endif %}
                 {% else %}
-                    </li>
+                    {% if branch %}
+                        </ul>
+                    {% endif %}
                 {% endif %}
-            {% else %}
-                {% if branch %}
-                    </ul>
-                {% endif %}
-            {% endif %}
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
-</ul>
+    </ul>
+</div>
 
+{% endblock %}
+
+{% block js %}
+<script>
+
+$(function() {
+    $("#itemstree").fancytree();
+});
+
+</script>
 {% endblock %}

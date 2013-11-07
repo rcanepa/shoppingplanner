@@ -29,26 +29,45 @@
 {% block content %}
 <h2>Items</h2>
 
-<ul class="tree">
-    {% for item in items %}
-        {% for branch, obj in item.as_tree %}
-            {% if obj %}
-
-                <li><b>{{ obj.get_nivel }}</b><a href="/categorias/item/detail/{{ obj.id }}/"> {{ obj.nombre }} </a> [Precio blanco: {{ obj.precio }}]
-
-                {% if branch %}
-                    <ul>
+<div id="itemstree">
+    <ul id="treeData" style="display: none;">
+        {% for item in items %}
+            {% for branch, obj in item.as_tree %}
+                {% if obj %}
+                    {% if branch %}
+                        <li id="{{ obj.id }}" class="folder"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio }})</a>
+                        <ul>
+                    {% else %}
+                        <li id="{{ obj.id }}"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio }})</a>
+                        </li>
+                    {% endif %}
                 {% else %}
-                    </li>
+                    {% if branch %}
+                        </ul>
+                    {% endif %}
                 {% endif %}
-            {% else %}
-                {% if branch %}
-                    </ul>
-                {% endif %}
-            {% endif %}
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
-</ul>
-
+    </ul>
+</div>
 {% endblock %}
 
+{% block js %}
+<script>
+
+$(function() {
+    $("#itemstree").fancytree({
+        activate: function(e, data) {
+            var node = data.node;
+            if( node.data.href ){
+                window.open(node.data.href, node.data.target);
+            }
+        }
+    });
+
+
+
+});
+
+</script>
+{% endblock %}
