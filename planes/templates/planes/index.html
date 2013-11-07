@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+        <h4>Planificaciones</h4>
+        <ul>
+            <li><a href="/planes/plan/create/">Crear Planificaci&oacute;n</a></li>
+            <li><a href="/planes/plan/list/">Mis Planificaciones</a></li>
+            <li><a href="../../accounts/loggedin/">Volver</a></li>
+        </ul>
+{% endblock %}
+
+{% block content %}
+
+<h2>Módulo de Planificaciones</h2>
+
+{% endblock %}

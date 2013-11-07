@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li>Guardar Selecci&oacute;n</li>
+    <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Arbol de Planificaci&oacute;n {{ plan.nombre }}</h2>
+
+<div id="plantree">
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(function() {
+    function buscarNodos(id){
+        id = typeof id !== 'undefined' ? id : null;
+        $.ajax({
+            data: {'id':id},
+            url: '/planes/plan/buscarnodos/',
+            type: 'get',
+            success: function(data){
+                                var html = "";
+                                html += "<ul>";
+                                for(var i = 0; i<data.length ; i++){
+                                    html += '<li class="item" id="'+data[i].pk+'">'+data[i].fields.nombre+'</li>';                                    
+                                }
+                                html += "</ul>";
+                                $('#plantree').html(html);
+                        }
+        });
+    }
+
+    buscarNodos();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li><a href="../../../planes/index/">Cancelar</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Guardar">
+</form>
+{% endblock content %}

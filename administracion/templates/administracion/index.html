@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../planes/index/">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+        {% if admin %}
+        <h4>Administraci&oacute;n</h4>
+        <ul>
+            <li><a href="/admin/" target="_blank">Ingresar</a></li>
+        </ul>
+        <h4>Usuarios</h4>
+        <ul>
+            <li><a href="/accounts/register/">Crear usuario</a></li>
+            <li><a href="">Eliminar usuario</a></li>
+        </ul>
+        {% endif %}
+        <h4>Categor&iacute;as</h4>
+        <ul>
+            <li><a href="/categorias/cat/list/">Ver Categor&iacute;as</a></li>
+            {% if admin %}
+            <li><a href="/categorias/cat/create/">Crear Categor&iacute;a</a></li>
+            {% endif %}
+        </ul>
+        <h4>Items</h4>
+        <ul>
+            <li><a href="/categorias/item/list/">Ver Items</a></li>
+            {% if admin %}
+            <li><a href="/categorias/item/create/">Crear Item</a></li>
+            <li><a href="">Asignar Responsables</a></li>
+            {% endif %}
+        </ul>
+{% endblock %}
+
+{% block content %}
+
+<h2>M&oacute;dulo de Administraci&oacute;n</h2>
+
+{% endblock %}

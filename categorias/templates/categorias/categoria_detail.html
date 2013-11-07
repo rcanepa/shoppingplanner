@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+	{% if admin %}
+    <li><a href="../../../cat/update/{{ categoria.id }}">Editar</a></li>
+    <li><a href="../../../cat/delete/{{ categoria.id }}">Eliminar</a></li>
+    {% endif %}
+    <li><a href="../../../cat/list/">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<h2>{{ categoria.nombre }}</h2>
+
+{% endblock %}

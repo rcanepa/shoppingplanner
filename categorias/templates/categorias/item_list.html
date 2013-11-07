@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    {% if admin %}
+    <li><a href="/categorias/item/create/">Crear Item</a></li>
+    {% endif %}
+    <li><a href="../../../administracion/index/">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Items</h2>
+
+<ul class="tree">
+    {% for item in items %}
+        {% for branch, obj in item.as_tree %}
+            {% if obj %}
+
+                <li><b>{{ obj.get_nivel }}</b><a href="/categorias/item/detail/{{ obj.id }}/"> {{ obj.nombre }} </a> [Precio blanco: {{ obj.precio }}]
+
+                {% if branch %}
+                    <ul>
+                {% else %}
+                    </li>
+                {% endif %}
+            {% else %}
+                {% if branch %}
+                    </ul>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</ul>
+
+{% endblock %}
+

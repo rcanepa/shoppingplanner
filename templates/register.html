@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="">Proyectar<span>Datos</span></a></li>
+	<li><a href="">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	{{ full_name }}
+{% endblock %}
+
+{% block sidebar %}
+<h4>Cuentas</h4>
+<ul>
+    <li><a href="../../administracion/index/">Cancelar</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+	<h2>Crear Usuario</h2>
+	
+	<form action="/accounts/register/" method="post">{% csrf_token %}
+	
+	{{ form.as_p }}
+
+	<input type="submit" value="Crear" />
+
+	</form>
+
+{% endblock %}

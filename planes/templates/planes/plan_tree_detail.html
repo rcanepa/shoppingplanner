@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li><a href="">Guardar Selecci&oacute;n</a></li>
+    <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Arbol de Planificaci&oacute;n</h2>
+<div style="width:40%; float:left">
+    <div id="itemstree">
+        <ul id="treeData" style="display: none;">
+            {% for item in items %}
+                {% for branch, obj in item.as_tree %}
+                    {% if obj %}
+                        <!-- if branch comprueba la existencia de un nodo hijo -->
+                        {% if branch %}
+                            <li id="{{ obj.id }}" class="folder">{{ obj.nombre }} (Precio: {{ obj.precio }})
+                            <ul>
+                        <!-- No hay nodo hijo -->
+                        {% else %}
+                            <li id="{{ obj.id }}">{{ obj.nombre }} (Precio: {{ obj.precio }})
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        {% if branch %}
+                            </ul>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div style="width:55%; float:left; padding-left:10px;">
+    <form id="save_form" method="post" action="/planes/plan/guardararbol/">
+        {% csrf_token %}
+        <input id="input_json_data" type="hidden" name="plan" value="" />
+    <button id="btnExpand">Expandir</button>
+    <button id="btnCollapse">Collapsar</button>
+    <button id="btnSave" type="submit">Guardar</button>
+    </form>
+    <div style="clear:both;">
+        <div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+            <p id="msg_total"></p>
+            <p id="msg_visibles"></p>
+            <p id="msg_nodo_activo"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+
+$(function() {
+    
+    // Contar nodos a planificar (visibles)
+    function definirVisibles(){
+        var nodos_visibles = 0;    
+        $("#itemstree").fancytree("getTree").visit(function(node){
+            if (node.isVisible()){
+                nodos_visibles++;
+            }
+        });
+        $("#msg_visibles").html("<p>Items a planificar: " + nodos_visibles + "</p>");
+        return false;
+    }
+
+    $( "button" ).button().click(function( event ) {
+        event.preventDefault();
+    });
+
+    $("#itemstree").fancytree({
+        expand: function(event, data){
+            definirVisibles();
+        },
+        collapse: function(event, data){
+            definirVisibles();
+        },
+    });
+
+    // Expandir todos los nodos
+    $("#btnExpand").click(function(){
+        $("#itemstree").fancytree("getRootNode").visit(function(node){
+            node.setExpanded(true);
+        });
+        return false;
+    });
+
+    $("#btnCollapse").click(function(){
+        $("#itemstree").fancytree("getRootNode").visit(function(node){
+            node.setExpanded(false);
+        });
+        return false;
+    });
+
+    var tree = $("#itemstree").fancytree("getTree");
+    var num_nodos = tree.count();
+    $("#msg_total").html("<p>Total de ítems: " + num_nodos + "</p>");
+
+    /*
+        Enviar por POST dos campos, el ID del plan y un string de IDs de items
+    */
+
+    $("#btnSave").click(function(){
+        var nodos_lista = [];
+        var plan = parseInt({{plan.id}});
+        // Se obtiene la lista de nodos visibles (a planificar)
+        $("#itemstree").fancytree("getTree").visit(function(node){
+            if (node.isVisible()){
+                nodos_lista.push(parseInt(node.key));
+            }
+        });
+        json_data = JSON.stringify({plan: plan,items: nodos_lista});
+        $("#input_json_data").val(json_data);
+        console.log(json_data);
+        $("#save_form").submit();
+    });
+});
+
+</script>
+
+{% endblock %}

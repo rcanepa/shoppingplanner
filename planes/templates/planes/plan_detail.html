@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+	{% if admin %}
+    <li><a href="">Editar</a></li>
+    <li><a href="../../../plan/delete/{{ plan.id }}">Eliminar</a></li>
+    {% endif %}
+    <li><a href="../../../../planes/plan/list/">Volver</a></li>
+</ul>
+<h4>Trabajar</h4>
+<ul>
+	<li><a href="/planes/plan/fase1/{{ plan.id }}">Seleccionar &aacute;rbol</a></li>
+	<!--li><a href="/planes/plan/fase1_ajax/{{ plan.id }}">Seleccionar &aacute;rbol AJAX</a></li-->
+	<li><a href="">Proyectar informaci&oacute;n</a></li>
+	<li><a href="">Planificar</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<h2>Plan</h2>
+<ul>
+	<li>Nombre: {{ plan.nombre }}</li>
+	<li>Año: {{ plan.anio }}</li>
+	<li>Temporada: {{ plan.temporada }}</li>
+	<li>Creador: {{ plan.usuario_creador }}</li>
+</ul>
+
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    {% if admin %}
+    <li><a href="../../../../planes/plan/create/">Crear</a></li>
+    {% endif %}
+    <li><a href="../../../../planes/index/">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Planes</h2>
+
+<ul>
+    {% for plan in planes %}
+
+    <li><a href="/planes/plan/detail/{{ plan.id }}/"> {{ plan.nombre }} </a>
+
+    {% endfor %}
+</ul>
+
+{% endblock %}

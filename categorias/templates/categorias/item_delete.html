@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li><a href="../../../item/list/">Cancelar</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Eliminar Item</h2>
+<form action="" method="post">{% csrf_token %}
+    <p>Está usted seguro de que desea eliminar el &iacute;tem "{{ object }}"?</p>
+    <input type="submit" value="Confirmar" />
+</form>
+{% endblock content %}
