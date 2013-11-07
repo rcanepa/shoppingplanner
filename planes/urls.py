@@ -9,5 +9,6 @@ urlpatterns = patterns('',
     url(r'^plan/detail/(?P<pk>\d+)/$', views.PlanDetailView.as_view(), name='plan_detail'),
     url(r'^plan/delete/(?P<pk>\d+)/$', views.PlanDeleteView.as_view(), name='plan_delete'),
 
-    url(r'^plan/fase1/(?P<pk>\d+)/$', views.PlanTreeDetailView.as_view(), name='plan_tree_detail'),
+    url(r'^plan/stage1/(?P<pk>\d+)/$', views.PlanTreeDetailView.as_view(), name='plan_tree_detail'),
+    url(r'^plan/savestage1/$', views.GuardarArbolView.as_view()),
 )

@@ -27,7 +27,7 @@
 </ul>
 <h4>Trabajar</h4>
 <ul>
-	<li><a href="/planes/plan/fase1/{{ plan.id }}">Seleccionar &aacute;rbol</a></li>
+	<li><a href="/planes/plan/stage1/{{ plan.id }}">Seleccionar &aacute;rbol</a></li>
 	<!--li><a href="/planes/plan/fase1_ajax/{{ plan.id }}">Seleccionar &aacute;rbol AJAX</a></li-->
 	<li><a href="">Proyectar informaci&oacute;n</a></li>
 	<li><a href="">Planificar</a></li>
@@ -41,6 +41,7 @@
 	<li>Nombre: {{ plan.nombre }}</li>
 	<li>Año: {{ plan.anio }}</li>
 	<li>Temporada: {{ plan.temporada }}</li>
+	<li>Estado: {{ plan.get_estado_display }}</li>
 	<li>Creador: {{ plan.usuario_creador }}</li>
 </ul>
 
