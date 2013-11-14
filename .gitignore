@@ -2,8 +2,8 @@
 *.pot
 *.pyc
 
-/*.log
-/*.pot
-/*.pyc
-/local_settings.py
-/settings.py
+*/*.log
+*/*.pot
+*/*.pyc
+*/local_settings.py
+*/settings.py
