@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from datetime import datetime
 from categorias.models import Item
@@ -14,10 +15,14 @@ class Plan(models.Model):
         (3, 'Plafinicacion finalizada'),
         )
     nombre = models.CharField(max_length=70, unique=True)
-    anio = models.PositiveSmallIntegerField(default=(datetime.now()).year + 1)
+    anio = models.PositiveSmallIntegerField(verbose_name="año", default=(datetime.now()).year + 1)
     temporada = models.ForeignKey(Temporada)
     usuario_creador = models.ForeignKey(User)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
+
+    def get_num_items(self):
+        num_items = len(Itemplan.objects.filter(plan=self.id))
+        return num_items
 
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)

@@ -77,10 +77,6 @@ class PlanTreeDetailView(UserInfoMixin, DetailView):
     def dispatch(self, *args, **kwargs):
         return super(PlanTreeDetailView, self).dispatch(*args, **kwargs)
 
-    #def get_queryset(self):
-        """Override get_querset so we can filter on request.user """
-    #    return Item.objects.filter(usuario_responsable=self.request.user)
-
     def get_context_data(self, **kwargs):
         context = super(PlanTreeDetailView, self).get_context_data(**kwargs)
         context['items'] = Item.objects.filter(usuario_responsable=self.request.user)

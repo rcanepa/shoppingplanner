@@ -24,9 +24,22 @@
 {% endblock %}
 
 {% block content %}
-<form method="post">
+
+<h4>Crear Usuario</h4>
+
+<form class="pure-form pure-form-aligned" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Guardar">
+    {% for field in form %}
+    <div class="fieldWrapper pure-control-group">
+        {{ field.label_tag }} {{ field }}
+        {% for error in field.errors %}
+    		<span class="msg_error">(*) {{ error }}</span>
+    	{% endfor %}
+    </div>
+    {% endfor %}
+    <div class="pure-controls">
+        <button type="submit" class="pure-button pure-button-primary">Guardar</button>
+    </div>
 </form>
+
 {% endblock content %}

@@ -36,13 +36,32 @@
 
 {% block content %}
 
-<h2>Plan</h2>
-<ul>
-	<li>Nombre: {{ plan.nombre }}</li>
-	<li>Año: {{ plan.anio }}</li>
-	<li>Temporada: {{ plan.temporada }}</li>
-	<li>Estado: {{ plan.get_estado_display }}</li>
-	<li>Creador: {{ plan.usuario_creador }}</li>
-</ul>
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h2>Plan</h2></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.nombre }}</div>
+
+	<div class="left_label">Año</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.anio }}</div>
+	
+	<div class="left_label">Temporada</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.temporada }}</div>
+	
+	<div class="left_label">Estado</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.get_estado_display }}</div>
+	
+	<div class="left_label">Número de ítems</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.get_num_items }}</div>
+	
+	<div class="left_label">Creador</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.usuario_creador }}</div>
+</div>
+
 
 {% endblock %}

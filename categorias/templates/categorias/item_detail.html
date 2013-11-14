@@ -28,13 +28,27 @@
 {% endblock %}
 
 {% block content %}
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h2>Item</h2></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.nombre }}</div>
 
-<h2>Item</h2>
-<ul>
-	<li>Nombre: {{ item.nombre }}</li>
-	<li>Pertenece a: {{ item.item_padre }}</li>
-	<li>Vigencia: {% if item.vigencia %} S&iacute; {% else %} No {% endif %} </li>
-	<li>Usuario responsable: {{ item.usuario_responsable }}</li>
-	<li>Precio Blanco: {{ item.precio }}</li>
-</ul>
+	<div class="left_label">Pertenece a</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.item_padre }}</div>
+	
+	<div class="left_label">Vigencia</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{% if item.vigencia %} S&iacute; {% else %} No {% endif %}</div>
+	
+	<div class="left_label">Usuario responsable</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.usuario_responsable }}</div>
+	
+	<div class="left_label">Precio Blanco</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.precio }}</div>
+	
+</div>
 {% endblock %}
