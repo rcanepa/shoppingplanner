@@ -1,3 +1,7 @@
+*.log
+*.pot
+*.pyc
+
 /*.log
 /*.pot
 /*.pyc
