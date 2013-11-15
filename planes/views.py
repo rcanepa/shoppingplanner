@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import auth
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
@@ -58,7 +59,13 @@ class PlanDetailView(UserInfoMixin, DetailView):
     def dispatch(self, *args, **kwargs):
         return super(PlanDetailView, self).dispatch(*args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super(PlanDetailView, self).get_context_data(**kwargs)
+        context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1).count()
+        context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).count()
+        return context
 
+        
 class PlanDeleteView(UserInfoMixin, DeleteView):
     model = Plan
     template_name = "planes/plan_delete.html"
@@ -79,22 +86,75 @@ class PlanTreeDetailView(UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(PlanTreeDetailView, self).get_context_data(**kwargs)
-        context['items'] = Item.objects.filter(usuario_responsable=self.request.user)
+        if context['plan'].estado == 0:
+            # El arbol no ha sido generado, por lo tanto, se presenta la estructura completa cerrada
+            context['items'] = Item.objects.filter(usuario_responsable=self.request.user)
+        else:
+            """
+            El arbol se debe generar abierto segun la planificacion
+            El problema radica en como asignar el itemplan padre correctamente ya que los IDs de Item
+            no son los mismos que los IDS de itemplan
+            """
+            context['items'] = Item.objects.filter(usuario_responsable=self.request.user)
+            #context['items'] = Itemplan.objects.filter(plan=context['plan'].id, item_padre=None)
         return context
 
 
 class GuardarArbolView(UserInfoMixin, View):
 
     def get(self, request, *args, **kwargs):
-        return HttpResponse('This is GET request')
+        return HttpResponseRedirect(reverse('planes:plan_list'))
 
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.POST['plan'])
-        if bool(data):
+        if request.POST:
+            data = json.loads(request.POST['plan'])
+            # Si el arbol existe, debe ser eliminado
+            if Itemplan.objects.filter(plan=data['plan']):
+                Itemplan.objects.filter(plan=data['plan']).delete()
             plan_obj = Plan.objects.get(pk=data['plan'])
             items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
-            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x) for x in items_obj_arr]
+            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None) for x in items_obj_arr]
             plan_obj.estado = 1
             plan_obj.save()
             Itemplan.objects.bulk_create(itemplan_obj_arr)
+            #for z in itemplan_obj_arr:
+                #z.item_padre_id = z.item.item_padre_id
+                #z.save()
+
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
+
+
+class ProyeccionesView(UserInfoMixin, DetailView):
+    model = Plan
+    template_name = "planes/plan_proyecciones_detail.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ProyeccionesView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProyeccionesView, self).get_context_data(**kwargs)
+        if context['plan'].estado == 0:
+            # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
+            context['msg'] = "Primero debe definir el árbol de planificación."
+        else:
+            # Se deben presentar uno a uno los items a proyectar
+            context['items'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).order_by('id')[1:3]
+            context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1).count()
+            context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).count()
+            context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
+        return context
+
+class GuardarProyeccionView(UserInfoMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponseRedirect(reverse('planes:plan_list'))
+
+    def post(self, request, *args, **kwargs):
+        if request.POST:
+            data = json.loads(request.POST['proyeccion'])
+            plan_obj = Plan.objects.get(pk=data['plan'])
+            itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
+            itemplan_obj.estado = 1
+            itemplan_obj.save()
+        return HttpResponseRedirect(reverse('planes:plan_proyecciones_detail', args=(plan_obj.id,)))

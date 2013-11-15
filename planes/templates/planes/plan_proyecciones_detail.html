@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+<ul>
+	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
+	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
+	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
+	<li><a href="">Lista<span>Compra</span></a></li>
+	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
+	<li><a href="">Mi<span>Cuenta</span></a></li>
+	<li><a href="">Ayuda<span>/</span></a></li>
+</ul>
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+{% if msg %}
+<h3>Proyectar Información</h3>
+<div class="msg_warning">
+    {{ msg }}
+</div>
+{% else %}
+<div style="width:75%; float:left">
+    <h3>Proyectar Información</h3>
+        <h4>{{ items.0.nombre }} ({{ items.0.item.precio }})</h4>
+        <div style="width:50%; float:left">
+            <form id="proyform" class="pure-form" method="post" action="/planes/plan/savestage2/">
+                {% csrf_token %}
+                <table class="pure-table pure-table-horizontal">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center" colspan="8">Descuentos y Unidades</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2">Temporada</th>
+                            <th>P1</th>
+                            <th>P2</th>
+                            <th>P3</th>
+                            <th>P4</th>
+                            <th>P5</th>
+                            <th>P6</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">OT</td>
+                            <td>Unid</td>
+                            <td id="otv1">120</td>
+                            <td id="otv2">100</td>
+                            <td id="otv3">110</td>
+                            <td id="otv4">90</td>
+                            <td id="otv5"></td>
+                            <td id="otv6"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Dcto</td>
+                            <td id="otd1">0%</td>
+                            <td id="otd2">10%</td>
+                            <td id="otd3">15%</td>
+                            <td id="otd4">10%</td>
+                            <td id="otd5"></td>
+                            <td id="otd6"></td>
+                        </tr>
+
+                        <tr class="pure-table-odd">
+                            <td rowspan="2">PV</td>
+                            <td>Unid</td>
+                            <td id="pvv1">30</td>
+                            <td id="pvv2">40</td>
+                            <td id="pvv3">15</td>
+                            <td id="pvv4">0</td>
+                            <td id="pvv5">0</td>
+                            <td id="pvv6">0</td>
+                        </tr>
+                        
+                        <tr class="pure-table-odd">
+                            <td>Dcto</td>
+                            <td id="pvd1">60%</td>
+                            <td id="pvd1">75%</td>
+                            <td id="pvd1">75%</td>
+                            <td id="pvd1">0%</td>
+                            <td id="pvd1">0%</td>
+                            <td id="pvd1">0%</td>
+                        </tr>
+
+                        <tr>
+                            <td rowspan="2">TT</td>
+                            <td>Unid</td>
+                            <td id="ttv1">0</td>
+                            <td id="ttv2">0</td>
+                            <td id="ttv3">0</td>
+                            <td id="ttv4">0</td>
+                            <td id="ttv5">0</td>
+                            <td id="ttv6">0</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Dcto</td>
+                            <td id="ttd1">0%</td>
+                            <td id="ttd2">0%</td>
+                            <td id="ttd3">0%</td>
+                            <td id="ttd4">0%</td>
+                            <td id="ttd5">0%</td>
+                            <td id="ttd6">0%</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <div style="width:100%; float:left; padding-top:10px;">
+                    <input id="input_json_data" type="hidden" name="proyeccion" value="" />
+                    <button id="btnSaveExit" type="submit" class="pure-button pure-button-primary">Guardar</button>
+                    <button id="btnSave" type="submit" class="pure-button pure-button-primary">Guardar y Proyectar {{ items.1.nombre }}</button>
+                </div>
+            </form>
+            <div id="dialog-box" title="Ingresar Valor">
+                <input id="inputval" type="text" style="width:8em">
+            </div>
+        </div>
+        <div style="width:50%; float:left">
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr>
+                        <th style="text-align:center" colspan="8">Venta, Margen y Contribución</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Temporada</th>
+                        <th>P1</th>
+                        <th>P2</th>
+                        <th>P3</th>
+                        <th>P4</th>
+                        <th>P5</th>
+                        <th>P6</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td rowspan="3">OT</td>
+                        <td>Vta</td>
+                        <td id="otv1">1000</td>
+                        <td id="otv2">1000</td>
+                        <td id="otv3">1100</td>
+                        <td id="otv4">900</td>
+                        <td id="otv5">1400</td>
+                        <td id="otv6">1350</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Marg</td>
+                        <td id="otd1">0%</td>
+                        <td id="otd2">10%</td>
+                        <td id="otd3">15%</td>
+                        <td id="otd4">10%</td>
+                        <td id="otd5">0%</td>
+                        <td id="otd6">10%</td>
+                    </tr>
+
+                    <tr>
+                        <td>Cont</td>
+                        <td id="otc1">0%</td>
+                        <td id="otc2">10%</td>
+                        <td id="otc3">15%</td>
+                        <td id="otc4">10%</td>
+                        <td id="otc5">0%</td>
+                        <td id="otc6">10%</td>
+                    </tr>
+
+                    <tr class="pure-table-odd">
+                        <td rowspan="3">PV</td>
+                        <td>Vta</td>
+                        <td id="pvv1">300</td>
+                        <td id="pvv2">400</td>
+                        <td id="pvv3">150</td>
+                        <td id="pvv4">0</td>
+                        <td id="pvv5">0</td>
+                        <td id="pvv6">0</td>
+                    </tr>
+                    
+                    <tr class="pure-table-odd">
+                        <td>Marg</td>
+                        <td id="pvd1">60%</td>
+                        <td id="pvd1">75%</td>
+                        <td id="pvd1">75%</td>
+                        <td id="pvd1">0%</td>
+                        <td id="pvd1">0%</td>
+                        <td id="pvd1">0%</td>
+                    </tr>
+
+                    <tr class="pure-table-odd">
+                        <td>Cont</td>
+                        <td id="pvd1">60%</td>
+                        <td id="pvd1">75%</td>
+                        <td id="pvd1">75%</td>
+                        <td id="pvd1">0%</td>
+                        <td id="pvd1">0%</td>
+                        <td id="pvd1">0%</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="3">TT</td>
+                        <td>Vta</td>
+                        <td id="ttv1">0</td>
+                        <td id="ttv2">0</td>
+                        <td id="ttv3">0</td>
+                        <td id="ttv4">0</td>
+                        <td id="ttv5">0</td>
+                        <td id="ttv6">0</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Marg</td>
+                        <td id="ttd1">0%</td>
+                        <td id="ttd2">0%</td>
+                        <td id="ttd3">0%</td>
+                        <td id="ttd4">0%</td>
+                        <td id="ttd5">0%</td>
+                        <td id="ttd6">0%</td>
+                    </tr>
+
+                    <tr>
+                        <td>Cont</td>
+                        <td id="ttd1">0%</td>
+                        <td id="ttd2">0%</td>
+                        <td id="ttd3">0%</td>
+                        <td id="ttd4">0%</td>
+                        <td id="ttd5">0%</td>
+                        <td id="ttd6">0%</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        
+</div>
+<div style="width:20%; float:left; padding-left:10px;">
+    <div class="msg_info">
+        <h4>Resumen Proyecci&oacute;n</h4>
+        <ul>
+            <li>Proyectados: {{ num_items_pro }}</li>
+            <li>Pendientes: {{ num_items_nopro }}</li>
+            <li>Totales: {{ num_items_tot }}</li>
+        </ul>
+    </div>
+</div>
+<div class="msg_warning"style="width:95%; float:left; padding-top:10px;">
+    <pre>
+        Aquí van las estadísticas de otro item con el cual se desea comparar.
+
+        Incluye un buscador...
+    </pre>
+</div>
+{% endif%}
+
+{% endblock %}
+
+{% block js %}
+<script>
+
+$(function() {
+
+    var td = "";
+
+    $( "#dialog-box" ).dialog({
+
+        autoOpen: false,
+        //height: 300,
+        width: 280,
+        modal: true,
+        buttons: {
+            "Ingresar": function() {
+                //console.log(td.attr("id"));
+                td.text($("#inputval").val());
+                $("#inputval").val("");
+                $( this ).dialog( "close" );
+                
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    });
+    
+    $("#proyform td").click(function() {
+        td = $(this)
+        $( "#dialog-box" ).dialog( "open" );
+    });
+
+    $("#btnSave").click(function(){
+        
+        var plan = parseInt({{plan.id}});
+        var itemplan = parseInt({{items.0.id}});
+        
+        json_data = JSON.stringify({plan: plan, itemplan: itemplan});
+        $("#input_json_data").val(json_data);
+        console.log(json_data);
+        //$("#save_form").submit();
+    });
+
+});
+
+</script>
+
+{% endblock %}

@@ -32,6 +32,12 @@ img {
 	padding-top:10px;
 }
 */
+body {
+	font-size:80%;
+}
+input .proybox{
+	width:2em;
+}
 
 div .left_label {
 	float:left;

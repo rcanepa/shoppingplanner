@@ -14,7 +14,7 @@ class Plan(models.Model):
         (2, 'Proyeccion completada'),
         (3, 'Plafinicacion finalizada'),
         )
-    nombre = models.CharField(max_length=70, unique=True)
+    nombre = models.CharField(max_length=70)
     anio = models.PositiveSmallIntegerField(verbose_name="año", default=(datetime.now()).year + 1)
     temporada = models.ForeignKey(Temporada)
     usuario_creador = models.ForeignKey(User)
@@ -32,12 +32,31 @@ class Plan(models.Model):
 
 
 class Itemplan(models.Model):
+    ESTADOS = (
+        (0, 'Sin Proyección'),
+        (1, 'Proyectado'),
+        )
     nombre = models.CharField(max_length=70)
     venta = models.FloatField(default=0)
     margen = models.FloatField(default=0)
     contribucion = models.FloatField(default=0)
+    estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
+    item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
     item = models.ForeignKey(Item)
     plan = models.ForeignKey(Plan)
+
+    def as_tree(self):
+        """
+        Obtiene recursivamente la lista de hijos en forma de arbol
+        """
+        children = list(self.items_hijos.all())
+        print bool(children)
+        branch = bool(children)
+        yield branch, self
+        for child in children:
+            for next in child.as_tree():
+                yield next
+        yield branch, None
 
     def __unicode__(self):
         return self.item.nombre

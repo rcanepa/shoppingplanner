@@ -19,13 +19,12 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="">Guardar Selecci&oacute;n</a></li>
     <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
-<h2>Arbol de Planificaci&oacute;n</h2>
+<h3>Arbol de Planificaci&oacute;n</h3>
 <div style="width:40%; float:left">
     <div id="itemstree">
         <ul id="treeData" style="display: none;">
@@ -60,11 +59,16 @@
     <button id="btnSave" type="submit">Guardar</button>
     </form>
     <div style="clear:both;">
-        <div class="msg_info" style="margin-top: 20px; padding: 0 .7em;">
+        <div class="msg_info">
             <p id="msg_total"></p>
             <p id="msg_visibles"></p>
             <p id="msg_nodo_activo"></p>
         </div>
+        {% if plan.estado == 1 %}
+            <div class="msg_warning">
+                <p>Cuidado:</p> Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -116,6 +120,7 @@ $(function() {
 
     var tree = $("#itemstree").fancytree("getTree");
     var num_nodos = tree.count();
+    definirVisibles();
     $("#msg_total").html("<p>Total de ítems: " + num_nodos + "</p>");
 
     /*

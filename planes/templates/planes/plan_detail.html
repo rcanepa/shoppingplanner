@@ -19,17 +19,13 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-	{% if admin %}
-    <li><a href="">Editar</a></li>
     <li><a href="../../../plan/delete/{{ plan.id }}">Eliminar</a></li>
-    {% endif %}
     <li><a href="../../../../planes/plan/list/">Volver</a></li>
 </ul>
 <h4>Trabajar</h4>
 <ul>
 	<li><a href="/planes/plan/stage1/{{ plan.id }}">Seleccionar &aacute;rbol</a></li>
-	<!--li><a href="/planes/plan/fase1_ajax/{{ plan.id }}">Seleccionar &aacute;rbol AJAX</a></li-->
-	<li><a href="">Proyectar informaci&oacute;n</a></li>
+	<li><a href="/planes/plan/stage2/{{ plan.id }}">Proyectar informaci&oacute;n</a></li>
 	<li><a href="">Planificar</a></li>
 </ul>
 {% endblock %}
@@ -37,7 +33,7 @@
 {% block content %}
 
 <div style="float:left; width:40%;">
-	<div style="float:left; width:100%;"><h2>Plan</h2></div>
+	<div style="float:left; width:100%;"><h3>Plan</h3></div>
 	<div class="left_label">Nombre</div>
 	<div class="middle_label">:</div>
 	<div class="right_label">{{ plan.nombre }}</div>
@@ -58,10 +54,17 @@
 	<div class="middle_label">:</div>
 	<div class="right_label">{{ plan.get_num_items }}</div>
 	
-	<div class="left_label">Creador</div>
+	<div class="left_label">Items Proyectados</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ plan.usuario_creador }}</div>
-</div>
+	<div class="right_label">{{ num_items_pro }}</div>
 
+	<div class="left_label">Items Pendientes</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ num_items_nopro }}</div>
+
+	<div class="left_label">Responsable</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.usuario_creador.first_name }} {{ plan.usuario_creador.last_name }}</div>
+</div>
 
 {% endblock %}

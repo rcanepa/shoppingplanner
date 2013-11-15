@@ -11,4 +11,6 @@ urlpatterns = patterns('',
 
     url(r'^plan/stage1/(?P<pk>\d+)/$', views.PlanTreeDetailView.as_view(), name='plan_tree_detail'),
     url(r'^plan/savestage1/$', views.GuardarArbolView.as_view()),
+    url(r'^plan/stage2/(?P<pk>\d+)/$', views.ProyeccionesView.as_view(), name='plan_proyecciones_detail'),
+    url(r'^plan/savestage2/$', views.GuardarProyeccionView.as_view()),
 )

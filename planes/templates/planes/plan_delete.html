@@ -26,7 +26,7 @@
 {% block content %}
 <h2>Eliminar Planificaci&oacute;n</h2>
 <form action="" method="post">{% csrf_token %}
-    <p><span class="msg_warning">¿Está usted seguro de que desea eliminar la planificaci&oacute;n {{ object }}?</span></p>
-    <input type="submit" value="Confirmar" />
+    <p><span>¿Está usted seguro de que desea eliminar la planificaci&oacute;n {{ object }}?</span></p>
+    <input class="pure-button pure-button-primary" type="submit" value="Confirmar" />
 </form>
 {% endblock content %}
