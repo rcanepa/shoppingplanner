@@ -7,12 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import View, TemplateView, ListView, DetailView
 from planes.models import Plan, Itemplan
-from categorias.models import Item
+from categorias.models import Categoria, Item
 from forms import PlanForm
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse_lazy, reverse
 from planificador.views import UserInfoMixin
+from django.core import serializers
 import json
 
 class IndexView(UserInfoMixin, TemplateView):
@@ -117,9 +118,6 @@ class GuardarArbolView(UserInfoMixin, View):
             plan_obj.estado = 1
             plan_obj.save()
             Itemplan.objects.bulk_create(itemplan_obj_arr)
-            #for z in itemplan_obj_arr:
-                #z.item_padre_id = z.item.item_padre_id
-                #z.save()
 
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
@@ -143,6 +141,8 @@ class ProyeccionesView(UserInfoMixin, DetailView):
             context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1).count()
             context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).count()
             context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
+            categorias = Categoria.objects.exclude(categoria_padre=None)
+            context['categorias'] = sorted(categorias, key= lambda t: t.get_nivel())
         return context
 
 class GuardarProyeccionView(UserInfoMixin, View):
@@ -158,3 +158,31 @@ class GuardarProyeccionView(UserInfoMixin, View):
             itemplan_obj.estado = 1
             itemplan_obj.save()
         return HttpResponseRedirect(reverse('planes:plan_proyecciones_detail', args=(plan_obj.id,)))
+
+class BuscarItemplanListProyeccionView(View):
+    
+    
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            id_plan = request.GET['id_plan']
+            id_cat = json.loads(request.GET['id_cat'])
+            queryset = Itemplan.objects.filter(plan=id_plan,item__categoria__id=id_cat).order_by('estado')
+            list = []
+            for itemplan in queryset: #populate list
+                list.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio})
+            data = json.dumps(list) #dump list as JSON
+            return HttpResponse(data, mimetype='application/json')
+        #return HttpResponseRedirect(reverse('planes:plan_list'))
+
+
+class BuscarItemplanProyeccionView(View):
+
+
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            id_plan = request.GET['id_plan']
+            id_itemplan = request.GET['id_itemplan']
+            itemplan_obj = Itemplan.objects.filter(plan=id_plan,id=id_itemplan)
+            data = serializers.serialize('json', itemplan_obj)
+            return HttpResponse(data, mimetype='application/json')
+        #return HttpResponseRedirect(reverse('planes:plan_list'))

@@ -33,7 +33,7 @@ class Plan(models.Model):
 
 class Itemplan(models.Model):
     ESTADOS = (
-        (0, 'Sin Proyección'),
+        (0, 'Pendiente'),
         (1, 'Proyectado'),
         )
     nombre = models.CharField(max_length=70)
@@ -42,7 +42,7 @@ class Itemplan(models.Model):
     contribucion = models.FloatField(default=0)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
-    item = models.ForeignKey(Item)
+    item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan)
 
     def as_tree(self):

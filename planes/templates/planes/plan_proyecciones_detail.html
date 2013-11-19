@@ -30,10 +30,22 @@
     {{ msg }}
 </div>
 {% else %}
+<div style="padding-bottom:10px;">
+    <div id="itemplan_title"><h3>Proyectar</h3></div>
+    <label>Buscar por:</label>
+    <select id="cat_select">
+        <option value="-1"></option>
+        {% for categoria in categorias %}
+            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+        {% endfor %}
+    </select>
+    <label>Art&iacute;culo:</label>
+    <select id="itemplan_select">
+        <option value="-1"></option>
+    </select>
+</div>
 <div style="width:75%; float:left">
-    <h3>Proyectar Información</h3>
-        <h4>{{ items.0.nombre }} ({{ items.0.item.precio }})</h4>
-        <div style="width:50%; float:left">
+        <div style="width:100%; float:left">
             <form id="proyform" class="pure-form" method="post" action="/planes/plan/savestage2/">
                 {% csrf_token %}
                 <table class="pure-table pure-table-horizontal">
@@ -118,7 +130,7 @@
 
                     </tbody>
                 </table>
-                <div style="width:100%; float:left; padding-top:10px;">
+                <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
                     <input id="input_json_data" type="hidden" name="proyeccion" value="" />
                     <button id="btnSaveExit" type="submit" class="pure-button pure-button-primary">Guardar</button>
                     <button id="btnSave" type="submit" class="pure-button pure-button-primary">Guardar y Proyectar {{ items.1.nombre }}</button>
@@ -128,7 +140,7 @@
                 <input id="inputval" type="text" style="width:8em">
             </div>
         </div>
-        <div style="width:50%; float:left">
+        <div style="width:100%; float:left">
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr>
@@ -304,8 +316,47 @@ $(function() {
         
         json_data = JSON.stringify({plan: plan, itemplan: itemplan});
         $("#input_json_data").val(json_data);
-        console.log(json_data);
+        //console.log(json_data);
+        
         //$("#save_form").submit();
+    });
+
+    // Controla el combobox de categoria
+    $("#cat_select").change(function(){
+        var id_cat = $(this).val();
+        var id_plan = parseInt({{plan.id}});
+        $.ajax({
+            data: {'id_cat':id_cat, 'id_plan':id_plan},
+            url: '/planes/plan/itemplansearchlist/',
+            type: 'get',
+            success: function(data){
+                html = '';
+                html += '<option value="-1"></option>';
+                for (var x=0; x<data.length; x++){
+                    html += '<option value="' + data[x].id + '">(' + data[x].estado + ') ' + data[x].nombre + ' (' + data[x].precio + ')</option>';
+                }
+                $("#itemplan_select").html(html);
+            }
+
+        });
+        
+    });
+
+    // Controla el combobox de itemplan
+    $("#itemplan_select").change(function(){
+        var id_itemplan = $(this).val();
+        var id_plan = parseInt({{plan.id}});
+        $.ajax({
+            data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
+            url: '/planes/plan/itemplansearch/',
+            type: 'get',
+            success: function(data){
+                console.log(data);
+                $("#itemplan_title").html("<h3>Proyectar - " + data[0].fields.nombre + "</h3>");
+            }
+
+        });
+        
     });
 
 });
