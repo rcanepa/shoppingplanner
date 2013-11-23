@@ -2,9 +2,20 @@
 from django.db import models
 from datetime import datetime
 from categorias.models import Item
-from calendarios.models import Temporada
+from organizaciones.models import Organizacion
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+
+
+class Temporada(models.Model):
+    nombre = models.CharField(max_length=50)
+    organizacion = models.ForeignKey(Organizacion)
+
+    def __unicode__(self):
+        return self.nombre
+    
+    def get_absolute_url(self):
+        return reverse('planes:temporada_detail', kwargs={'pk': self.pk})
 
 
 class Plan(models.Model):

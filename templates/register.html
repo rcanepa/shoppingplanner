@@ -1,16 +1,9 @@
 {% extends "base.html" %}
 
 {% block topbar %}
-<ul>
-	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
-	<li><a href="../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
-	<li><a href="">Proyectar<span>Datos</span></a></li>
-	<li><a href="">Planificar<span>Temporada</span></a></li>
-	<li><a href="">Lista<span>Compra</span></a></li>
-	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
-	<li><a href="">Mi<span>Cuenta</span></a></li>
-	<li><a href="">Ayuda<span>/</span></a></li>
-</ul>
+
+{% include "administracion/menu.html" %}
+
 {% endblock %}
 
 {% block username %}
@@ -28,6 +21,7 @@
 	<h2>Crear Usuario</h2>
 	<form class="pure-form pure-form-aligned" action="/accounts/register/" method="post">
 		{% csrf_token %}
+
 	    {% for field in form %}
 	        <div class="fieldWrapper pure-control-group">
 	            {{ field.label_tag }} {{ field }}
@@ -35,10 +29,14 @@
     				<span class="msg_error">(*) {{ error }}</span>
     			{% endfor %}
 	        </div>
-	    {% endfor %}
+	    {% endfor %} 
+		<div class="fieldWrapper pure-control-group" style="width:30%;">
+			{% for error in form.non_field_errors %}
+				<p class="msg_error">(*) {{ error }}</p>
+			{% endfor %}
+   		</div>       
 	    <div class="pure-controls">
             <button type="submit" class="pure-button pure-button-primary">Submit</button>
         </div>
 	</form>
-
 {% endblock %}

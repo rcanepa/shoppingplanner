@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 
 {% block topbar %}
-<ul>
-	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
-	<li><a href="../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
-	<li><a href="../../planes/index/">Planificar<span>Temporada</span></a></li>
-	<li><a href="">Lista<span>Compra</span></a></li>
-	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
-	<li><a href="">Mi<span>Cuenta</span></a></li>
-	<li><a href="">Ayuda<span>/</span></a></li>
-</ul>
+
+{% include "administracion/menu.html" %}
+
 {% endblock %}
 
 {% block username %}
@@ -24,6 +18,7 @@
         </ul>
         <h4>Usuarios</h4>
         <ul>
+            <li><a href="/accounts/list/">Ver usuarios</a></li>
             <li><a href="/accounts/register/">Crear usuario</a></li>
             <li><a href="">Eliminar usuario</a></li>
         </ul>
@@ -43,6 +38,19 @@
             <li><a href="">Asignar Responsables</a></li>
             {% endif %}
         </ul>
+        {% if admin %}
+        <h4>Calendarios</h4>
+        <ul>
+            <li><a href="/calendarios/calendario/list/">Calendario</a></li>
+            <li><a href="#">Periodos</a></li>
+        </ul>
+        {% endif %}
+        {% if admin %}
+        <h4>Temporadas</h4>
+        <ul>
+            <li><a href="/planes/temporada/list/">Ver Temporadas</a></li>
+        </ul>
+        {% endif %}
 {% endblock %}
 
 {% block content %}

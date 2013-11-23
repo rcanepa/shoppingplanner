@@ -1,15 +1,10 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block topbar %}
-<ul>
-	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
-	<li><a href="../../../administracion/index/" class="active">Administraci&oacute;n<span>/</span></a></li>
-	<li><a href="../../../../planes/index/">Planificar<span>Temporada</span></a></li>
-	<li><a href="">Lista<span>Compra</span></a></li>
-	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
-	<li><a href="">Mi<span>Cuenta</span></a></li>
-	<li><a href="">Ayuda<span>/</span></a></li>
-</ul>
+
+{% include "administracion/menu.html" %}
+
 {% endblock %}
 
 {% block username %}
@@ -35,10 +30,10 @@
             {% for branch, obj in item.as_tree %}
                 {% if obj %}
                     {% if branch %}
-                        <li id="{{ obj.id }}" class="folder"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio }})</a>
+                        <li id="{{ obj.id }}" class="folder"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})</a>
                         <ul>
                     {% else %}
-                        <li id="{{ obj.id }}"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio }})</a>
+                        <li id="{{ obj.id }}"><a href="/categorias/item/detail/{{ obj.id }}/" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})</a>
                         </li>
                     {% endif %}
                 {% else %}

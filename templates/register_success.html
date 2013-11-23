@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	{{ full_name }}
+{% endblock %}
+
+{% block sidebar %}
+<h4>Usuarios</h4>
+<ul>
+    <li><a href="../../accounts/list/">Volver</a></li>
+</ul>
+{% endblock %}
+
 {% block content %}
-
-	<h2>You have registered!</h2>
-	<p>Click <a href="/accounts/login/">here</a> to login again</p>
-
+	<h3>Usuarios</h2>
+	<div class="msg_info" style="width:50%;">El usuario ha sido creado exit&oacute;samente!</div>
+	
 {% endblock %}

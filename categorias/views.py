@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response
 from categorias.models import Categoria, Item
+from ventas.models import Venta
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from forms import CategoriaForm, ItemForm
@@ -11,12 +12,11 @@ from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.views.generic import DeleteView
 from django.core.urlresolvers import reverse_lazy
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import user_passes_test
-
+from django.db.models import Sum
 from planificador.views import UserInfoMixin
-
+from collections import defaultdict
 
 class CategoriaListView(UserInfoMixin, ListView):
     context_object_name = "categorias"
@@ -130,6 +130,16 @@ class ItemDetailView(UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ItemDetailView, self).get_context_data(**kwargs)
+        item = self.get_object()
+        context['ventas'] = Venta.objects.values('anio').filter(item=item).annotate(vta_n=Sum('vta_n'), vta_u=Sum('vta_u')).order_by('-anio')
+        
+        ventas = Venta.objects.filter(item=item).order_by('anio','semana')
+        summary = defaultdict( int )
+        
+        for venta in ventas:
+            summary[venta.anio, venta.semana] = venta.vta_n, venta.vta_u
+        
+        context['summary'] = dict(summary)
         return context
 
 

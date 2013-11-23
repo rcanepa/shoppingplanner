@@ -14,19 +14,19 @@
 <h4>M&oacute;dulos</h4>
 <ul>
     {% if admin %}
-    <li><a href="../../../../planes/plan/create/">Crear</a></li>
+    <li><a href="../../../../planes/temporada/create/">Crear</a></li>
     {% endif %}
-    <li><a href="../../../../planes/index/">Volver</a></li>
+    <li><a href="../../../../administracion/index/">Volver</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
-<h2>Planes</h2>
+<h3>Temporadas</h3>
 
 <ul>
-    {% for plan in planes %}
+    {% for temporada in temporadas %}
 
-    <li><a href="/planes/plan/detail/{{ plan.id }}/"> {{ plan.nombre }} </a>
+    <li><a href="/planes/temporada/detail/{{ temporada.id }}/"> {{ temporada.nombre }} </a>
 
     {% endfor %}
 </ul>

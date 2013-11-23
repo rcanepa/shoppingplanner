@@ -1,11 +1,11 @@
+/*
 body {
 	margin:0;
 	padding:0;
-	border:0;			/* This removes the border around the viewport in old versions of IE */
+	border:0;
 	width:100%;
 	background:#fff;
-	min-width:600px;    	/* Minimum width of layout - remove line if not required */
-					/* The min-width property does not work in old versions of Internet Explorer */
+	min-width:600px;
 	font-size:90%;
 }
 a {
@@ -31,62 +31,95 @@ img {
 	display:block;
 	padding-top:10px;
 }
+*/
 
-/* Header styles */
-#header {
-	clear:both;
+body {
+	font-size:80%;
+}
+
+input .proybox{
+	width:2em;
+}
+
+div .left_label {
 	float:left;
-	width:100%;
+	width:40%;
 }
-#header {
-	border-bottom:1px solid #000;
-}
-#header p,
-#header h1,
-#header h2 {
-	padding:.4em 15px 0 15px;
-	margin:0;
-}
-#header ul {
-	clear:left;
+
+div .middle_label {
 	float:left;
-	width:100%;
-	list-style:none;
-	margin:10px 0 0 0;
-	padding:0;
+	width:5%;
 }
-#header ul li {
-	display:inline;
-	list-style:none;
-	margin:0;
-	padding:0;
-}
-#header ul li a {
-	display:block;
+
+div .right_label {
 	float:left;
-	margin:0 0 0 1px;
-	padding:3px 10px;
-	text-align:center;
-	background:#eee;
-	color:#000;
-	text-decoration:none;
-	position:relative;
-	left:15px;
-	line-height:1.3em;
+	width:55%;
 }
-#header ul li a:hover {
-	background:#369;
-	color:#fff;
+
+.msg_info, .msg_success, .msg_warning, .msg_error {
+    border: 1px solid;
+    margin: 10px 0px;
+    padding:5px 10px;
+    background-repeat: no-repeat;
+    background-position: 10px center;-moz-border-radius:.5em;
+-webkit-border-radius:.5em;
+border-radius:.5em;
+ 
 }
-#header ul li a.active,
-#header ul li a.active:hover {
-	color:#fff;
-	background:#000;
-	font-weight:bold;
+.msg_info {
+    color: #00529B;
+    background-color: #BDE5F8;
 }
-#header ul li a span {
-	display:block;
+.msg_success {
+    color: #4F8A10;
+    background-color: #DFF2BF;
 }
+.msg_warning {
+    color: #9F6000;
+    background-color: #FEEFB3;
+}
+.msg_error {
+    color: #D8000C;
+    background-color: #FFBABA;
+}
+
+
+#navlist {
+	padding: 3px 0;
+	margin-left: 0;
+	/*border-bottom: 1px solid #778;*/
+	margin-bottom: 0;
+}
+
+#navlist li {
+	list-style: none;
+	margin: 0;
+	display: inline;
+}
+
+#navlist li a {
+	padding: 3px 0.5em;
+	margin-left: 3px;
+	border: 1px solid #778;
+	border-bottom: none;
+	background: #DDE;
+	text-decoration: none;
+}
+
+#navlist li a:link { color: #448; }
+#navlist li a:visited { color: #667; }
+
+#navlist li a:hover {
+	color: #000;
+	background: #AAE;
+	border-color: #227;
+}
+
+#navlist li a#current {
+	background: white;
+	/*border-bottom: 1px solid white;*/
+}
+
 /* 'widths' sub menu */
 #layoutdims {
 	clear:both;

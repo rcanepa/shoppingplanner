@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<h4>M&oacute;dulos</h4>
+<ul>
+    <li><a href="../../../temporada/delete/{{ temporada.id }}">Eliminar</a></li>
+    <li><a href="../../../../planes/temporada/list/">Volver</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h3>Temporada</h3></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ temporada.nombre }}</div>
+	<div class="left_label">Organizaci&oacute;n</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ temporada.organizacion }}</div>
+</div>
+
+{% endblock %}

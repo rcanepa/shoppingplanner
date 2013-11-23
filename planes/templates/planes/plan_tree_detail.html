@@ -1,15 +1,10 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block topbar %}
-<ul>
-	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
-	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
-	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
-	<li><a href="">Lista<span>Compra</span></a></li>
-	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
-	<li><a href="">Mi<span>Cuenta</span></a></li>
-	<li><a href="">Ayuda<span>/</span></a></li>
-</ul>
+
+{% include "planes/menu.html" %}
+
 {% endblock %}
 
 {% block username %}
@@ -33,11 +28,11 @@
                     {% if obj %}
                         <!-- if branch comprueba la existencia de un nodo hijo -->
                         {% if branch %}
-                            <li id="{{ obj.id }}" class="folder">{{ obj.nombre }} (Precio: {{ obj.precio }})
+                            <li id="{{ obj.id }}" class="folder">{{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})
                             <ul>
                         <!-- No hay nodo hijo -->
                         {% else %}
-                            <li id="{{ obj.id }}">{{ obj.nombre }} (Precio: {{ obj.precio }})
+                            <li id="{{ obj.id }}">{{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})
                             </li>
                         {% endif %}
                     {% else %}
@@ -83,7 +78,15 @@ $(function() {
         var nodos_visibles = 0;
         $("#itemstree").fancytree("getTree").visit(function(node){
             if (node.isVisible()){
-                nodos_visibles++;
+                if (node.hasChildren()){
+                    if (!node.isExpanded()){
+                        nodos_visibles++;
+                    }
+                }
+                else{
+                    nodos_visibles++;
+                }
+                
             }
         });
         $("#msg_visibles").html("<p>Items a planificar: " + nodos_visibles + "</p>");
@@ -130,15 +133,23 @@ $(function() {
     $("#btnSave").click(function(){
         var nodos_lista = [];
         var plan = parseInt({{plan.id}});
-        // Se obtiene la lista de nodos visibles (a planificar)
+        /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
         $("#itemstree").fancytree("getTree").visit(function(node){
             if (node.isVisible()){
-                nodos_lista.push(parseInt(node.key));
+                if (node.hasChildren()){
+                    if (!node.isExpanded()){
+                        nodos_lista.push(parseInt(node.key));
+                    }
+                }
+                else{
+                    nodos_lista.push(parseInt(node.key));    
+                }
+                
             }
         });
         json_data = JSON.stringify({plan: plan,items: nodos_lista});
         $("#input_json_data").val(json_data);
-        console.log(json_data);
+        //console.log(json_data);
         $("#save_form").submit();
     });
 });

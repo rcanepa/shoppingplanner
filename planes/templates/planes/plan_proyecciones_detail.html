@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 
 {% block topbar %}
-<ul>
-	<li><a href="/accounts/loggedin/">Inicio<span>/</span></a></li>
-	<li><a href="../../../../../administracion/index/">Administraci&oacute;n<span>/</span></a></li>
-	<li><a href="../../../../planes/index/" class="active">Planificar<span>Temporada</span></a></li>
-	<li><a href="">Lista<span>Compra</span></a></li>
-	<li><a href="">An&aacute;lisis<span>KPIs</span></a></li>
-	<li><a href="">Mi<span>Cuenta</span></a></li>
-	<li><a href="">Ayuda<span>/</span></a></li>
-</ul>
+
+{% include "planes/menu.html" %}
+
 {% endblock %}
 
 {% block username %}
@@ -31,7 +25,10 @@
 </div>
 {% else %}
 <div style="padding-bottom:10px;">
-    <div id="itemplan_title"><h3>Proyectar</h3></div>
+    <div style="float:left; width:100%">
+        <h3>Proyectar</h3>
+        <p>Totales: {{ num_items_tot }} | Proyectados: {{ num_items_pro }} | Pendientes: {{ num_items_nopro }}</p>  
+    </div>
     <label>Buscar por:</label>
     <select id="cat_select">
         <option value="-1"></option>
@@ -44,235 +41,29 @@
         <option value="-1"></option>
     </select>
 </div>
+
 <div style="width:75%; float:left">
-        <div style="width:100%; float:left">
-            <form id="proyform" class="pure-form" method="post" action="/planes/plan/savestage2/">
-                {% csrf_token %}
-                <table class="pure-table pure-table-horizontal">
-                    <thead>
-                        <tr>
-                            <th style="text-align:center" colspan="8">Descuentos y Unidades</th>
-                        </tr>
-                        <tr>
-                            <th colspan="2">Temporada</th>
-                            <th>P1</th>
-                            <th>P2</th>
-                            <th>P3</th>
-                            <th>P4</th>
-                            <th>P5</th>
-                            <th>P6</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td rowspan="2">OT</td>
-                            <td>Unid</td>
-                            <td id="otv1">120</td>
-                            <td id="otv2">100</td>
-                            <td id="otv3">110</td>
-                            <td id="otv4">90</td>
-                            <td id="otv5"></td>
-                            <td id="otv6"></td>
-                        </tr>
-                        
-                        <tr>
-                            <td>Dcto</td>
-                            <td id="otd1">0%</td>
-                            <td id="otd2">10%</td>
-                            <td id="otd3">15%</td>
-                            <td id="otd4">10%</td>
-                            <td id="otd5"></td>
-                            <td id="otd6"></td>
-                        </tr>
-
-                        <tr class="pure-table-odd">
-                            <td rowspan="2">PV</td>
-                            <td>Unid</td>
-                            <td id="pvv1">30</td>
-                            <td id="pvv2">40</td>
-                            <td id="pvv3">15</td>
-                            <td id="pvv4">0</td>
-                            <td id="pvv5">0</td>
-                            <td id="pvv6">0</td>
-                        </tr>
-                        
-                        <tr class="pure-table-odd">
-                            <td>Dcto</td>
-                            <td id="pvd1">60%</td>
-                            <td id="pvd1">75%</td>
-                            <td id="pvd1">75%</td>
-                            <td id="pvd1">0%</td>
-                            <td id="pvd1">0%</td>
-                            <td id="pvd1">0%</td>
-                        </tr>
-
-                        <tr>
-                            <td rowspan="2">TT</td>
-                            <td>Unid</td>
-                            <td id="ttv1">0</td>
-                            <td id="ttv2">0</td>
-                            <td id="ttv3">0</td>
-                            <td id="ttv4">0</td>
-                            <td id="ttv5">0</td>
-                            <td id="ttv6">0</td>
-                        </tr>
-                        
-                        <tr>
-                            <td>Dcto</td>
-                            <td id="ttd1">0%</td>
-                            <td id="ttd2">0%</td>
-                            <td id="ttd3">0%</td>
-                            <td id="ttd4">0%</td>
-                            <td id="ttd5">0%</td>
-                            <td id="ttd6">0%</td>
-                        </tr>
-
-                    </tbody>
-                </table>
-                <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
-                    <input id="input_json_data" type="hidden" name="proyeccion" value="" />
-                    <button id="btnSaveExit" type="submit" class="pure-button pure-button-primary">Guardar</button>
-                    <button id="btnSave" type="submit" class="pure-button pure-button-primary">Guardar y Proyectar {{ items.1.nombre }}</button>
-                </div>
-            </form>
-            <div id="dialog-box" title="Ingresar Valor">
-                <input id="inputval" type="text" style="width:8em">
+    <div style="width:100%; float:left">
+        <form id="proyform" class="pure-form" method="post" action="/planes/plan/savestage2/">
+            {% csrf_token %}
+            <div id="tab_dcto_uni" style="float:left; width:100%;">
             </div>
+            <div id="tab_ven_mar_con" style="float:left; width:100%;">
+            </div>
+            <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
+                <input id="input_json_data" type="hidden" name="proyeccion" value="" />
+                <button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button>
+            </div>
+        </form>
+        <div id="dialog-box" title="Ingresar Valor">
+            <input id="inputval" type="text" style="width:8em">
         </div>
-        <div style="width:100%; float:left">
-            <table class="pure-table pure-table-horizontal">
-                <thead>
-                    <tr>
-                        <th style="text-align:center" colspan="8">Venta, Margen y Contribución</th>
-                    </tr>
-                    <tr>
-                        <th colspan="2">Temporada</th>
-                        <th>P1</th>
-                        <th>P2</th>
-                        <th>P3</th>
-                        <th>P4</th>
-                        <th>P5</th>
-                        <th>P6</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td rowspan="3">OT</td>
-                        <td>Vta</td>
-                        <td id="otv1">1000</td>
-                        <td id="otv2">1000</td>
-                        <td id="otv3">1100</td>
-                        <td id="otv4">900</td>
-                        <td id="otv5">1400</td>
-                        <td id="otv6">1350</td>
-                    </tr>
-                    
-                    <tr>
-                        <td>Marg</td>
-                        <td id="otd1">0%</td>
-                        <td id="otd2">10%</td>
-                        <td id="otd3">15%</td>
-                        <td id="otd4">10%</td>
-                        <td id="otd5">0%</td>
-                        <td id="otd6">10%</td>
-                    </tr>
-
-                    <tr>
-                        <td>Cont</td>
-                        <td id="otc1">0%</td>
-                        <td id="otc2">10%</td>
-                        <td id="otc3">15%</td>
-                        <td id="otc4">10%</td>
-                        <td id="otc5">0%</td>
-                        <td id="otc6">10%</td>
-                    </tr>
-
-                    <tr class="pure-table-odd">
-                        <td rowspan="3">PV</td>
-                        <td>Vta</td>
-                        <td id="pvv1">300</td>
-                        <td id="pvv2">400</td>
-                        <td id="pvv3">150</td>
-                        <td id="pvv4">0</td>
-                        <td id="pvv5">0</td>
-                        <td id="pvv6">0</td>
-                    </tr>
-                    
-                    <tr class="pure-table-odd">
-                        <td>Marg</td>
-                        <td id="pvd1">60%</td>
-                        <td id="pvd1">75%</td>
-                        <td id="pvd1">75%</td>
-                        <td id="pvd1">0%</td>
-                        <td id="pvd1">0%</td>
-                        <td id="pvd1">0%</td>
-                    </tr>
-
-                    <tr class="pure-table-odd">
-                        <td>Cont</td>
-                        <td id="pvd1">60%</td>
-                        <td id="pvd1">75%</td>
-                        <td id="pvd1">75%</td>
-                        <td id="pvd1">0%</td>
-                        <td id="pvd1">0%</td>
-                        <td id="pvd1">0%</td>
-                    </tr>
-
-                    <tr>
-                        <td rowspan="3">TT</td>
-                        <td>Vta</td>
-                        <td id="ttv1">0</td>
-                        <td id="ttv2">0</td>
-                        <td id="ttv3">0</td>
-                        <td id="ttv4">0</td>
-                        <td id="ttv5">0</td>
-                        <td id="ttv6">0</td>
-                    </tr>
-                    
-                    <tr>
-                        <td>Marg</td>
-                        <td id="ttd1">0%</td>
-                        <td id="ttd2">0%</td>
-                        <td id="ttd3">0%</td>
-                        <td id="ttd4">0%</td>
-                        <td id="ttd5">0%</td>
-                        <td id="ttd6">0%</td>
-                    </tr>
-
-                    <tr>
-                        <td>Cont</td>
-                        <td id="ttd1">0%</td>
-                        <td id="ttd2">0%</td>
-                        <td id="ttd3">0%</td>
-                        <td id="ttd4">0%</td>
-                        <td id="ttd5">0%</td>
-                        <td id="ttd6">0%</td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-        
-</div>
-<div style="width:20%; float:left; padding-left:10px;">
-    <div class="msg_info">
-        <h4>Resumen Proyecci&oacute;n</h4>
-        <ul>
-            <li>Proyectados: {{ num_items_pro }}</li>
-            <li>Pendientes: {{ num_items_nopro }}</li>
-            <li>Totales: {{ num_items_tot }}</li>
-        </ul>
     </div>
 </div>
-<div class="msg_warning"style="width:95%; float:left; padding-top:10px;">
-    <pre>
-        Aquí van las estadísticas de otro item con el cual se desea comparar.
-
-        Incluye un buscador...
-    </pre>
+<div style="width:20%; float:left; padding-left:10px;">
+    
 </div>
+
 {% endif%}
 
 {% endblock %}
@@ -281,33 +72,6 @@
 <script>
 
 $(function() {
-
-    var td = "";
-
-    $( "#dialog-box" ).dialog({
-
-        autoOpen: false,
-        //height: 300,
-        width: 280,
-        modal: true,
-        buttons: {
-            "Ingresar": function() {
-                //console.log(td.attr("id"));
-                td.text($("#inputval").val());
-                $("#inputval").val("");
-                $( this ).dialog( "close" );
-                
-            },
-            Cancelar: function() {
-                $( this ).dialog( "close" );
-            }
-        }
-    });
-    
-    $("#proyform td").click(function() {
-        td = $(this)
-        $( "#dialog-box" ).dialog( "open" );
-    });
 
     $("#btnSave").click(function(){
         
@@ -321,7 +85,11 @@ $(function() {
         //$("#save_form").submit();
     });
 
-    // Controla el combobox de categoria
+    /*
+        Controla los cambios hechos sobre el combobox de categoria.
+        Gatilla una busqueda de objetos itemplan que pertenecen a la categoria
+        y lo lista en el combobox de objetos itemplan.
+    */
     $("#cat_select").change(function(){
         var id_cat = $(this).val();
         var id_plan = parseInt({{plan.id}});
@@ -342,22 +110,116 @@ $(function() {
         
     });
 
-    // Controla el combobox de itemplan
+    /*
+        Controla los cambios hechos sobre el combobox de itemplan.
+        Gatilla una busqueda sobre la informacion comercial del itemplan
+        selccionado.
+    */
     $("#itemplan_select").change(function(){
         var id_itemplan = $(this).val();
         var id_plan = parseInt({{plan.id}});
-        $.ajax({
+        /* buscar itemplan obj */
+        /*$.ajax({
             data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
             url: '/planes/plan/itemplansearch/',
             type: 'get',
             success: function(data){
                 console.log(data);
-                $("#itemplan_title").html("<h3>Proyectar - " + data[0].fields.nombre + "</h3>");
+                //$("#itemplan_title").html("<h3>Proyectar - " + data[0].fields.nombre + "</h3>");
+            }
+
+        });*/
+        $.ajax({
+            data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
+            url: '/planes/plan/itemplanventasearch/',
+            type: 'get',
+            success: function(data){
+                console.log(data);
+                var html_tab1 = "";
+                var html_tab2 = "";
+                
+                html_tab1 += "<table class=\"pure-table pure-table-horizontal\" style=\"width:100%;\">";
+                html_tab2 += "<table class=\"pure-table pure-table-horizontal\" style=\"width:100%;\">";
+                html_tab1 += "<thead>";
+                html_tab2 += "<thead>";
+                html_tab1 += "<tr>";
+                html_tab2 += "<tr>";
+                html_tab1 += "<th>Temporada</th>";
+                html_tab2 += "<th>Temporada</th>";
+                for (var x=0; x<data.length; x++){
+                    html_tab1 += "<th>" + data[x].tiempo__periodo__nombre + "</th>";
+                    html_tab2 += "<th>" + data[x].tiempo__periodo__nombre + "</th>";
+                }
+                html_tab1 += "</tr>";
+                html_tab2 += "</tr>";
+                html_tab1 += "</thead>";
+                html_tab2 += "</thead>";
+                html_tab1 += "<tbody>";
+                html_tab2 += "<tbody>";
+                /* Unidades vendidas */
+                html_tab1 += "<tr>";
+                html_tab2 += "<tr>";
+                html_tab1 += "<td>Unidades</td>";
+                html_tab2 += "<td>Venta $M</td>";
+                for (var x=0; x<data.length; x++){
+                    html_tab1 += "<td>" + data[x].vta_u + "</td>";
+                    html_tab2 += "<td>" + data[x].vta_n + "</td>";
+                }
+                html_tab1 += "</tr>";
+                html_tab2 += "</tr>";
+                 /* Descuentos */
+                html_tab1 += "<tr>";
+                html_tab2 += "<tr>";
+                html_tab1 += "<td>% Descuento</td>";
+                html_tab2 += "<td>Contribuci&oacute;n</td>";
+                for (var x=0; x<data.length; x++){
+                    html_tab1 += "<td>" + data[x].dcto + "</td>";
+                    html_tab2 += "<td>" + data[x].ctb_n + "</td>";
+                }
+                html_tab1 += "</tr>";
+                html_tab2 += "</tr>";
+                html_tab1 += "</tbody>";
+                html_tab2 += "</tbody>";
+                html_tab1 += "</table>";
+                html_tab2 += "</table>";
+                $("#tab_dcto_uni").html(html_tab1);
+                $("#tab_ven_mar_con").html(html_tab2);
             }
 
         });
+        $("#btnSave").show();
         
     });
+    
+
+    var td = "";
+    
+    $( "#dialog-box" ).dialog({
+
+        autoOpen: false,
+        //height: 300,
+        width: 280,
+        modal: true,
+        buttons: {
+            "Ingresar": function() {
+                //console.log(td.attr("id"));
+                td.text($("#inputval").val());
+                $("#inputval").val("");
+                $( this ).dialog( "close" );
+                
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    });
+    
+    /*
+    $("#proyform td").click(function() {
+        td = $(this)
+        $( "#dialog-box" ).dialog( "open" );
+    });
+    */
 
 });
 

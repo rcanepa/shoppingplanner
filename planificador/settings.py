@@ -102,7 +102,14 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'planificador.middleware.AutoLogout',
 )
+
+# Auto logout delay in minutes
+AUTO_LOGOUT_DELAY = 30 #equivalent to 5 minutes
+
+
+AUTH_PROFILE_MODULE = 'userprofile.UserProfile'
 
 ROOT_URLCONF = 'planificador.urls'
 
@@ -127,15 +134,19 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'django.contrib.humanize',
     'categorias',
     'administracion',
     'planes',
     'organizaciones',
     'userprofile',
-    'calendarios'
+    'calendarios',
+    'ventas'
 )
 
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+#SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

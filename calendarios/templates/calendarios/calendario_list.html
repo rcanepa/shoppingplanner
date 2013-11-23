@@ -13,16 +13,22 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-	{% if admin %}
-    <li><a href="../../../cat/update/{{ categoria.id }}">Editar</a></li>
-    <li><a href="../../../cat/delete/{{ categoria.id }}">Eliminar</a></li>
+    {% if admin %}
+    <li><a href="../create/">Crear</a></li>
     {% endif %}
-    <li><a href="../../../cat/list/">Volver</a></li>
+    <li><a href="../../../../administracion/index/">Volver</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
+<h3>Calendarios</h3>
 
-<h2>{{ categoria.nombre }}</h2>
+<ul>
+    {% for calendario in calendarios %}
+
+    <li><a href="#"> {{ calendario.nombre }} </a>
+
+    {% endfor %}
+</ul>
 
 {% endblock %}
