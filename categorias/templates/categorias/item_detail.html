@@ -15,10 +15,10 @@
 <h4>M&oacute;dulos</h4>
 <ul>
 	{% if admin %}
-    <li><a href="../../../item/update/{{ item.id }}">Editar</a></li>
-    <li><a href="../../../item/delete/{{ item.id }}">Eliminar</a></li>
+    <li><a href="{% url 'categorias:item_update' item.id %}">Editar</a></li>
+    <li><a href="{% url 'categorias:item_delete' item.id %}">Eliminar</a></li>
     {% endif %}
-    <li><a href="../../../item/list/">Volver</a></li>
+    <li><a href="{% url 'categorias:item_list' %}">Volver</a></li>
 </ul>
 {% endblock %}
 
@@ -54,8 +54,8 @@
 	<div style="float:left; width:35%; text-align:right;">Venta U</div>
 	{% for obj in ventas %}
 		<div style="float:left; width:30%;">{{ obj.anio|intcomma }}</div>
-		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_n|floatformat }}</div>
-		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_u|floatformat }}</div>
+		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_n|intcomma }}</div>
+		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_u|intcomma }}</div>
 	{% endfor%}
 
 </div>

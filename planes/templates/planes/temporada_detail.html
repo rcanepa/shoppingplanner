@@ -13,8 +13,8 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../../temporada/delete/{{ temporada.id }}">Eliminar</a></li>
-    <li><a href="../../../../planes/temporada/list/">Volver</a></li>
+    <li><a href="{% url 'planes:temporada_delete' temporada.id %}">Eliminar</a></li>
+    <li><a href="{% url 'planes:temporada_list' %}">Volver</a></li>
 </ul>
 {% endblock %}
 

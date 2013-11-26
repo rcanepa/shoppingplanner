@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import View, TemplateView, ListView, DetailView
 from planes.models import Plan, Itemplan, Temporada
-from ventas.models import Venta
+from ventas.models import Venta, Ventaperiodo
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Categoria, Item
 from forms import PlanForm, TemporadaForm
@@ -120,6 +120,9 @@ class PlanCreateView(UserInfoMixin, CreateView):
 
 
 class PlanDetailView(UserInfoMixin, DetailView):
+    '''
+    Vista para visualizar la ficha de una planificacion.
+    '''
     model = Plan
     template_name = "planes/plan_detail.html"
 
@@ -135,6 +138,9 @@ class PlanDetailView(UserInfoMixin, DetailView):
 
         
 class PlanDeleteView(UserInfoMixin, DeleteView):
+    '''
+    Vista para eliminar una planificacion.
+    '''
     model = Plan
     template_name = "planes/plan_delete.html"
     success_url = reverse_lazy('planes:plan_list')
@@ -145,6 +151,10 @@ class PlanDeleteView(UserInfoMixin, DeleteView):
 
 
 class PlanTreeDetailView(UserInfoMixin, DetailView):
+    '''
+    1era fase del proceso de planificacion.
+    Vista principal para la seleccion del arbol de planificacion.
+    '''
     model = Plan
     template_name = "planes/plan_tree_detail.html"
 
@@ -169,7 +179,10 @@ class PlanTreeDetailView(UserInfoMixin, DetailView):
 
 
 class GuardarArbolView(UserInfoMixin, View):
-
+    '''
+    Vista que revise como parametros el plan y un arreglo de ID con todos los
+    items que deben ser planificados. 
+    '''
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(reverse('planes:plan_list'))
 
@@ -190,6 +203,10 @@ class GuardarArbolView(UserInfoMixin, View):
 
 
 class ProyeccionesView(UserInfoMixin, DetailView):
+    '''
+    2da fase del proceso de planificacion.
+    Vista principal para la proyeccion de datos historicos de items.
+    '''
     model = Plan
     template_name = "planes/plan_proyecciones_detail.html"
 
@@ -222,6 +239,18 @@ class GuardarProyeccionView(UserInfoMixin, View):
             data = json.loads(request.POST['proyeccion'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
+            for ventaperiodo in data['ventas']:
+                if ventaperiodo['tipo'] != 0:
+                    obj = Ventaperiodo.objects.get(pk=ventaperiodo['id'])
+                    obj.vta_n = ventaperiodo['vta_n']
+                    obj.vta_u = ventaperiodo['vta_u']
+                    obj.ctb_n = ventaperiodo['ctb_n']
+                    obj.dcto = float(ventaperiodo['dcto']) / 100
+                    obj.margen = float(ventaperiodo['margen']) / 100
+                    obj.costo = float(ventaperiodo['costo']) * 1000
+                    if ventaperiodo['vta_n'] != 0:
+                        obj.tipo = 2
+                    obj.save()
             itemplan_obj.estado = 1
             itemplan_obj.save()
         return HttpResponseRedirect(reverse('planes:plan_proyecciones_detail', args=(plan_obj.id,)))
@@ -271,41 +300,46 @@ class BuscarVentaItemplanProyeccionView(View):
     '''
     def get(self, request, *args, **kwargs):
         if request.GET:
+            resumen = {}
             act_anio = date.today().isocalendar()[0]
             ant_anio = date.today().isocalendar()[0] - 1
             semana = date.today().isocalendar()[1]
             id_plan = request.GET['id_plan']
             id_itemplan = request.GET['id_itemplan']
             itemplan_obj = Itemplan.objects.get(plan=id_plan,id=id_itemplan)
-            '''
-            ventas = Venta.objects.values('tiempo__periodo__nombre').filter(
-                tiempo__anio=date.today().isocalendar()[0],
-                tiempo__semana__lte=date.today().isocalendar()[1],
-                item=itemplan_obj.item).annotate(
-                vta_n=Sum('vta_n'), vta_u=Sum('vta_u')).order_by('tiempo__periodo__nombre')
 
-            
-            periodos = Periodo.objects.all().order_by('nombre')
-            for periodo in periodos:
-                print periodo
-                tiempos = periodo.tiempo_set.filter(Q(anio=act_anio,semana__lte=semana) | Q(anio=ant_anio,semana__gte=semana))
-                print tiempos
-            '''
-            ventas = Venta.objects.values('tiempo__periodo__nombre','tiempo__anio').filter(
-                Q(item=itemplan_obj.item),
-                Q(tiempo__anio=act_anio,tiempo__semana__lte=semana) | Q(tiempo__anio=ant_anio,tiempo__semana__gte=semana)
-                ).annotate(
-                vta_n=Sum('vta_n'), vta_u=Sum('vta_u'), ctb_n=Sum('ctb_n')).order_by('tiempo__anio','tiempo__periodo__nombre')
+            if bool(itemplan_obj):
+                
+                # Se busca el periodo actual (de la semana en curso)
+                periodo = Periodo.objects.get(tiempo__anio=act_anio,tiempo__semana=semana,calendario__organizacion=self.request.user.get_profile().organizacion)
+                ventas = Ventaperiodo.objects.values('id','anio','periodo','tipo','vta_n','vta_u','ctb_n','costo','margen').filter(
+                    Q(item=itemplan_obj.item),
+                    Q(anio=act_anio, periodo__lte=periodo.nombre) | Q(anio=ant_anio,periodo__gt=periodo.nombre)
+                    ).order_by('anio','periodo')
 
-            for periodo in ventas:
-                if periodo['vta_u'] != 0:
-                    periodo['precio_real'] = periodo['vta_n'] * 1000 / periodo['vta_u']
-                else:
-                    periodo['precio_real'] = 0
-                periodo['dcto'] = round(float((itemplan_obj.item.precio - periodo['precio_real']) / itemplan_obj.item.precio) * 100, 1)
-                periodo['vta_u'] = round(float(periodo['vta_u']),0)
+                for periodo in ventas:
+                    if periodo['vta_u'] != 0:
+                        periodo['precio_real'] = periodo['vta_n'] * 1000 / periodo['vta_u']
+                    else:
+                        periodo['precio_real'] = 0
+                    periodo['dcto'] = round(float((itemplan_obj.item.precio - periodo['precio_real']) / itemplan_obj.item.precio) * 100, 1)
+                    periodo['vta_u'] = round(float(periodo['vta_u']),0)
+                    periodo['vta_n'] = round(float(periodo['vta_n']),1)
+                    periodo['ctb_n'] = round(float(periodo['ctb_n']),1)
+                    periodo['costo'] = round(float(periodo['costo'] / 1000),1)
+                    periodo['margen'] = round(float(periodo['margen'] * 100),1)
+                
+                itemplan_json = {}
+                itemplan_json['id_item'] = itemplan_obj.item.id
+                itemplan_json['id_itemplan'] = itemplan_obj.id
+                itemplan_json['nombre'] = itemplan_obj.nombre
+                itemplan_json['precio'] = itemplan_obj.item.precio
 
-
-            data = simplejson.dumps(list(ventas),cls=DjangoJSONEncoder)
+                resumen['ventas'] = list(ventas)
+                resumen['itemplan'] = itemplan_json
+                
+                data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+            else:
+                data = {}
             return HttpResponse(data, mimetype='application/json')
         #return HttpResponseRedirect(reverse('planes:plan_list'))

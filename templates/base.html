@@ -31,16 +31,16 @@
 	{% block topbar %}
 
 	<ul id="navlist">
-		<li><a href="#" id="current">Inicio</a></li>
-		<li><a href="../../planes/index/">Planificar Temporada</a></li>
+		<li><a href="{% url 'home' %}" id="current">Inicio</a></li>
+		<li><a href="{% url 'planes:index' %}">Planificar Temporada</a></li>
 		<li><a href="#">Lista Compra</a></li>
 		<li><a href="#">An&aacute;lisis KPIs</a></li>
-		<li><a href="../../administracion/index/">Administraci&oacute;n</a></li>
+		<li><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
 		<li><a href="#">Ayuda</a></li>
 	</ul>
 	
 	{% endblock %}
-	<p id="layoutdims">{% block username %} {% endblock %}<a href="/accounts/logout/" title="">(Salir)</a></p>
+	<p id="layoutdims">{% block username %} {% endblock %}<a href="{% url 'user_logout' %}" title="">(Salir)</a></p>
 </div>
 <div class="colmask leftmenu">
 	<div class="colleft">
@@ -68,8 +68,7 @@
 		</div>
 		<div class="col2">
 			<!-- Column 2 start -->
-			<div id="ads">
-			</div>
+
 			<div id="navcontainer">
 			{% block sidebar %}
 

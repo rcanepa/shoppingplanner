@@ -31,6 +31,18 @@ class Categoria(models.Model):
             for next in child.as_tree():
                 yield next
         yield branch, None
+
+    def as_tree_min(self):
+        """
+        Obtiene recursivamente la lista de hijos en forma de arbol
+        """
+        children = list(self.categorias_hijos.all())
+        branch = bool(children)
+        yield branch, self
+        for child in children:
+            for next in child.as_tree():
+                yield next
+        yield branch, None
     
     def get_nivel(self, nivel=1):
         """
@@ -75,6 +87,21 @@ class Item(models.Model):
         for child in children:
             for next in child.as_tree():
                 yield next
+        yield branch, None
+
+    def as_tree_min(self):
+        """
+        Obtiene recursivamente la lista de hijos en forma de arbol
+        """
+        children = list(self.items_hijos.all())
+        branch = bool(children)
+        yield branch, self
+        for child in children:
+            if child.get_nivel() < 4:
+                for next in child.as_tree_min():
+                    yield next
+            else:
+                yield child
         yield branch, None
 
     def get_nivel(self, nivel=1):

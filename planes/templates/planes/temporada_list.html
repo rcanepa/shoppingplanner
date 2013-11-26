@@ -14,9 +14,9 @@
 <h4>M&oacute;dulos</h4>
 <ul>
     {% if admin %}
-    <li><a href="../../../../planes/temporada/create/">Crear</a></li>
+    <li><a href="{% url 'planes:temporada_create' %}">Crear</a></li>
     {% endif %}
-    <li><a href="../../../../administracion/index/">Volver</a></li>
+    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
 </ul>
 {% endblock %}
 
@@ -26,7 +26,7 @@
 <ul>
     {% for temporada in temporadas %}
 
-    <li><a href="/planes/temporada/detail/{{ temporada.id }}/"> {{ temporada.nombre }} </a>
+    <li><a href="{% url 'planes:temporada_detail' temporada.id %}"> {{ temporada.nombre }} </a>
 
     {% endfor %}
 </ul>

@@ -13,9 +13,8 @@
 {% block sidebar %}
         <h4>Planificaciones</h4>
         <ul>
-            <li><a href="/planes/plan/create/">Crear Planificaci&oacute;n</a></li>
-            <li><a href="/planes/plan/list/">Mis Planificaciones</a></li>
-            <li><a href="../../accounts/loggedin/">Volver</a></li>
+            <li><a href="{% url 'planes:plan_list' %}">Mis Planificaciones</a></li>
+            <li><a href="{% url 'home' %}">Volver</a></li>
         </ul>
 {% endblock %}
 

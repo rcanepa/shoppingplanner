@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from planes import views
 
 urlpatterns = patterns('',
-    url(r'^index/$', views.IndexView.as_view(), name='index_list'),
+    url(r'^index/$', views.IndexView.as_view(), name='index'),
 
     url(r'^temporada/list/$', views.TemporadaListView.as_view(), name='temporada_list'),
     url(r'^temporada/create/$', views.TemporadaCreateView.as_view(), name='temporada_create'),

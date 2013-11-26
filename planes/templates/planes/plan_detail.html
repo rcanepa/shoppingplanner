@@ -13,14 +13,14 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../../plan/delete/{{ plan.id }}">Eliminar</a></li>
-    <li><a href="../../../../planes/plan/list/">Volver</a></li>
+    <li><a href="{% url 'planes:plan_delete' plan.id %}">Eliminar</a></li>
+    <li><a href="{% url 'planes:plan_list' %}">Volver</a></li>
 </ul>
 <h4>Trabajar</h4>
 <ul>
-	<li><a href="/planes/plan/stage1/{{ plan.id }}">Seleccionar &aacute;rbol</a></li>
-	<li><a href="/planes/plan/stage2/{{ plan.id }}">Proyectar informaci&oacute;n</a></li>
-	<li><a href="">Planificar</a></li>
+	<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">Seleccionar &aacute;rbol</a></li>
+	<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">Proyectar informaci&oacute;n</a></li>
+	<li><a href="#">Planificar</a></li>
 </ul>
 {% endblock %}
 

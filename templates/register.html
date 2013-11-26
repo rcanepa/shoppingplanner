@@ -7,13 +7,13 @@
 {% endblock %}
 
 {% block username %}
-	{{ full_name }}
+Bienvenido {{ full_name }} !
 {% endblock %}
 
 {% block sidebar %}
 <h4>Usuarios</h4>
 <ul>
-    <li><a href="../../administracion/index/">Cancelar</a></li>
+    <li><a href="{% url 'user_list' %}">Cancelar</a></li>
 </ul>
 {% endblock %}
 

@@ -14,7 +14,7 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
+    <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
 </ul>
 {% endblock %}
 

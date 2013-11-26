@@ -13,13 +13,12 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="{% url 'categorias:item_list' %}">Cancelar</a></li>
+    <li><a href="{% url 'categorias:item_responsables' %}">Volver</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
-
-<h4>Crear Item</h4>
+<h2>Actualizar Responsable</h2>
 
 <form class="pure-form pure-form-aligned" method="post">
     {% csrf_token %}

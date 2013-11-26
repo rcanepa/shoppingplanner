@@ -14,10 +14,10 @@
 <h4>M&oacute;dulos</h4>
 <ul>
 	{% if admin %}
-    <li><a href="../../../cat/update/{{ categoria.id }}">Editar</a></li>
-    <li><a href="../../../cat/delete/{{ categoria.id }}">Eliminar</a></li>
+    <li><a href="{% url 'categorias:categoria_update' categoria.id %}">Editar</a></li>
+    <li><a href="{% url 'categorias:categoria_delete' categoria.id %}">Eliminar</a></li>
     {% endif %}
-    <li><a href="../../../cat/list/">Volver</a></li>
+    <li><a href="{% url 'categorias:categoria_list' %}">Volver</a></li>
 </ul>
 {% endblock %}
 

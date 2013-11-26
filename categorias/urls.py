@@ -11,6 +11,8 @@ urlpatterns = patterns('',
 	url(r'^item/list/$', views.ItemListView.as_view(), name='item_list'),
 	url(r'^item/detail/(?P<pk>\d+)/$', views.ItemDetailView.as_view(), name='item_detail'),
 	url(r'^item/update/(?P<pk>\d+)/$', views.ItemUpdateView.as_view(), name='item_update'),
+	url(r'^item/update_resp/(?P<pk>\d+)/$', views.ItemResponsableUpdateView.as_view(), name='item_responsable_update'),
 	url(r'^item/create/$', views.ItemCreateView.as_view(), name='item_create'),
 	url(r'^item/delete/(?P<pk>\d+)/$', views.ItemDeleteView.as_view(), name='item_delete'),
+	url(r'^item/responsables/$', views.ItemResponsablesView.as_view(), name='item_responsables'),
 )

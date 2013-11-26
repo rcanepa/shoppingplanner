@@ -13,13 +13,13 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../../planes/index/">Cancelar</a></li>
+    <li><a href="{% url 'planes:index' %}">Cancelar</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
 
-<h4>Crear Usuario</h4>
+<h4>Crear Planificaci&oacute;n</h4>
 
 <form class="pure-form pure-form-aligned" method="post">
     {% csrf_token %}
@@ -31,6 +31,11 @@
     	{% endfor %}
     </div>
     {% endfor %}
+    <div class="fieldWrapper pure-control-group" style="width:30%;">
+        {% for error in form.non_field_errors %}
+            <p class="msg_error">(*) {{ error }}</p>
+        {% endfor %}
+    </div> 
     <div class="pure-controls">
         <button type="submit" class="pure-button pure-button-primary">Guardar</button>
     </div>

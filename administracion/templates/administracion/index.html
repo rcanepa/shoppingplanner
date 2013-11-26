@@ -11,46 +11,17 @@
 {% endblock %}
 
 {% block sidebar %}
-        {% if admin %}
-        <h4>Administraci&oacute;n</h4>
+        <h4>M&oacute;dulos</h4>
         <ul>
-            <li><a href="/admin/" target="_blank">Ingresar</a></li>
-        </ul>
-        <h4>Usuarios</h4>
-        <ul>
-            <li><a href="/accounts/list/">Ver usuarios</a></li>
-            <li><a href="/accounts/register/">Crear usuario</a></li>
-            <li><a href="">Eliminar usuario</a></li>
-        </ul>
-        {% endif %}
-        <h4>Categor&iacute;as</h4>
-        <ul>
-            <li><a href="/categorias/cat/list/">Ver Categor&iacute;as</a></li>
             {% if admin %}
-            <li><a href="/categorias/cat/create/">Crear Categor&iacute;a</a></li>
+            <li><a href="/admin/" target="_blank">Administraci&oacute;n</a></li>
+            <li><a href="{% url 'user_list' %}">Usuarios</a></li>
             {% endif %}
+            <li><a href="{% url 'categorias:categoria_list' %}">Categor&iacute;as</a></li>
+            <li><a href="{% url 'categorias:item_list' %}">Items</a></li>
+            <li><a href="{% url 'planes:temporada_list' %}">Temporadas</a></li>
+            <li><a href="{% url 'calendarios:calendario_list' %}">Calendario</a></li>
         </ul>
-        <h4>Items</h4>
-        <ul>
-            <li><a href="/categorias/item/list/">Ver Items</a></li>
-            {% if admin %}
-            <li><a href="/categorias/item/create/">Crear Item</a></li>
-            <li><a href="">Asignar Responsables</a></li>
-            {% endif %}
-        </ul>
-        {% if admin %}
-        <h4>Calendarios</h4>
-        <ul>
-            <li><a href="/calendarios/calendario/list/">Calendario</a></li>
-            <li><a href="#">Periodos</a></li>
-        </ul>
-        {% endif %}
-        {% if admin %}
-        <h4>Temporadas</h4>
-        <ul>
-            <li><a href="/planes/temporada/list/">Ver Temporadas</a></li>
-        </ul>
-        {% endif %}
 {% endblock %}
 
 {% block content %}

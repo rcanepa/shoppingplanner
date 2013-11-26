@@ -14,9 +14,9 @@
 <h4>M&oacute;dulos</h4>
 <ul>
     {% if admin %}
-    <li><a href="../../../../planes/plan/create/">Crear</a></li>
+    <li><a href="{% url 'planes:plan_create' %}">Crear Planificaci&oacute;n</a></li>
     {% endif %}
-    <li><a href="../../../../planes/index/">Volver</a></li>
+    <li><a href="{% url 'planes:index' %}">Volver</a></li>
 </ul>
 {% endblock %}
 
@@ -26,7 +26,7 @@
 <ul>
     {% for plan in planes %}
 
-    <li><a href="/planes/plan/detail/{{ plan.id }}/"> {{ plan.nombre }} </a>
+    <li><a href="{% url 'planes:plan_detail' plan.id %}"> {{ plan.nombre }} </a>
 
     {% endfor %}
 </ul>

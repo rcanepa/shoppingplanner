@@ -205,3 +205,44 @@ text-decoration: none;
 background-color: #369;
 color: #FFF;
 }
+
+.datagrid
+{
+	border-collapse: collapse;
+	border: 1px solid #69c;
+	margin: 10px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+}
+
+.datagrid th
+{
+	font-weight: normal;
+	font-size: 14px;
+	color: #039;
+	border-bottom: 1px dashed #69c;
+	padding: 12px 17px;
+}
+
+.datagrid tbody tr:hover td 
+{
+	color: #339;
+	background: #d0dafd;
+}
+
+.datagrid td
+{
+	text-align: right;
+	color: #669;
+	padding: 7px 17px;
+}
+
+.datagrid td.estado1
+{
+	color: #FF5A5A;	
+}
+
+.datagrid td.estado2
+{
+	color: #31B404;	
+}

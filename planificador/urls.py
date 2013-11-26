@@ -15,15 +15,16 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
+    
     url(r'^accounts/login/$', 'planificador.views.login'),
     url(r'^accounts/auth/$', 'planificador.views.auth_view'),
-    url(r'^accounts/logout/$', 'planificador.views.logout'),
-    url(r'^accounts/loggedin/$', 'planificador.views.loggedin'),
-    url(r'^accounts/invalid/$', 'planificador.views.invalid_login'),
-    url(r'^accounts/register/$', 'planificador.views.register_user'),
-    #url(r'^accounts/register_success/$', 'planificador.views.register_success'),
+    url(r'^accounts/logout/$', 'planificador.views.logout', name='user_logout'),
+    url(r'^accounts/loggedin/$', views.LoggedInView.as_view(), name='home'),
+    url(r'^accounts/invalid/$', views.InvalidLogin.as_view()),
+    url(r'^accounts/register/$', views.RegisterUserView.as_view(), name='user_register'),
     url(r'^accounts/register_success/$', views.RegisterSuccessView.as_view()),
-    url(r'^accounts/list/$', views.UserListView.as_view(), name="list_user"),
+    url(r'^accounts/list/$', views.UserListView.as_view(), name="user_list"),
+    
     url(r'^categorias/',  include('categorias.urls', namespace="categorias")),
     url(r'^administracion/',  include('administracion.urls', namespace="administracion")),
     url(r'^planes/',  include('planes.urls', namespace="planes")),

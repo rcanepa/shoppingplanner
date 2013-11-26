@@ -13,7 +13,8 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../administracion/index/">Volver</a></li>
+    <li><a href="{% url 'user_register' %}">Crear</a></li>
+    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
 </ul>
 {% endblock %}
 

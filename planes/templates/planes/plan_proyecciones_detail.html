@@ -13,7 +13,7 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="../../../plan/detail/{{ plan.id }}">Volver</a></li>
+    <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
 </ul>
 {% endblock %}
 
@@ -42,11 +42,14 @@
     </select>
 </div>
 
-<div style="width:75%; float:left">
+<div style="width:95%; float:left">
     <div style="width:100%; float:left">
         <form id="proyform" class="pure-form" method="post" action="/planes/plan/savestage2/">
             {% csrf_token %}
             <div id="tab_dcto_uni" style="float:left; width:100%;">
+            </div>
+            <div style="float:left; width:100%;">
+
             </div>
             <div id="tab_ven_mar_con" style="float:left; width:100%;">
             </div>
@@ -55,7 +58,8 @@
                 <button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button>
             </div>
         </form>
-        <div id="dialog-box" title="Ingresar Valor">
+        <div id="dialog-box" title="Proyección">
+            <label>Ingresar:</label>
             <input id="inputval" type="text" style="width:8em">
         </div>
     </div>
@@ -73,16 +77,27 @@
 
 $(function() {
 
-    $("#btnSave").click(function(){
-        
+    var planificacion = [];
+    var td = "";
+
+    $( document ).tooltip({
+        track: true
+    });
+
+    $("#btnSave").click(function(event){
+        event.preventDefault();
         var plan = parseInt({{plan.id}});
-        var itemplan = parseInt({{items.0.id}});
+        var itemplan = planificacion['itemplan'].id_itemplan
         
-        json_data = JSON.stringify({plan: plan, itemplan: itemplan});
+        json_data = JSON.stringify({
+            plan: plan, 
+            itemplan: itemplan,
+            ventas: planificacion.ventas
+        });
         $("#input_json_data").val(json_data);
-        //console.log(json_data);
+        console.log(json_data);
         
-        //$("#save_form").submit();
+        $("#proyform").submit();
     });
 
     /*
@@ -118,93 +133,34 @@ $(function() {
     $("#itemplan_select").change(function(){
         var id_itemplan = $(this).val();
         var id_plan = parseInt({{plan.id}});
-        /* buscar itemplan obj */
-        /*$.ajax({
-            data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
-            url: '/planes/plan/itemplansearch/',
-            type: 'get',
-            success: function(data){
-                console.log(data);
-                //$("#itemplan_title").html("<h3>Proyectar - " + data[0].fields.nombre + "</h3>");
-            }
-
-        });*/
         $.ajax({
             data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
             url: '/planes/plan/itemplanventasearch/',
             type: 'get',
             success: function(data){
-                console.log(data);
-                var html_tab1 = "";
-                var html_tab2 = "";
-                
-                html_tab1 += "<table class=\"pure-table pure-table-horizontal\" style=\"width:100%;\">";
-                html_tab2 += "<table class=\"pure-table pure-table-horizontal\" style=\"width:100%;\">";
-                html_tab1 += "<thead>";
-                html_tab2 += "<thead>";
-                html_tab1 += "<tr>";
-                html_tab2 += "<tr>";
-                html_tab1 += "<th>Temporada</th>";
-                html_tab2 += "<th>Temporada</th>";
-                for (var x=0; x<data.length; x++){
-                    html_tab1 += "<th>" + data[x].tiempo__periodo__nombre + "</th>";
-                    html_tab2 += "<th>" + data[x].tiempo__periodo__nombre + "</th>";
-                }
-                html_tab1 += "</tr>";
-                html_tab2 += "</tr>";
-                html_tab1 += "</thead>";
-                html_tab2 += "</thead>";
-                html_tab1 += "<tbody>";
-                html_tab2 += "<tbody>";
-                /* Unidades vendidas */
-                html_tab1 += "<tr>";
-                html_tab2 += "<tr>";
-                html_tab1 += "<td>Unidades</td>";
-                html_tab2 += "<td>Venta $M</td>";
-                for (var x=0; x<data.length; x++){
-                    html_tab1 += "<td>" + data[x].vta_u + "</td>";
-                    html_tab2 += "<td>" + data[x].vta_n + "</td>";
-                }
-                html_tab1 += "</tr>";
-                html_tab2 += "</tr>";
-                 /* Descuentos */
-                html_tab1 += "<tr>";
-                html_tab2 += "<tr>";
-                html_tab1 += "<td>% Descuento</td>";
-                html_tab2 += "<td>Contribuci&oacute;n</td>";
-                for (var x=0; x<data.length; x++){
-                    html_tab1 += "<td>" + data[x].dcto + "</td>";
-                    html_tab2 += "<td>" + data[x].ctb_n + "</td>";
-                }
-                html_tab1 += "</tr>";
-                html_tab2 += "</tr>";
-                html_tab1 += "</tbody>";
-                html_tab2 += "</tbody>";
-                html_tab1 += "</table>";
-                html_tab2 += "</table>";
-                $("#tab_dcto_uni").html(html_tab1);
-                $("#tab_ven_mar_con").html(html_tab2);
+                planificacion = data;
+                tablaDctoUni(data.ventas);
+                tablaVtaMarCtb(data.ventas);
             }
 
         });
         $("#btnSave").show();
         
     });
-    
-
-    var td = "";
-    
+        
     $( "#dialog-box" ).dialog({
 
         autoOpen: false,
         //height: 300,
-        width: 280,
+        width: 220,
         modal: true,
         buttons: {
-            "Ingresar": function() {
-                //console.log(td.attr("id"));
+            "Guardar": function() {
+                var parametros = [];
                 td.text($("#inputval").val());
+                parametros = td.attr("id").split("_");
                 $("#inputval").val("");
+                actualizarPlanificacion(parametros[0], parametros[1]);
                 $( this ).dialog( "close" );
                 
             },
@@ -214,13 +170,182 @@ $(function() {
         }
     });
     
-    /*
-    $("#proyform td").click(function() {
-        td = $(this)
+    function proyectar(){
+        td = $(this);
         $( "#dialog-box" ).dialog( "open" );
-    });
-    */
+    }
+    
+    function tablaDctoUni(data){
+        var tot_uni = 0;
+        var tot_dcto = 0;
+        var tot_costos = 0;
+        var html = "";        
+        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        html += "<thead>";
+        html += "<tr>";
+        html += "<th style=\"width:16%;\">Temporada</th>";
+        for (var x=0; x<data.length; x++)
+            html += "<th style=\"width:6%;\">" + data[x].periodo + "</th>";
+        html += "<th style=\"width:12%;\">Totales</th>";
+        html += "</tr>";
+        html += "</thead>";
+        html += "<tbody>";
+        
+        /* Unidades vendidas */
+        html += "<tr>";
+        html += "<td title=\"Unidades vendidas.\" style=\"width:16%;\">Unidades</td>";
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td id=\"unidades_" + data[x].periodo + "\" class=\"unidades editable estado" + data[x].tipo + "\" style=\"width:6%;\">" + data[x].vta_u + "</td>";
+            else
+                html += "<td class=\"unidades\" style=\"width:6%;\">" + data[x].vta_u + "</td>";
+            tot_uni += data[x].vta_u;
+        }
+        html += "<td id=\"tot_unidades\" style=\"width:12%;\">" + tot_uni + "</td>";
+        html += "</tr>";
+        
+         /* Descuentos */
+        html += "<tr>";
+        html += "<td title=\"Descuento sobre el precio blanco.\" style=\"width:16%;\">Descuento %</td>";
+        
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td id=\"descuentos_" + data[x].periodo + "\" class=\"descuentos editable estado" + data[x].tipo + "\" style=\"width:6%;\">" + data[x].dcto + "</td>";
+            else
+                html += "<td class=\"descuentos\" style=\"width:6%;\">" + data[x].dcto + "</td>";
+            tot_dcto += data[x].dcto;
+        }
+        html += "<td id=\"tot_descuentos\" style=\"width:12%;\">" + parseFloat(tot_dcto / data.length).toFixed(1) + "</td>";
+        html += "</tr>";
 
+        /* Costos */
+        html += "<tr>";
+        html += "<td title=\"Costo en miles.\" style=\"width:16%;\">Costos $M</td>";
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td id=\"costos_" + data[x].periodo + "\" class=\"costos editable estado" + data[x].tipo + "\" style=\"width:6%;\">" + data[x].costo + "</td>";
+            else
+                html += "<td class=\"costos\" style=\"width:6%;\">" + data[x].costo + "</td>";
+            tot_costos += data[x].costo;
+        }
+        html += "<td id=\"tot_costos\" style=\"width:12%;\">" + tot_costos + "</td>";
+        html += "</tr>";
+        html += "</tbody>";
+        html += "</table>";
+        $("#tab_dcto_uni").html(html);
+        $(".editable").click(proyectar);
+    }
+
+    function tablaVtaMarCtb(data){
+        
+        var html = "";
+        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        html += "<thead>";
+        html += "<tr>";
+        html += "<th style=\"width:16%;\">Temporada</th>";
+        for (var x=0; x<data.length; x++)
+            html += "<th style=\"width:6%;\">" + data[x].periodo + "</th>";
+        html += "<th style=\"width:12%;\">Totales</th>";
+        html += "</tr>";
+        html += "</thead>";
+        html += "<tbody>";
+        
+        /* Venta neta */
+        html += "<tr>";
+        html += "<td title=\"Venta en miles.\" style=\"width:16%;\">Venta $M</td>";
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td style=\"width:6%;\">" + data[x].vta_n + "</td>";
+            else
+                html += "<td style=\"width:6%;\">" + data[x].vta_n + "</td>";    
+        }
+        html += "<td id=\"tot_venta\" style=\"width:12%;\"></td>";
+        html += "</tr>";
+        
+         /* Contribucion */
+        html += "<tr>";
+        html += "<td title=\"Contribucion en miles.\" style=\"width:16%;\">Contribuci&oacute;n</td>";
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td style=\"width:6%;\">" + data[x].ctb_n + "</td>";
+            else
+                html += "<td style=\"width:6%;\">" + data[x].ctb_n + "</td>";
+        }
+        html += "<td id=\"tot_ctb\" style=\"width:12%;\"></td>";
+        html += "</tr>";
+        
+        /* Margen */
+        html += "<tr>";
+        html += "<td title=\"Margen porcentual.\" style=\"width:16%;\">Margen %</td>";
+        for (var x=0; x<data.length; x++){
+            if(data[x].tipo != 0)
+                html += "<td style=\"width:6%;\">" + data[x].margen + "</td>";
+            else
+                html += "<td style=\"width:6%;\">" + data[x].margen + "</td>";
+        }
+        html += "<td id=\"tot_margen\" style=\"width:12%;\"></td>";
+        html += "</tr>";
+        html += "</tbody>";
+        html += "</table>";
+        $("#tab_ven_mar_con").html(html);
+        $(".editable").click(proyectar);
+    }
+
+    function actualizarPlanificacion(metrica, periodo){
+        if(metrica == 'unidades'){
+            for (var x=0; x<planificacion.ventas.length; x++){
+                if(planificacion.ventas[x].periodo == periodo.trim()){
+                    planificacion.ventas[x].vta_u = td.text();
+                    planificacion.ventas[x].vta_n = parseFloat(((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) - ((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) * planificacion.ventas[x].dcto / 100)) / 1000).toFixed(1);
+                    planificacion.ventas[x].ctb_n = parseFloat(planificacion.ventas[x].vta_n - planificacion.ventas[x].costo).toFixed(1);
+                    if(planificacion.ventas[x].costo != 0)
+                        planificacion.ventas[x].margen = parseFloat((planificacion.ventas[x].costo / planificacion.ventas[x].vta_n) * 100).toFixed(1);
+                    tablaVtaMarCtb(planificacion.ventas);
+                    calcularTotUnidades(metrica);
+                    break;
+                }
+            }
+        }
+        else if(metrica == 'descuentos'){
+            for (var x=0; x<planificacion.ventas.length; x++){
+                if(planificacion.ventas[x].periodo == periodo.trim()){
+                    planificacion.ventas[x].dcto = td.text();
+                    planificacion.ventas[x].vta_n = parseFloat(((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) - ((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) * planificacion.ventas[x].dcto / 100)) / 1000).toFixed(1);
+                    planificacion.ventas[x].ctb_n = parseFloat(planificacion.ventas[x].vta_n - planificacion.ventas[x].costo).toFixed(1);
+                    if(planificacion.ventas[x].costo != 0)
+                        planificacion.ventas[x].margen = parseFloat((planificacion.ventas[x].costo / planificacion.ventas[x].vta_n) * 100).toFixed(1);
+                    tablaVtaMarCtb(planificacion.ventas);
+                    calcularTotUnidades(metrica);
+                    break;
+                }
+            }
+        }
+        else{
+            for (var x=0; x<planificacion.ventas.length; x++){
+                if(planificacion.ventas[x].periodo == periodo.trim()){
+                    planificacion.ventas[x].costo = td.text();
+                    planificacion.ventas[x].vta_n = parseFloat(((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) - ((planificacion.ventas[x].vta_u * planificacion['itemplan'].precio) * planificacion.ventas[x].dcto / 100)) / 1000).toFixed(1);
+                    planificacion.ventas[x].ctb_n = parseFloat(planificacion.ventas[x].vta_n - planificacion.ventas[x].costo).toFixed(1);
+                    if(planificacion.ventas[x].costo != 0)
+                        planificacion.ventas[x].margen = parseFloat((planificacion.ventas[x].costo / planificacion.ventas[x].vta_n) * 100).toFixed(1);
+                    tablaVtaMarCtb(planificacion.ventas);
+                    calcularTotUnidades(metrica);
+                    break;
+                }
+            }
+        }
+    }
+
+    function calcularTotUnidades(tipo){
+        var tipo_total = tipo;
+        var tot_unidades = 0;
+        $("."+tipo_total).each(function() {
+            tot_unidades += parseInt($(this).text());
+        });
+        if(tipo == "descuentos")
+            $("#tot_"+tipo_total).html(parseFloat(tot_unidades / $("."+tipo_total).length).toFixed(1));
+        $("#tot_"+tipo_total).html(tot_unidades);
+    }
 });
 
 </script>
