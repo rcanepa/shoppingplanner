@@ -15,4 +15,6 @@ urlpatterns = patterns('',
 	url(r'^item/create/$', views.ItemCreateView.as_view(), name='item_create'),
 	url(r'^item/delete/(?P<pk>\d+)/$', views.ItemDeleteView.as_view(), name='item_delete'),
 	url(r'^item/responsables/$', views.ItemResponsablesView.as_view(), name='item_responsables'),
+
+	url(r'^item/nodesearch/$', views.ItemAjaxNodeView.as_view(), name='item_nodesearch'),
 )

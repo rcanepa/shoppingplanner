@@ -2,6 +2,7 @@ from django.db import models
 from datetime import datetime, date, time
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from organizaciones.models import Organizacion
 
 """
 Modelo Categoria
@@ -12,13 +13,16 @@ class Categoria(models.Model):
     vigencia = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(default=datetime.now, blank=True)
     categoria_padre = models.ForeignKey('self', blank=True, null=True, related_name='categorias_hijos')
-    usuario_creador = models.ForeignKey(User)
+    organizacion = models.ForeignKey(Organizacion)
     
     def __unicode__(self):
         return self.nombre
 
     def get_absolute_url(self):
         return reverse('categorias:categoria_detail', kwargs={'pk': self.pk})
+
+    def get_children(self):
+        return self.categorias_hijos.all().order_by('nombre')
 
     def as_tree(self):
         """
@@ -62,17 +66,19 @@ Modelo Item
 """
 
 class Item(models.Model):
+    id_real = models.IntegerField(blank=True, null=True)
     nombre = models.CharField(max_length=70)
     vigencia = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(default=datetime.now, blank=True)
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
-    usuario_creador = models.ForeignKey(User, related_name='items_creados')
     usuario_responsable = models.ForeignKey(User, blank=True, null=True, related_name='items_responsable')
     categoria = models.ForeignKey('Categoria')
     precio = models.PositiveIntegerField(default=0)
     
     def __unicode__(self):
         return self.nombre
+
+    def get_children(self):
+        return self.items_hijos.all().order_by('nombre','precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})

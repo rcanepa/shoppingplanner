@@ -29,7 +29,7 @@
             {% for branch, obj in categoria.as_tree %}
                 {% if obj %}
 
-                    <li id="{{ obj.id }}" class="folder expanded"><b>({{ obj.get_nivel }}) </b>{{ obj.nombre }}
+                    <li id="{{ obj.id }}" class="folder expanded"><a href="{% url 'categorias:categoria_detail' obj.id %}" target="_self">({{ obj.get_nivel }}) {{ obj.nombre }}</a>
 
                     {% if branch %}
                         <ul>
@@ -49,10 +49,18 @@
 {% endblock %}
 
 {% block js %}
-<script>
+<script>    
 
 $(function() {
-    $("#itemstree").fancytree();
+    $("#itemstree").fancytree({
+        activate: function(e, data) {
+            var node = data.node;
+            if( node.data.href ){
+                window.open(node.data.href, node.data.target);
+            }
+        }
+    });
+
 });
 
 </script>

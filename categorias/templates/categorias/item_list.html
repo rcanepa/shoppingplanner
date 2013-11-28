@@ -27,40 +27,31 @@
 
 <div id="itemstree">
     <ul id="treeData" style="display: none;">
-        {% for item in items %}
-            {% for branch, obj in item.as_tree %}
-                {% if obj %}
-                    {% if branch %}
-                        <li id="{{ obj.id }}" class="folder"><a href="{% url 'categorias:item_detail' obj.id %}" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})</a>
-                        <ul>
-                    {% else %}
-                        <li id="{{ obj.id }}"><a href="{% url 'categorias:item_detail' obj.id %}" target="_self"> {{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})</a>
-                        </li>
-                    {% endif %}
-                {% else %}
-                    {% if branch %}
-                        </ul>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
+        {% for obj in items %}
+        <li id="{{ obj.id }}" class="folder lazy"><a href="{% url 'categorias:categoria_detail' obj.id %}" target="_self">{{ obj.nombre }}</a>
         {% endfor %}
     </ul>
 </div>
+
 {% endblock %}
 
 {% block js %}
 <script>
 
 $(function() {
+    
     $("#itemstree").fancytree({
-        activate: function(e, data) {
-            var node = data.node;
-            if( node.data.href ){
-                window.open(node.data.href, node.data.target);
-            }
-        }
-    });
+        
+        lazyload: function(e, data){
+        // return a source in 'data.result'
+            data.result = {
+            url: "{% url 'categorias:item_nodesearch' %}",
+            data: {key: data.node.key}
+            };
+        },
 
+        
+    });
 
 
 });

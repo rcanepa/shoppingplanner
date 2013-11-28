@@ -11,12 +11,15 @@ from django.views.generic import UpdateView
 from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.views.generic import DeleteView
+from django.views.generic import View
 from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum
 from planificador.views import UserInfoMixin
 from collections import defaultdict
+from django.utils import simplejson
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class CategoriaListView(UserInfoMixin, ListView):
@@ -29,7 +32,8 @@ class CategoriaListView(UserInfoMixin, ListView):
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
-        return Categoria.objects.filter(categoria_padre=None)
+        return Categoria.objects.filter(categoria_padre=None,
+            organizacion=self.request.user.get_profile().organizacion)
 
     def get_context_data(self, **kwargs):
         context = super(CategoriaListView, self).get_context_data(**kwargs)
@@ -75,7 +79,7 @@ class CategoriaCreateView(UserInfoMixin, CreateView):
         return super(CategoriaCreateView, self).dispatch(*args, **kwargs)
 
     def form_valid(self, form):
-        form.instance.usuario_creador = self.request.user
+        form.instance.organizacion = self.request.user.get_profile().organizacion
         return super(CategoriaCreateView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -100,6 +104,35 @@ class CategoriaDeleteView(UserInfoMixin, DeleteView):
 """
 ########################### Items ###########################
 """
+
+
+class ItemAjaxNodeView(View):
+    '''
+    Recibe el ID de un item y entrega una lista de nodos hijos
+    los cuales seran agregados a un FancyTree
+    '''
+    @method_decorator(login_required)
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            nodos = []
+            id_cat = request.GET['key']
+            item_obj = Item.objects.get(pk=id_cat, 
+                categoria__organizacion=self.request.user.get_profile().organizacion)
+            items_obj = item_obj.get_children()
+            for children in items_obj:
+                nodo = {}
+                if children.precio != 0:
+                    nodo['title'] = children.nombre + " | " + "{:,}".format(children.precio)
+                else:
+                    nodo['title'] = children.nombre
+                nodo['key'] = children.id
+                nodo['lazy'] = True
+                if (children.get_children()):
+                    nodo['folder'] = True
+                nodos.append(nodo)
+            data = simplejson.dumps(nodos,cls=DjangoJSONEncoder)
+            return HttpResponse(data, mimetype='application/json')
+        return HttpResponseRedirect(reverse('categorias:item_list'))
 
 
 class ItemListView(UserInfoMixin, ListView):

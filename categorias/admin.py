@@ -6,14 +6,14 @@ from categorias.models import Item
 admin.site.unregister(Site)
 
 class CategoriaAdmin(admin.ModelAdmin):
-    fields = ['nombre', 'categoria_padre', 'vigencia', 'usuario_creador']
+    fields = ['nombre', 'categoria_padre', 'vigencia']
     list_display = ('get_nivel', 'nombre', 'categoria_padre', 'vigencia')
     list_display_links = ['nombre']
 
 admin.site.register(Categoria, CategoriaAdmin)
 
 class ItemAdmin(admin.ModelAdmin):
-    fields = ['categoria', 'nombre', 'item_padre', 'precio', 'usuario_responsable', 'usuario_creador']
+    fields = ['categoria', 'nombre', 'item_padre', 'precio', 'usuario_responsable']
     list_display = ('get_nivel', 'categoria', 'nombre', 'item_padre', 'usuario_responsable', 'precio', 'vigencia')
     list_display_links = ['nombre']
     list_filter = ['categoria']

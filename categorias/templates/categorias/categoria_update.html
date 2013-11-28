@@ -13,14 +13,24 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    <li><a href="{% url 'categorias:categoria_update' %}">Volver</a></li>
+    <li><a href="{% url 'categorias:categoria_list' %}">Volver</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
-<form method="post">
+<h3>Actualizar Categor&iacute;a</h3>
+<form class="pure-form pure-form-aligned" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Guardar">
+    {% for field in form %}
+	        <div class="fieldWrapper pure-control-group">
+	           	{{ field.label_tag }} {{ field }}
+        		{% for error in field.errors %}
+    				<span class="msg_error">(*) {{ error }}</span>
+    			{% endfor %}
+	        </div>
+	    {% endfor %}
+	    <div class="pure-controls">
+            <button type="submit" class="pure-button pure-button-primary">Guardar</button>
+        </div>
 </form>
 {% endblock content %}
