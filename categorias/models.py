@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from organizaciones.models import Organizacion
 
+
 """
 Modelo Categoria
 """
@@ -14,6 +15,7 @@ class Categoria(models.Model):
     fecha_creacion = models.DateTimeField(default=datetime.now, blank=True)
     categoria_padre = models.ForeignKey('self', blank=True, null=True, related_name='categorias_hijos')
     organizacion = models.ForeignKey(Organizacion)
+    planificable = models.BooleanField(default=False)
     
     def __unicode__(self):
         return self.nombre
@@ -72,6 +74,7 @@ class Item(models.Model):
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
     usuario_responsable = models.ForeignKey(User, blank=True, null=True, related_name='items_responsable')
     categoria = models.ForeignKey('Categoria')
+    temporada = models.ForeignKey('planes.Temporada', blank=True, null=True, related_name='items_temporada')
     precio = models.PositiveIntegerField(default=0)
     
     def __unicode__(self):
@@ -97,7 +100,7 @@ class Item(models.Model):
 
     def as_tree_min(self):
         """
-        Obtiene recursivamente la lista de hijos en forma de arbol
+        Obtiene recursivamente la lista de hijos en forma de arbol 
         """
         children = list(self.items_hijos.all())
         branch = bool(children)
@@ -109,6 +112,42 @@ class Item(models.Model):
             else:
                 yield child
         yield branch, None
+
+    def get_hijos(self):
+        """
+        Obtiene recursivamente la lista de hijos en forma de arbol
+        """
+        children = list(self.items_hijos.all())
+        #branch = bool(children)
+        # Se revisa si el item pertenece a la categoria sin hijos (articulos),
+        # en ese caso, se devuelve el nodo
+        if bool(self.categoria.get_children()) == False:
+            yield self
+        for child in children:
+            for next in child.get_hijos():
+                yield next
+
+    def get_hijos_controlado(self, nivel=1):
+        """
+        Generador que itera recursivamente sobre los hijos de un item. Esta acotado por un parametro
+        nivel el cual permite especificar hasta que profundidad del arbol se buscaran hijos.
+        Parametro: nivel de profundidad
+        """
+        children = list(self.items_hijos.all())        
+        yield self
+        for child in children:
+            if child.get_nivel() <= nivel:
+                for next in child.get_hijos_controlado(nivel):
+                    yield next
+
+    def get_padres(self):
+        """
+        Devuelve el padre de un item
+        """
+        padre = self.item_padre
+        while padre is not None:
+            yield padre
+            padre = padre.item_padre
 
     def get_nivel(self, nivel=1):
         hijo = self.item_padre

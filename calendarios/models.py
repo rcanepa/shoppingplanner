@@ -21,6 +21,9 @@ class Periodo(models.Model):
     def __unicode__(self):
         return self.nombre
 
+    class Meta:
+        ordering = ['nombre']
+
 
 class Tiempo(models.Model):
     """docstring for ClassName"""

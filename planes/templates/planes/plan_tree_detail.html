@@ -20,32 +20,16 @@
 
 {% block content %}
 <h3>Arbol de Planificaci&oacute;n</h3>
-<div style="width:40%; float:left">
+<div style="width:50%; float:left">
     <div id="itemstree">
         <ul id="treeData" style="display: none;">
-            {% for item in items %}
-                {% for branch, obj in item.as_tree %}
-                    {% if obj %}
-                        <!-- if branch comprueba la existencia de un nodo hijo -->
-                        {% if branch %}
-                            <li id="{{ obj.id }}" class="folder">{{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})
-                            <ul>
-                        <!-- No hay nodo hijo -->
-                        {% else %}
-                            <li id="{{ obj.id }}">{{ obj.nombre }} (Precio: {{ obj.precio|intcomma }})
-                            </li>
-                        {% endif %}
-                    {% else %}
-                        {% if branch %}
-                            </ul>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
+            {% for obj in items %}
+            <li id="{{ obj.id }}" class="folder lazy"><a href="{% url 'categorias:categoria_detail' obj.id %}" target="_self">{{ obj.nombre }}</a>
             {% endfor %}
         </ul>
     </div>
 </div>
-<div style="width:55%; float:left; padding-left:10px;">
+<div style="width:45%; float:left; padding-left:10px;">
     <form id="save_form" method="post" action="/planes/plan/savestage1/">
         {% csrf_token %}
         <input id="input_json_data" type="hidden" name="plan" value="" />
@@ -77,17 +61,20 @@ $(function() {
     function definirVisibles(){
         var nodos_visibles = 0;
         $("#itemstree").fancytree("getTree").visit(function(node){
-            if (node.isVisible()){
-                if (node.hasChildren()){
-                    if (!node.isExpanded()){
+            if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
+                if (node.isVisible()){
+                    if (node.hasChildren()){
+                        if (!node.isExpanded()){
+                            nodos_visibles++;
+                        }
+                    }
+                    else{
                         nodos_visibles++;
                     }
+                    
                 }
-                else{
-                    nodos_visibles++;
-                }
-                
             }
+            
         });
         $("#msg_visibles").html("<p>Items a planificar: " + nodos_visibles + "</p>");
         return false;
@@ -96,7 +83,7 @@ $(function() {
     $( "button" ).button().click(function( event ) {
         event.preventDefault();
     });
-
+    /*
     $("#itemstree").fancytree({
         expand: function(event, data){
             definirVisibles();
@@ -105,6 +92,29 @@ $(function() {
             definirVisibles();
         },
     });
+    */
+    $("#itemstree").fancytree({
+        
+        lazyload: function(e, data){
+        // return a source in 'data.result'
+            data.result = {
+            url: "{% url 'categorias:item_nodesearch' %}",
+            data: {key: data.node.key}
+            };
+        },
+        postProcess: function(event,data){
+            //console.log(data);
+        },
+        expand: function(event, data){
+            definirVisibles();
+        },
+        collapse: function(event, data){
+            definirVisibles();
+        },
+        
+    });
+
+    $("#msg_visibles").html("<p>Items a planificar: 0</p>");
 
     // Expandir todos los nodos
     $("#btnExpand").click(function(){
@@ -121,10 +131,10 @@ $(function() {
         return false;
     });
 
-    var tree = $("#itemstree").fancytree("getTree");
+    /*var tree = $("#itemstree").fancytree("getTree");
     var num_nodos = tree.count();
     definirVisibles();
-    $("#msg_total").html("<p>Total de ítems: " + num_nodos + "</p>");
+    $("#msg_total").html("<p>Total de ítems: " + num_nodos + "</p>");*/ 
 
     /*
         Enviar por POST dos campos, el ID del plan y un string de IDs de items
@@ -135,21 +145,22 @@ $(function() {
         var plan = parseInt({{plan.id}});
         /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
         $("#itemstree").fancytree("getTree").visit(function(node){
-            if (node.isVisible()){
-                if (node.hasChildren()){
-                    if (!node.isExpanded()){
-                        nodos_lista.push(parseInt(node.key));
+            if (node.isVisible()){                
+                if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
+                    if (node.hasChildren()){
+                        if (!node.isExpanded()){
+                            nodos_lista.push(parseInt(node.key));
+                        }
                     }
-                }
-                else{
-                    nodos_lista.push(parseInt(node.key));    
+                    else{
+                        nodos_lista.push(parseInt(node.key));    
+                    }
                 }
                 
             }
         });
         json_data = JSON.stringify({plan: plan,items: nodos_lista});
         $("#input_json_data").val(json_data);
-        //console.log(json_data);
         $("#save_form").submit();
     });
 });

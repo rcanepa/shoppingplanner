@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     url(r'^temporada/list/$', views.TemporadaListView.as_view(), name='temporada_list'),
     url(r'^temporada/create/$', views.TemporadaCreateView.as_view(), name='temporada_create'),
     url(r'^temporada/detail/(?P<pk>\d+)/$', views.TemporadaDetailView.as_view(), name='temporada_detail'),
+    url(r'^temporada/update/(?P<pk>\d+)/$', views.TemporadaUpdateView.as_view(), name='temporada_update'),
     url(r'^temporada/delete/(?P<pk>\d+)/$', views.TemporadaDeleteView.as_view(), name='temporada_delete'),
 
     url(r'^plan/list/$', views.PlanListView.as_view(), name='plan_list'),
@@ -22,4 +23,6 @@ urlpatterns = patterns('',
     url(r'^plan/itemplansearchlist/$', views.BuscarItemplanListProyeccionView.as_view()),
     #url(r'^plan/itemplansearch/$', views.BuscarItemplanProyeccionView.as_view()),
     url(r'^plan/itemplanventasearch/$', views.BuscarVentaItemplanProyeccionView.as_view()),
+
+    url(r'^plan/categoriasearchlist/$', views.BuscarCategoriaListProyeccionView.as_view()),
 )

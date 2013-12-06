@@ -18,7 +18,7 @@ from planificador.views import UserInfoMixin
 from django.core import serializers
 from django.contrib.auth.decorators import user_passes_test
 from datetime import date
-from django.db.models import Sum
+from django.db.models import Sum, Avg, Max
 import json
 import pprint
 from django.utils import simplejson
@@ -69,6 +69,23 @@ class TemporadaDetailView(UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(TemporadaDetailView, self).get_context_data(**kwargs)
+        
+
+        return context
+
+
+class TemporadaUpdateView(UserInfoMixin, UpdateView):
+    model = Temporada
+    template_name = "planes/temporada_update.html"
+    form_class = TemporadaForm
+
+    @method_decorator(login_required)
+    @method_decorator(user_passes_test(lambda u: u.groups.filter(name="Administrador")))
+    def dispatch(self, *args, **kwargs):
+        return super(TemporadaUpdateView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(TemporadaUpdateView, self).get_context_data(**kwargs)
         return context
 
 
@@ -225,12 +242,39 @@ class ProyeccionesView(UserInfoMixin, DetailView):
             context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1).count()
             context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).count()
             context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
+            
+            # La variable categorias deberia desaparecer
             categorias = Categoria.objects.exclude(categoria_padre=None)
             context['categorias'] = sorted(categorias, key= lambda t: t.get_nivel())
+            
+            # 
+            items_categoria_raiz = []
+            
+            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
+            # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
+            combo_categorias = Categoria.objects.exclude(Q(categoria_padre=None) | Q(planificable=True))
+            
+            # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
+            categoria_raiz = sorted(categorias, key= lambda t: t.get_nivel())[0]
+
+            # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
+            # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
+            # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
+            # poder ver como division a Hombre
+
+            items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
+            
+            context['combo_categorias'] = combo_categorias
+            context['items_categoria_raiz'] = items_categoria_raiz
+
         return context
 
-class GuardarProyeccionView(UserInfoMixin, View):
 
+class GuardarProyeccionView(UserInfoMixin, View):
+    """
+    Revise un objecto con la proyeccion realizada. Incluye el plan asociado, el item y las ventas
+    divididas por temporada
+    """
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(reverse('planes:plan_list'))
 
@@ -239,18 +283,48 @@ class GuardarProyeccionView(UserInfoMixin, View):
             data = json.loads(request.POST['proyeccion'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
-            for ventaperiodo in data['ventas']:
-                if ventaperiodo['tipo'] != 0:
-                    obj = Ventaperiodo.objects.get(pk=ventaperiodo['id'])
-                    obj.vta_n = ventaperiodo['vta_n']
-                    obj.vta_u = ventaperiodo['vta_u']
-                    obj.ctb_n = ventaperiodo['ctb_n']
-                    obj.dcto = float(ventaperiodo['dcto']) / 100
-                    obj.margen = float(ventaperiodo['margen']) / 100
-                    obj.costo = float(ventaperiodo['costo']) * 1000
-                    if ventaperiodo['vta_n'] != 0:
-                        obj.tipo = 2
-                    obj.save()
+            
+            # Se verifica si el item pertenece a una categoria hoja, en caso afirmativo,
+            # se trata de un item no agrupado, por lo tanto, se imputan todas las ventas proyectadas a el
+            if bool(itemplan_obj.item.categoria.get_children()) == False:
+                for temporada, ventas in data['ventas'].iteritems():
+                    for ventaperiodo in ventas:
+                        if ventaperiodo['tipo'] != 0:
+                            obj = Ventaperiodo.objects.get(item=itemplan_obj.item,anio=ventaperiodo['anio'],periodo=ventaperiodo['periodo'])
+                            obj.vta_n = ventaperiodo['vta_n']
+                            obj.vta_u = ventaperiodo['vta_u']
+                            obj.ctb_n = ventaperiodo['ctb_n']
+                            obj.dcto = float(ventaperiodo['dcto']) 
+                            obj.margen = float(ventaperiodo['margen'])
+                            obj.costo = float(ventaperiodo['costo'])
+                            if ventaperiodo['vta_n'] != 0:
+                                # Tipo = 2 -> Proyectada
+                                obj.tipo = 2
+                            obj.save()
+            
+            # El item pertenece a una categoria con hijos, por lo tanto, es una agrupacion. Esto implica
+            # que la venta debe ser imputada a algun item hijo por cada temporada
+            else:
+                # Se itera sobre las ventas por cada temporada
+                for temporada, ventas in data['ventas'].iteritems():
+                    # Se obtiene el primer hijo de la temporada correspondiente
+                    item = itemplan_obj.item.get_children().filter(temporada__nombre=temporada)[:1].get()
+                    # Se itera por cada una de las ventas de la temporada
+                    for ventaperiodo in ventas:
+                        if ventaperiodo['tipo'] != 0:
+                            obj = Ventaperiodo.objects.get(item=item,anio=ventaperiodo['anio'],periodo=ventaperiodo['periodo'])
+                            obj.vta_n = ventaperiodo['vta_n']
+                            obj.vta_u = ventaperiodo['vta_u']
+                            obj.ctb_n = ventaperiodo['ctb_n']
+                            obj.dcto = float(ventaperiodo['dcto']) 
+                            obj.margen = float(ventaperiodo['margen'])
+                            obj.costo = float(ventaperiodo['costo'])
+                            if ventaperiodo['vta_n'] != 0:
+                                # Tipo = 2 -> Proyectada
+                                obj.tipo = 2
+                            obj.save()
+            # Estado = 0 -> Pendiente
+            # Estado = 1 -> Proyectado
             itemplan_obj.estado = 1
             itemplan_obj.save()
         return HttpResponseRedirect(reverse('planes:plan_proyecciones_detail', args=(plan_obj.id,)))
@@ -272,6 +346,39 @@ class BuscarItemplanListProyeccionView(View):
                 list.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio})
             data = json.dumps(list) #dump list as JSON
             return HttpResponse(data, mimetype='application/json')
+        #return HttpResponseRedirect(reverse('planes:plan_list'))
+
+
+class BuscarCategoriaListProyeccionView(View):
+    '''
+    Revise como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
+    puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
+    '''
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            data = {}
+            items = []
+            id_item = json.loads(request.GET['id_item'])
+            id_plan = request.GET['id_plan']
+            # Se busca el objeto de item asociado al parametro id_item
+            item = Item.objects.get(pk=id_item)
+            # Se buscan todos los hijos del item pasado por parametro
+            items_temp = item.items_hijos.all().order_by('nombre')
+            # Si la categoria del hijo no es planificable, entonces se debe generar otro combobox
+            # Por el contrario, si es planificable, entonces se debe cargar el ultimo combobox con
+            # todos los items a proyectar (agrupaciones y articulos)
+            if items_temp[0].categoria.planificable == False:
+                for item_validar in items_temp:
+                    # Solo se devuelven los items que pueden ser vistos por el usuario
+                    if self.request.user.get_profile().validar_visibles(item_validar):
+                        items.append({'id':item_validar.id,'nombre':item_validar.nombre,'id_cat':item_validar.categoria.id})
+            else:
+                queryset = Itemplan.objects.filter(plan=id_plan).order_by('estado','item__categoria','nombre')
+                for itemplan in queryset: #populate list
+                    items.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio, 'categoria_nombre': itemplan.item.categoria.nombre})
+            data['items'] = items
+            data['categoria'] = {'id_categoria':items_temp[0].categoria.id, 'planificable':items_temp[0].categoria.planificable}
+            return HttpResponse(json.dumps(data), mimetype='application/json')
         #return HttpResponseRedirect(reverse('planes:plan_list'))
 
 
@@ -307,36 +414,86 @@ class BuscarVentaItemplanProyeccionView(View):
             id_plan = request.GET['id_plan']
             id_itemplan = request.GET['id_itemplan']
             itemplan_obj = Itemplan.objects.get(plan=id_plan,id=id_itemplan)
+            plan_obj = Plan.objects.get(pk=id_plan)
+            temporada_vigente = {'id':itemplan_obj.plan.temporada.id, 'nombre':itemplan_obj.plan.temporada.nombre, 'anio':itemplan_obj.plan.anio}
+            
+            # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
+            # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
+            # a si mismo
+            item = itemplan_obj.item
+            lista_hijos = []
+            for hijo in item.get_hijos():
+                lista_hijos.append(hijo)
 
+            # Se verifica que el item recibido exista
             if bool(itemplan_obj):
                 
-                # Se busca el periodo actual (de la semana en curso)
-                periodo = Periodo.objects.get(tiempo__anio=act_anio,tiempo__semana=semana,calendario__organizacion=self.request.user.get_profile().organizacion)
-                ventas = Ventaperiodo.objects.values('id','anio','periodo','tipo','vta_n','vta_u','ctb_n','costo','margen').filter(
-                    Q(item=itemplan_obj.item),
-                    Q(anio=act_anio, periodo__lte=periodo.nombre) | Q(anio=ant_anio,periodo__gt=periodo.nombre)
-                    ).order_by('anio','periodo')
+                # Se busca el periodo inferior y superior de la temporada a proyectar
+                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
+                limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
+                # Busca las ventas asociadas a los últimos 12 periodos
+                ventas = Ventaperiodo.objects.filter(
+                Q(item__in=lista_hijos),
+                Q(anio=limite_sup['anio'], periodo__lte=limite_sup['periodo__nombre']) | Q(anio=limite_inf['anio'],periodo__gte=limite_inf['periodo__nombre'])
+                ).values('anio','periodo','tipo','item__temporada__nombre').annotate(
+                vta_n=Sum('vta_n'),vta_u=Sum('vta_u'),
+                ctb_n=Sum('ctb_n'),costo=Sum('costo'),
+                margen=Avg('margen')).order_by('item__temporada__nombre','anio','periodo')
+
+                # Se buscan las temporadas de los items a proyectar.
+                # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
+                # mas de una temporada.
+                temporadas = ventas.order_by('item__temporada__id','item__temporada__nombre').values('item__temporada__id','item__temporada__nombre').distinct()
+                periodos = ventas.order_by('anio','periodo').values('anio','periodo').distinct()
+                
+                # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
+                for periodo in periodos:
+                    if plan_obj.temporada.comprobar_periodo(periodo['periodo']):
+                        periodo['temporada'] = True
+                    else:
+                        periodo['temporada'] = False
+
+                costo_unitario = 0
+                precio_blanco_sin_iva = itemplan_obj.item.precio / 1.19
 
                 for periodo in ventas:
+                    
                     if periodo['vta_u'] != 0:
-                        periodo['precio_real'] = periodo['vta_n'] * 1000 / periodo['vta_u']
+                        periodo['precio_real'] = float(periodo['vta_n'] / periodo['vta_u'])
+                        costo_unitario = float(periodo['costo'] / periodo['vta_u'])
+
                     else:
                         periodo['precio_real'] = 0
-                    periodo['dcto'] = round(float((itemplan_obj.item.precio - periodo['precio_real']) / itemplan_obj.item.precio) * 100, 1)
+                    periodo['dcto'] = round(float((precio_blanco_sin_iva - periodo['precio_real']) / precio_blanco_sin_iva), 4)
                     periodo['vta_u'] = round(float(periodo['vta_u']),0)
-                    periodo['vta_n'] = round(float(periodo['vta_n']),1)
-                    periodo['ctb_n'] = round(float(periodo['ctb_n']),1)
-                    periodo['costo'] = round(float(periodo['costo'] / 1000),1)
-                    periodo['margen'] = round(float(periodo['margen'] * 100),1)
+                    periodo['vta_n'] = round(float(periodo['vta_n']),0)
+                    periodo['ctb_n'] = round(float(periodo['ctb_n']),0)
+                    periodo['costo'] = round(float(periodo['costo']),0)
+                    if periodo['ctb_n'] != 0:
+                        periodo['margen'] = round(float(periodo['ctb_n'] / periodo['vta_n']),4)
+                    else:
+                        periodo['margen'] = 0
                 
+                ventas_por_temporada = defaultdict(list)
+                for temporada in temporadas:
+                    for venta in ventas:
+                        if temporada['item__temporada__nombre'] == venta['item__temporada__nombre']:
+                            ventas_por_temporada[temporada['item__temporada__nombre']].append(venta)
+
                 itemplan_json = {}
                 itemplan_json['id_item'] = itemplan_obj.item.id
                 itemplan_json['id_itemplan'] = itemplan_obj.id
                 itemplan_json['nombre'] = itemplan_obj.nombre
                 itemplan_json['precio'] = itemplan_obj.item.precio
+                itemplan_json['costo_unitario'] = costo_unitario
+                itemplan_json['precio_blanco_sin_iva'] = precio_blanco_sin_iva
 
-                resumen['ventas'] = list(ventas)
+                #resumen['ventas'] = list(ventas)
                 resumen['itemplan'] = itemplan_json
+                resumen['temporadas'] = list(temporadas)
+                resumen['temporada_vigente'] = temporada_vigente
+                resumen['ventas'] = ventas_por_temporada
+                resumen['periodos'] = list(periodos)
                 
                 data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
             else:

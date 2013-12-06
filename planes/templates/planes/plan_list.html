@@ -13,9 +13,7 @@
 {% block sidebar %}
 <h4>M&oacute;dulos</h4>
 <ul>
-    {% if admin %}
     <li><a href="{% url 'planes:plan_create' %}">Crear Planificaci&oacute;n</a></li>
-    {% endif %}
     <li><a href="{% url 'planes:index' %}">Volver</a></li>
 </ul>
 {% endblock %}

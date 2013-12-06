@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render_to_response
 from categorias.models import Categoria, Item
 from ventas.models import Venta, Ventaperiodo
@@ -20,6 +21,16 @@ from planificador.views import UserInfoMixin
 from collections import defaultdict
 from django.utils import simplejson
 from django.core.serializers.json import DjangoJSONEncoder
+
+
+"""
+Sobreescribir el metodo unicode del modelo User para que muestre
+el nombre completo y no solo el username.
+"""
+def user_unicode_patch(self):
+    return '%s %s (%s)' % (self.first_name, self.last_name, self.username)
+
+User.__unicode__ = user_unicode_patch
 
 
 class CategoriaListView(UserInfoMixin, ListView):
@@ -126,9 +137,11 @@ class ItemAjaxNodeView(View):
                 else:
                     nodo['title'] = children.nombre
                 nodo['key'] = children.id
-                nodo['lazy'] = True
                 if (children.get_children()):
                     nodo['folder'] = True
+                    nodo['lazy'] = True
+                if children.categoria.planificable:
+                    nodo['extraClasses'] = "planificable"
                 nodos.append(nodo)
             data = simplejson.dumps(nodos,cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')

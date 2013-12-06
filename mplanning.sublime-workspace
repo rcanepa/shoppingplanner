@@ -4,12 +4,132 @@
 		"selected_items":
 		[
 			[
+				"item_",
+				"item_validar"
+			],
+			[
+				"ob",
+				"objects"
+			],
+			[
+				"con",
+				"context"
+			],
+			[
+				"el",
+				"elif	keyword"
+			],
+			[
+				"catego",
+				"categoria_raiz"
+			],
+			[
+				"cate",
+				"categoria_raiz	statement"
+			],
+			[
+				"combo",
+				"combo_categorias	statement"
+			],
+			[
+				"temp",
+				"temporada"
+			],
+			[
+				"vt",
+				"vta_u"
+			],
+			[
+				"tempo",
+				"temporada	forflow"
+			],
+			[
+				"tem",
+				"temporada	forflow"
+			],
+			[
+				"i",
+				"itemplan_obj	statement"
+			],
+			[
+				"tota",
+				"total_margen"
+			],
+			[
+				"form",
+				"format"
+			],
+			[
+				"te",
+				"temporada	forflow"
+			],
+			[
+				"vta",
+				"vta_temp"
+			],
+			[
+				"item",
+				"itemplan_obj	statement"
+			],
+			[
+				"item__",
+				"item__temporada__nombre"
+			],
+			[
+				"tempora",
+				"temporadas"
+			],
+			[
+				"ven",
+				"ventas	statement"
+			],
+			[
+				"ventas",
+				"ventas2	statement"
+			],
+			[
 				"get",
-				"get_children"
+				"get_padres"
+			],
+			[
+				"se",
+				"self"
+			],
+			[
+				"li",
+				"lista_hijos"
+			],
+			[
+				"lista",
+				"lista_hijos	statement"
+			],
+			[
+				"itempla",
+				"itemplan_obj	statement"
+			],
+			[
+				"itemplan_",
+				"itemplan_json	statement"
+			],
+			[
+				"ite",
+				"itemplan_json	statement"
 			],
 			[
 				"no",
-				"nombre"
+				"None	statement"
+			],
+			[
+				"o",
+				"objects"
+			],
+			[
+				"bo",
+				"BooleanField	class"
+			],
+			[
+				"fun",
+				"function"
 			],
 			[
 				"or",
@@ -36,16 +156,8 @@
 				"for	for (…) {…}"
 			],
 			[
-				"vt",
-				"vta_n"
-			],
-			[
 				"venta",
 				"ventaperiodo"
-			],
-			[
-				"ob",
-				"obj"
 			],
 			[
 				"back",
@@ -72,10 +184,6 @@
 				"tiempo	statement"
 			],
 			[
-				"ite",
-				"itemplan_obj	statement"
-			],
-			[
 				"Po",
 				"PositiveSmallIntegerField	class"
 			],
@@ -96,10 +204,6 @@
 				"contrib	import"
 			],
 			[
-				"vta",
-				"vta_n"
-			],
-			[
 				"tiempo_",
 				"tiempo__periodo__nombre"
 			],
@@ -108,16 +212,8 @@
 				"id_plan"
 			],
 			[
-				"tem",
-				"template_name"
-			],
-			[
 				"itempl",
 				"itemplan"
-			],
-			[
-				"item",
-				"itemplan_obj"
 			],
 			[
 				"cl",
@@ -168,10 +264,6 @@
 				"option	Tag"
 			],
 			[
-				"itemplan_",
-				"itemplan_obj_arr"
-			],
-			[
 				"reu",
 				"request"
 			],
@@ -196,26 +288,18 @@
 	"buffers":
 	[
 		{
-			"file": "categorias/templates/categorias/categoria_list.html",
-			"settings":
-			{
-				"buffer_size": 2073,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "categorias/views.py",
-			"settings":
-			{
-				"buffer_size": 9175,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "planes/views.py",
 			"settings":
 			{
-				"buffer_size": 14927,
+				"buffer_size": 22646,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planes/templates/planes/plan_proyecciones_detail.html",
+			"settings":
+			{
+				"buffer_size": 17430,
 				"line_ending": "Unix"
 			}
 		},
@@ -223,7 +307,7 @@
 			"file": "categorias/models.py",
 			"settings":
 			{
-				"buffer_size": 3684,
+				"buffer_size": 5225,
 				"line_ending": "Unix"
 			}
 		}
@@ -231,7 +315,7 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 54.0,
+		"height": 306.0,
 		"selected_items":
 		[
 			[
@@ -239,7 +323,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 449.0
+		"width": 467.0
 	},
 	"console":
 	{
@@ -256,40 +340,48 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/mplanning/userprofile/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/urls.py",
+		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/buttons-min.css",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/tables-min.css",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/forms-min.css",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/forms.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/menu.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/views.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_proyecciones_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/calendarios/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/calendarios/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/forms.py",
+		"/home/rcanepa/Development/planificador/mplanning/ventas/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsable_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/urls.py",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/admin.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_update.html",
-		"/home/rcanepa/Development/planificador/mplanning/ventas/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_proyecciones_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
-		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsables.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsable_update.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/calendarios/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/mplanning.sublime-project",
 		"/home/rcanepa/Development/planificador/mplanning/templates/register.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
 		"/home/rcanepa/Development/planificador/mplanning/templates/register_success.html",
 		"/home/rcanepa/Development/planificador/mplanning/templates/loggedin.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/index.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_delete.html",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_list.html",
@@ -301,18 +393,14 @@
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/templates/user_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_delete.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/index.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/menu.html",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/menu.html",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/userprofile/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/itemplan_proyeccion.html",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/calendarios/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/settings.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/admin.py",
 		"/home/rcanepa/Development/planificador/mplanning/templates/admin/base_site.html",
@@ -320,7 +408,7 @@
 	],
 	"find":
 	{
-		"height": 67.0
+		"height": 69.0
 	},
 	"find_in_files":
 	{
@@ -331,9 +419,19 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": true,
+		"case_sensitive": false,
 		"find_history":
 		[
+			"q(",
+			"set.all()",
+			"GuardarProyeccionView",
+			"XYZ",
+			"tablaDctoUni",
+			"default",
+			"tablaDctoUni",
+			"responsable",
+			"ProyeccionesView",
+			"itemplan_proyec",
 			"descuento",
 			"save_form",
 			"GuardarProyeccionView",
@@ -377,6 +475,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"\" + temporada + \"",
 			"margen",
 			"html",
 			"periodo",
@@ -389,29 +488,57 @@
 		"reverse": false,
 		"show_context": true,
 		"use_buffer2": true,
-		"whole_word": true,
+		"whole_word": false,
 		"wrap": true
 	},
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "categorias/templates/categorias/categoria_list.html",
+					"file": "planes/views.py",
 					"settings":
 					{
-						"buffer_size": 2073,
+						"buffer_size": 22646,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1499,
-								1499
+								16414,
+								16414
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "planes/templates/planes/plan_proyecciones_detail.html",
+					"settings":
+					{
+						"buffer_size": 17430,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4270,
+								4270
 							]
 						],
 						"settings":
@@ -421,81 +548,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 612.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "categorias/views.py",
-					"settings":
-					{
-						"buffer_size": 9175,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1177,
-								1177
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 468.0,
+						"translation.y": 90.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "planes/views.py",
-					"settings":
-					{
-						"buffer_size": 14927,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								14749,
-								14749
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5296.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "categorias/models.py",
 					"settings":
 					{
-						"buffer_size": 3684,
+						"buffer_size": 5225,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								831,
-								831
+								2742,
+								2742
 							]
 						],
 						"settings":
@@ -505,7 +576,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 102.0,
+						"translation.y": 904.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -565,10 +636,10 @@
 		],
 		"width": 0.0
 	},
-	"show_minimap": true,
+	"show_minimap": false,
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 247.0,
+	"side_bar_width": 281.0,
 	"status_bar_visible": true
 }

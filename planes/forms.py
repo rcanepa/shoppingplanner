@@ -23,4 +23,4 @@ class TemporadaForm(forms.ModelForm):
 
     class Meta:
         model = Temporada
-        fields = ['nombre']
+        fields = ['nombre','periodo','periodo_final']
