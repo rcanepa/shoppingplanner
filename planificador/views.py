@@ -5,7 +5,7 @@ from django.contrib import auth
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from django.views.generic import View, TemplateView, ListView
+from django.views.generic import View, TemplateView, ListView, DetailView
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
 from userprofile.forms import RegistrationForm
@@ -141,3 +141,14 @@ class UserListView(UserInfoMixin, ListView):
         context = super(UserListView, self).get_context_data(**kwargs)
         context['users'] = User.objects.filter(userprofile__organizacion=self.request.user.get_profile().organizacion)
         return context
+
+
+class UserDetailView(UserInfoMixin, DetailView):
+    """Vista para la ficha de un usuario"""
+    model = User
+    template_name = "user_detail.html"
+    context_object_name = "usuario"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UserDetailView, self).dispatch(*args, **kwargs)

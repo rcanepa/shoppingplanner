@@ -11,24 +11,26 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    {% if admin %}
-    <li><a href="{% url 'calendarios:calendario_create' %}">Crear</a></li>
-    {% endif %}
-    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open" style="width:85%;">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+	    <li><a href="{% url 'calendarios:calendario_create' %}">Crear</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
 <h3>Calendarios</h3>
 
-<ul>
+<ol class="rectangle-list">
     {% for calendario in calendarios %}
 
-    <li><a href="#"> {{ calendario.nombre }} </a>
+    <li><a href="#"> {{ calendario.nombre }} </a></li>
 
     {% endfor %}
-</ul>
+</ol>
 
 {% endblock %}

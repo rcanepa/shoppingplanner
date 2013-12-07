@@ -11,18 +11,20 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-	{% if admin %}
-    <li><a href="{% url 'categorias:categoria_update' categoria.id %}">Editar</a></li>
-    <li><a href="{% url 'categorias:categoria_delete' categoria.id %}">Eliminar</a></li>
-    {% endif %}
-    <li><a href="{% url 'categorias:categoria_list' %}">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+	    <li><a href="{% url 'categorias:categoria_update' categoria.id %}">Editar</a></li>
+	    <li><a href="{% url 'categorias:categoria_delete' categoria.id %}">Eliminar</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'categorias:categoria_list' %}">Volver</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
 
-<h2>{{ categoria.nombre }}</h2>
+<h3>{{ categoria.nombre }}</h3>
 
 {% endblock %}

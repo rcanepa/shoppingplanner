@@ -62,7 +62,7 @@ class Plan(models.Model):
     ESTADOS = (
         (0, 'Nueva'),
         (1, 'Arbol de planificacion definido'),
-        (2, 'Proyeccion completada'),
+        (2, 'Proyeccion finalizada'),
         (3, 'Plafinicacion finalizada'),
         )
     nombre = models.CharField(max_length=70)

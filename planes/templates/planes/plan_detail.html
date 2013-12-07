@@ -11,17 +11,19 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    <li><a href="{% url 'planes:plan_delete' plan.id %}">Eliminar</a></li>
-    <li><a href="{% url 'planes:plan_list' %}">Volver</a></li>
-</ul>
-<h4>Trabajar</h4>
-<ul>
-	<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">Seleccionar &aacute;rbol</a></li>
-	<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">Proyectar informaci&oacute;n</a></li>
-	<li><a href="#">Planificar</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+    	<li><a href="{% url 'planes:plan_delete' plan.id %}">Eliminar</a></li>
+    	<li><a href="{% url 'planes:plan_list' %}">Volver</a></li>
+	</ul>
+	<a class="pure-menu-heading">Trabajar</a>
+	<ul>
+		<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">Seleccionar &aacute;rbol</a></li>
+		<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">Proyectar informaci&oacute;n</a></li>
+		<li><a href="#">Planificar</a></li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block content %}

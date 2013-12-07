@@ -11,22 +11,24 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    <li><a href="{% url 'planes:plan_create' %}">Crear Planificaci&oacute;n</a></li>
-    <li><a href="{% url 'planes:index' %}">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+	    <li><a href="{% url 'planes:plan_create' %}">Crear Planificaci&oacute;n</a></li>
+	    <li><a href="{% url 'planes:index' %}">Volver</a></li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block content %}
-<h2>Planes</h2>
+<h3>Planes</h3>
 
-<ul>
+<ol class="rectangle-list">
     {% for plan in planes %}
 
-    <li><a href="{% url 'planes:plan_detail' plan.id %}"> {{ plan.nombre }} </a>
+    <li><a href="{% url 'planes:plan_detail' plan.id %}"> {{ plan.nombre }} </a></li>
 
     {% endfor %}
-</ul>
+</ol>
 
 {% endblock %}

@@ -7,25 +7,28 @@
 {% endblock %}
 
 {% block username %}
-	Bienvenido {{ full_name }} !
+Bienvenido {{ full_name }} !
 {% endblock %}
 
 {% block sidebar %}
-        <h4>M&oacute;dulos</h4>
-        <ul>
-            {% if admin %}
-            <li><a href="/admin/" target="_blank">Administraci&oacute;n</a></li>
-            <li><a href="{% url 'user_list' %}">Usuarios</a></li>
-            {% endif %}
-            <li><a href="{% url 'categorias:categoria_list' %}">Categor&iacute;as</a></li>
-            <li><a href="{% url 'categorias:item_list' %}">Items</a></li>
-            <li><a href="{% url 'planes:temporada_list' %}">Temporadas</a></li>
-            <li><a href="{% url 'calendarios:calendario_list' %}">Calendario</a></li>
-        </ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+        <li><a href="/admin/" target="_blank">Administraci&oacute;n</a></li>
+        <li><a href="{% url 'user_list' %}">Usuarios</a></li>
+        {% endif %}
+        <li><a href="{% url 'categorias:categoria_list' %}">Categor&iacute;as</a></li>
+        <li><a href="{% url 'categorias:item_list' %}">Items</a></li>
+        <li><a href="{% url 'planes:temporada_list' %}">Temporadas</a></li>
+        <li><a href="{% url 'calendarios:calendario_list' %}">Calendario</a></li>
+    </ul>
+</div>
+
 {% endblock %}
 
 {% block content %}
 
-<h2>M&oacute;dulo de Administraci&oacute;n</h2>
+<h3>M&oacute;dulo de Administraci&oacute;n</h3>
 
 {% endblock %}

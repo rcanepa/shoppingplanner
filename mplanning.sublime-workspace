@@ -4,6 +4,66 @@
 		"selected_items":
 		[
 			[
+				"pad",
+				"padding-top"
+			],
+			[
+				"context",
+				"get_context_data"
+			],
+			[
+				"fon",
+				"font-size"
+			],
+			[
+				"bo",
+				"border-left"
+			],
+			[
+				"co",
+				"color"
+			],
+			[
+				"back",
+				"background"
+			],
+			[
+				"temp",
+				"temp_periodo	forflow"
+			],
+			[
+				"pe",
+				"periodo_inf	statement"
+			],
+			[
+				"tempoda",
+				"temporada"
+			],
+			[
+				"for",
+				"format"
+			],
+			[
+				"html_to",
+				"html_tot_unidades"
+			],
+			[
+				"total",
+				"total_unidades"
+			],
+			[
+				"cate",
+				"categoria"
+			],
+			[
+				"ite",
+				"items"
+			],
+			[
+				"pla",
+				"planificable"
+			],
+			[
 				"item_",
 				"item_validar"
 			],
@@ -24,16 +84,8 @@
 				"categoria_raiz"
 			],
 			[
-				"cate",
-				"categoria_raiz	statement"
-			],
-			[
 				"combo",
 				"combo_categorias	statement"
-			],
-			[
-				"temp",
-				"temporada"
 			],
 			[
 				"vt",
@@ -112,20 +164,12 @@
 				"itemplan_json	statement"
 			],
 			[
-				"ite",
-				"itemplan_json	statement"
-			],
-			[
 				"no",
 				"None	statement"
 			],
 			[
 				"o",
 				"objects"
-			],
-			[
-				"bo",
-				"BooleanField	class"
 			],
 			[
 				"fun",
@@ -152,16 +196,8 @@
 				"tipo_total"
 			],
 			[
-				"for",
-				"for	for (…) {…}"
-			],
-			[
 				"venta",
 				"ventaperiodo"
-			],
-			[
-				"back",
-				"background-color"
 			],
 			[
 				"v",
@@ -173,10 +209,6 @@
 			],
 			[
 				"plan",
-				"planificacion"
-			],
-			[
-				"pla",
 				"planificacion"
 			],
 			[
@@ -198,10 +230,6 @@
 			[
 				"a",
 				"auth	import"
-			],
-			[
-				"co",
-				"contrib	import"
 			],
 			[
 				"tiempo_",
@@ -288,10 +316,18 @@
 	"buffers":
 	[
 		{
-			"file": "planes/views.py",
+			"file": "planes/templates/planes/plan_tree_detail.html",
 			"settings":
 			{
-				"buffer_size": 22646,
+				"buffer_size": 5272,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planes/templates/planes/plan_create.html",
+			"settings":
+			{
+				"buffer_size": 1146,
 				"line_ending": "Unix"
 			}
 		},
@@ -299,15 +335,15 @@
 			"file": "planes/templates/planes/plan_proyecciones_detail.html",
 			"settings":
 			{
-				"buffer_size": 17430,
+				"buffer_size": 25810,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "categorias/models.py",
+			"file": "static/css/default.css",
 			"settings":
 			{
-				"buffer_size": 5225,
+				"buffer_size": 5235,
 				"line_ending": "Unix"
 			}
 		}
@@ -340,62 +376,68 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_delete.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/user_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_delete.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/user_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsables.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsable_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/planificador/views.py",
+		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
+		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_list.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_proyecciones_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/register_success.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/register.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_delete.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_update.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_delete.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/index.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
+		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/index.html",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/pure-skin-mine.css",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/menu.html",
+		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/menu.html",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/base.css",
+		"/home/rcanepa/Development/planificador/mplanning/templates/base2.html",
+		"/home/rcanepa/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/views.py",
+		"/home/rcanepa/Development/planificador/mplanning/calendarios/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/pure-min.css",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/buttons-min.css",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/tables-min.css",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/forms-min.css",
-		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_update.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/menu.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_proyecciones_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/calendarios/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/ventas/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsable_update.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/admin.py",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_update.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsables.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_detail.html",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/mplanning.sublime-project",
-		"/home/rcanepa/Development/planificador/mplanning/templates/register.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
-		"/home/rcanepa/Development/planificador/mplanning/planificador/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/templates/register_success.html",
 		"/home/rcanepa/Development/planificador/mplanning/templates/loggedin.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/index.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_create.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_delete.html",
-		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_create.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_update.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_create.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_delete.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_delete.html",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_create.html",
-		"/home/rcanepa/Development/planificador/mplanning/templates/user_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_delete.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/index.html",
-		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/menu.html",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/itemplan_proyeccion.html",
@@ -422,6 +464,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Usuarios",
+			"li",
+			"temporadaDe",
+			"tablaVtaMarCtb",
+			"items",
 			"q(",
 			"set.all()",
 			"GuardarProyeccionView",
@@ -475,6 +522,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"dt",
 			"\" + temporada + \"",
 			"margen",
 			"html",
@@ -494,51 +542,23 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "planes/views.py",
+					"file": "planes/templates/planes/plan_tree_detail.html",
 					"settings":
 					{
-						"buffer_size": 22646,
+						"buffer_size": 5272,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								16414,
-								16414
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5135.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "planes/templates/planes/plan_proyecciones_detail.html",
-					"settings":
-					{
-						"buffer_size": 17430,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4270,
-								4270
+								1767,
+								1767
 							]
 						],
 						"settings":
@@ -548,35 +568,90 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 450.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "categorias/models.py",
+					"buffer": 1,
+					"file": "planes/templates/planes/plan_create.html",
 					"settings":
 					{
-						"buffer_size": 5225,
+						"buffer_size": 1146,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2742,
-								2742
+								1086,
+								1086
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
+							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 904.0,
+						"translation.y": 180.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "planes/templates/planes/plan_proyecciones_detail.html",
+					"settings":
+					{
+						"buffer_size": 25810,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2331,
+								2331
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1350.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "static/css/default.css",
+					"settings":
+					{
+						"buffer_size": 5235,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1738,
+								1738
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 962.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

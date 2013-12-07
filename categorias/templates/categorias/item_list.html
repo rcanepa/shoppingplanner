@@ -12,18 +12,20 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    {% if admin %}
-    <li><a href="{% url 'categorias:item_create' %}">Crear Item</a></li>
-    <li><a href="{% url 'categorias:item_responsables' %}">Asignar Responsables</a></li>
-    {% endif %}
-    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+        <li><a href="{% url 'categorias:item_create' %}">Crear Item</a></li>
+        <li><a href="{% url 'categorias:item_responsables' %}">Asignar Responsables</a></li>
+        {% endif %}
+        <li><a href="{% url 'administracion:index' %}">Volver</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
-<h2>Items</h2>
+<h3>Items</h3>
 
 <div id="itemstree">
     <ul id="treeData" style="display: none;">

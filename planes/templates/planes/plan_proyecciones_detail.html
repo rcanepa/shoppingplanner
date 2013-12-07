@@ -11,13 +11,16 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+    </ul>
+</div>
+
 <!-- Seccion con parametros de busqueda del item a proyectar  -->
-<div style="padding: 10px 0px; float:left; width:100%;">
-    <h4>Buscar Proyecci&oacute;n</h4>
+<div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
+    <a class="caja-header">Proyecci&oacute;n</a>
     <table id="">
         {% for categoria in combo_categorias %}
         <tr>
@@ -46,7 +49,7 @@
             </td>
         </td>
     </table>
-    <h4>Buscar Comparativo</h4>
+    <a class="caja-header">Comparativo</a>
     <table id="">
         {% for categoria in combo_categorias %}
         <tr>
@@ -243,12 +246,12 @@ $(function() {
             success: function(data){
                 console.log(data);
                 if (!id_this.match("^combo_resultado_comp")){
-                    $("#item-proyeccion").text(data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+                    $("#item-proyeccion").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
                     planificacion = data;
                     tablaDctoUni(data);
                 }
                 else{
-                    $("#item-comparativo").text(data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+                    $("#item-comparativo").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
                     planificacion = data;
                     tablaDctoUniComp(data);
                 }

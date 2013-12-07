@@ -24,7 +24,8 @@ urlpatterns = patterns('',
     url(r'^accounts/register/$', views.RegisterUserView.as_view(), name='user_register'),
     url(r'^accounts/register_success/$', views.RegisterSuccessView.as_view()),
     url(r'^accounts/list/$', views.UserListView.as_view(), name="user_list"),
-    
+    url(r'^accounts/detail/(?P<pk>\d+)/$', views.UserDetailView.as_view(), name='user_detail'),
+
     url(r'^categorias/',  include('categorias.urls', namespace="categorias")),
     url(r'^administracion/',  include('administracion.urls', namespace="administracion")),
     url(r'^planes/',  include('planes.urls', namespace="planes")),

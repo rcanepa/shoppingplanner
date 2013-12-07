@@ -12,10 +12,29 @@
 {% endblock %}
 
 {% block sidebar %}
-<h4>M&oacute;dulos</h4>
-<ul>
-    <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
-</ul>
+<!-- Menu general -->
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+    </ul>
+</div>
+<p></p>
+<!-- Menu general -->
+<form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
+    {% csrf_token %}
+    <input id="input_json_data" type="hidden" name="plan" value="" />
+</form>
+<!-- Menu de acciones -->
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">Acciones</a>
+    <ul>
+        <li><a id="btnExpand">Expandir Nodos</a></li>
+        <li><a id="btnCollapse">Collapsar Nodos</a></li>
+        <li><a id="btnSave">Guardar &Aacute;rbol</a></li>
+    </ul>
+</div>        
+<!-- Menu de acciones -->
 {% endblock %}
 
 {% block content %}
@@ -30,12 +49,9 @@
     </div>
 </div>
 <div style="width:45%; float:left; padding-left:10px;">
-    <form id="save_form" method="post" action="/planes/plan/savestage1/">
+    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
         {% csrf_token %}
         <input id="input_json_data" type="hidden" name="plan" value="" />
-    <button id="btnExpand">Expandir</button>
-    <button id="btnCollapse">Collapsar</button>
-    <button id="btnSave" type="submit">Guardar</button>
     </form>
     <div style="clear:both;">
         <div class="msg_info">
@@ -80,19 +96,6 @@ $(function() {
         return false;
     }
 
-    $( "button" ).button().click(function( event ) {
-        event.preventDefault();
-    });
-    /*
-    $("#itemstree").fancytree({
-        expand: function(event, data){
-            definirVisibles();
-        },
-        collapse: function(event, data){
-            definirVisibles();
-        },
-    });
-    */
     $("#itemstree").fancytree({
         
         lazyload: function(e, data){

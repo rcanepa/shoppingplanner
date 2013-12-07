@@ -1,8 +1,10 @@
-<ul id="navlist">
-    <li><a href="{% url 'home' %}" >Inicio</a></li>
-    <li><a href="{% url 'planes:index' %}" id="current">Planificar Temporada</a></li>
-    <li><a href="#">Lista Compra</a></li>
-    <li><a href="#">An&aacute;lisis KPIs</a></li>
-    <li><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
-    <li><a href="#">Ayuda</a></li>
-</ul>
+<div class="pure-menu pure-menu-open pure-menu-horizontal">
+    <ul>
+        <li><a href="{% url 'home' %}">Inicio</a></li>
+        <li class="pure-menu-selected"><a href="{% url 'planes:index' %}">Planificar Temporada</a></li>
+        <li class="pure-menu-disabled"><a href="#">Lista Compra</a></li>
+		<li class="pure-menu-disabled"><a href="#">An&aacute;lisis KPIs</a></li>
+		<li><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
+		<li class="pure-menu-disabled"><a href="#">Ayuda</a></li>
+    </ul>
+</div>

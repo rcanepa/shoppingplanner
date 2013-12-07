@@ -1,5 +1,128 @@
+/* <!-- */
+/* General styles */
 body {
+	margin:0;
+	padding:0;
+	border:0;			/* This removes the border around the viewport in old versions of IE */
+	width:100%;
+	background:#fff;
+	min-width:600px;    /* Minimum width of layout - remove line if not required */
+	/* The min-width property does not work in old versions of Internet Explorer */
 	font-size:80%;
+
+}
+a {
+	color:#369;
+}
+
+p {
+	margin:.4em 0 .8em 0;
+	padding:0;
+}
+img {
+	margin:10px 0 5px;
+}
+
+h3{
+	display: block;
+	width: 100%;
+	padding: .3em 0;
+	margin-bottom: .3em;
+	font-size: 125%;
+	color: #333;
+	border-bottom: 1px solid #e5e5e5;
+}
+/* Header styles */
+#header {
+	clear:both;
+	float:left;
+	width:100%;
+}
+#header {
+	border-bottom:1px solid #000;
+}
+#header p,
+#header h1,
+#header h2 {
+	padding:.4em 15px 0 15px;
+	margin:0;
+}
+
+/* 'widths' sub menu */
+#layoutdims {
+	clear:both;
+	background:#eee;
+	border-top:4px solid #000;
+	margin:0;
+	padding:3px 20px !important;
+	text-align:left;
+}
+/* column container */
+.colmask {
+	position:relative;		/* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
+	clear:both;
+	float:left;
+	width:100%;			/* width of whole page */
+	overflow:hidden;	/* This chops off any overhanging divs */
+}
+/* 2 column left menu settings */
+.leftmenu {
+	/*background:#FFD8B7;*/
+	background:#eee;
+}
+.leftmenu .colright {
+	float:left;
+	width:200%;
+	position:relative;
+	left:200px;
+	background:#fff;
+	border-left: 1px solid #000;
+}
+.leftmenu .col1wrap {
+	float:right;
+	width:50%;
+	position:relative;
+	right:200px;
+	padding-bottom:1em;
+}
+.leftmenu .col1 {
+	padding: 15px 0px;
+	margin:0 15px 0 215px;
+	position:relative;
+	right:100%;
+	overflow:hidden;
+}
+.leftmenu .col1 a:hover{
+	background: #eee;
+}
+.leftmenu .col2 {
+	padding: 15px 0px;
+	float:left;
+	width:170px;
+	position:relative;
+	right:185px;
+}
+/* Footer styles */
+#footer {
+	clear:both;
+	float:left;
+	width:100%;
+	border-top:1px solid #000;
+	background:#eee;
+}
+#footer p {
+	padding:10px;
+	margin:0;
+}
+/* --> */
+.box_content{
+	text-align: center;
+	margin-bottom: 5px;
+	border: 2px solid #fff;
+	border-radius: 4px 4px 4px 4px;
+	color: #fff;
+	background-color: #0078e7;
+	padding: 3px 3px;
 }
 
 input .proybox{
@@ -22,163 +145,51 @@ div .right_label {
 }
 
 .msg_info, .msg_success, .msg_warning, .msg_error {
-    border: 1px solid;
-    margin: 10px 0px;
-    padding:5px 10px;
-    background-repeat: no-repeat;
-    background-position: 10px center;-moz-border-radius:.5em;
+	border: 1px solid;
+	margin: 10px 0px;
+	padding:5px 10px;
+	background-repeat: no-repeat;
+	background-position: 10px center;-moz-border-radius:.5em;
 	-webkit-border-radius:.5em;
 	border-radius:.5em;
 }
 
 .caja_bordes {
-	border: 1px solid;
-    margin: 10px 0px;
-    padding:5px 10px;
-    background-repeat: no-repeat;
-    background-position: 10px center;-moz-border-radius:.5em;
-	-webkit-border-radius:.5em;
-	border-radius:.5em;
+	background: white;
+	border: 1px solid #b7b7b7;
+	margin: 10px 0px;
+	padding:5px 10px;
+
+}
+.caja_bordes .caja-header{
+	color: #565d64;
+	text-transform: uppercase;
+	font-size: 90%;
+	margin-top: .5em;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #dfdfdf;
+	display: block;
+
+	line-height: 1.5em;
+	padding: 5px 20px;
 }
 
 .msg_info {
-    color: #00529B;
-    background-color: #BDE5F8;
+	color: #00529B;
+	background-color: #BDE5F8;
 }
 .msg_success {
-    color: #4F8A10;
-    background-color: #DFF2BF;
+	color: #4F8A10;
+	background-color: #DFF2BF;
 }
 .msg_warning {
-    color: #9F6000;
-    background-color: #FEEFB3;
+	color: #9F6000;
+	background-color: #FEEFB3;
 }
 .msg_error {
-    color: #D8000C;
-    background-color: #FFBABA;
-}
-
-
-#navlist {
-	padding: 3px 0;
-	margin-left: 0;
-	/*border-bottom: 1px solid #778;*/
-	margin-bottom: 0;
-}
-
-#navlist li {
-	list-style: none;
-	margin: 0;
-	display: inline;
-}
-
-#navlist li a {
-	padding: 3px 0.5em;
-	margin-left: 3px;
-	border: 1px solid #778;
-	border-bottom: none;
-	background: #DDE;
-	text-decoration: none;
-}
-
-#navlist li a:link { color: #448; }
-#navlist li a:visited { color: #667; }
-
-#navlist li a:hover {
-	color: #000;
-	background: #AAE;
-	border-color: #227;
-}
-
-#navlist li a#current {
-	background: white;
-	/*border-bottom: 1px solid white;*/
-}
-
-/* 'widths' sub menu */
-#layoutdims {
-	clear:both;
-	background:#eee;
-	border-top:4px solid #000;
-	margin:0;
-	padding:6px 15px !important;
-	text-align:left;
-}
-/* column container */
-.colmask {
-	position:relative;	/* This fixes the IE7 overflow hidden bug */
-	clear:both;
-	float:left;
-	width:100%;			/* width of whole page */
-	overflow:hidden;		/* This chops off any overhanging divs */
-}
-/* common column settings */
-.colright,
-.colmid,
-.colleft {
-	float:left;
-	width:100%;
-	position:relative;
-}
-.col1,
-.col2,
-.col3 {
-	float:left;
-	position:relative;
-	padding:0 0 1em 0;
-	overflow:hidden;
-}
-/* 2 Column (left menu) settings */
-.leftmenu {
-	background:#fff;		/* right column background colour */
-}
-.leftmenu .colleft {
-	right:85%;			/* right column width */
-	background:#f4f4f4;	/* left column background colour */
-}
-.leftmenu .col1 {
-	width:81%;			/* right column content width */
-	left:102%;			/* 100% plus left column left padding */
-}
-.leftmenu .col2 {
-	width:12%;			/* left column content width (column width minus left and right padding) */
-	left:5%;			/* (right column left and right padding) plus (left column left padding) */
-}
-/* Footer styles */
-#footer {
-	clear:both;
-	float:left;
-	width:100%;
-	border-top:1px solid #000;
-}
-#footer p {
-	padding:10px;
-	margin:0;
-}
-
-#navcontainer ul
-{
-	margin: 0;
-	padding: 0;
-	list-style-type: none;
-}
-
-#navcontainer li { margin: 0 0 .2em 0; }
-
-#navcontainer a
-{
-	display: block;
-	color: #FFF;
-	background-color: #A4A4A4;
-	width: 9em;
-	padding: .2em .8em;
-	text-decoration: none;
-}
-
-#navcontainer a:hover
-{
-	background-color: #369;
-	color: #FFF;
+	color: #D8000C;
+	background-color: #FFBABA;
 }
 
 .datagrid
@@ -199,7 +210,6 @@ div .right_label {
 	color: #039;
 	border-bottom: 2px solid #6678b1;
 	text-align: center;
-	
 }
 
 .datagrid tbody tr:hover td 
@@ -235,3 +245,77 @@ div .right_label {
 	border-top: 2px solid #6678b1;
 	border-bottom: 2px solid #6678b1;
 }
+
+/* Con esto se disminuye el tamaño de las letras dentro del acordeon en la vista de proyeccion */
+#accordion
+{
+	font-size: 100%;
+}
+
+/* Para listas de objetos (item list, categorias list, etc.) */
+ol
+{
+	counter-reset: li; /* Initiate a counter */
+	list-style: none; /* Remove default numbering */
+	*list-style: decimal; /* Keep using default numbering for IE6/7 */
+	font: 15px 'trebuchet MS', 'lucida sans';
+	padding: 0;
+	margin-bottom: 4em;
+	text-shadow: 0 1px 0 rgba(255,255,255,.5);
+}
+
+ol ol
+{
+	margin: 0 0 0 2em; /* Add some left margin for inner lists */
+}
+
+.rectangle-list a
+{
+	position: relative;
+	display: block;
+	padding: .4em .4em .4em .8em;
+	*padding: .4em;
+	margin: .5em 0 .5em 2.5em;
+	background: #ddd;
+	color: #444;
+	text-decoration: none;
+	transition: all .3s ease-out;	
+}
+
+.rectangle-list a:hover
+{
+	background: #eee;
+}	
+
+.rectangle-list a:before
+{
+	content: counter(li);
+	counter-increment: li;
+	position: absolute;	
+	left: -2.5em;
+	top: 50%;
+	margin-top: -1em;
+	background: #87ceeb;
+	height: 2em;
+	width: 2em;
+	line-height: 2em;
+	text-align: center;
+	font-weight: bold;
+}
+
+.rectangle-list a:after
+{
+	position: absolute;	
+	content: '';
+	border: .5em solid transparent;
+	left: -1em;
+	top: 50%;
+	margin-top: -.5em;
+	transition: all .3s ease-out;				
+}
+
+.rectangle-list a:hover:after
+{
+	left: -.5em;
+	border-left-color: #fa8072;				
+}	

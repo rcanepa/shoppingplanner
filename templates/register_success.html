@@ -11,10 +11,12 @@ Bienvenido {{ full_name }} !
 {% endblock %}
 
 {% block sidebar %}
-<h4>Usuarios</h4>
-<ul>
-    <li><a href="../../accounts/list/">Volver</a></li>
-</ul>
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">Usuarios</a>
+    <ul>
+    	<li><a href="../../accounts/list/">Volver</a></li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block content %}
