@@ -18,7 +18,7 @@ from planificador.views import UserInfoMixin
 from django.core import serializers
 from django.contrib.auth.decorators import user_passes_test
 from datetime import date
-from django.db.models import Sum, Avg, Max
+from django.db.models import Sum, Avg, Max, Min
 import json
 import pprint
 from django.utils import simplejson
@@ -373,8 +373,10 @@ class BuscarCategoriaListProyeccionView(View):
                     if self.request.user.get_profile().validar_visibles(item_validar):
                         items.append({'id':item_validar.id,'nombre':item_validar.nombre,'id_cat':item_validar.categoria.id})
             else:
-                queryset = Itemplan.objects.filter(plan=id_plan).order_by('estado','item__categoria','nombre')
-                for itemplan in queryset: #populate list
+                # Se obtienen todos los items de la planificacion
+                queryset = Itemplan.objects.filter(plan=id_plan).order_by('estado','item__categoria','nombre','item__precio')
+                # Se itera por todos los itemplan que son hijos del item que fue recibido como parametro
+                for itemplan in [itemplan for itemplan in queryset if itemplan.item.es_padre(item)]: #populate list
                     items.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio, 'categoria_nombre': itemplan.item.categoria.nombre})
             data['items'] = items
             data['categoria'] = {'id_categoria':items_temp[0].categoria.id, 'planificable':items_temp[0].categoria.planificable}
@@ -435,10 +437,10 @@ class BuscarVentaItemplanProyeccionView(View):
                 ventas = Ventaperiodo.objects.filter(
                 Q(item__in=lista_hijos),
                 Q(anio=limite_sup['anio'], periodo__lte=limite_sup['periodo__nombre']) | Q(anio=limite_inf['anio'],periodo__gte=limite_inf['periodo__nombre'])
-                ).values('anio','periodo','tipo','item__temporada__nombre').annotate(
+                ).values('anio','periodo','item__temporada__nombre').annotate(
                 vta_n=Sum('vta_n'),vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),costo=Sum('costo'),
-                margen=Avg('margen')).order_by('item__temporada__nombre','anio','periodo')
+                margen=Avg('margen'), tipo=Min('tipo')).order_by('item__temporada__nombre','anio','periodo')
 
                 # Se buscan las temporadas de los items a proyectar.
                 # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere

@@ -28,7 +28,7 @@
         </tr>
         <tr>
             <td>
-                <select id="combo_cat_{{ categoria.id }}">
+                <select id="combo_cat_{{ categoria.id }}" class="buscador">
                     <option value="-1"></option>
                     {% for item in items_categoria_raiz %}
                         {% if item.categoria = categoria %}
@@ -44,7 +44,7 @@
         </tr>
         <tr>
             <td>
-                <select id="combo_resultado">
+                <select id="combo_resultado" class="buscador">
                 </select>
             </td>
         </td>
@@ -57,7 +57,7 @@
         </tr>
         <tr>
             <td>
-                <select id="combo_cat_comp_{{ categoria.id }}">
+                <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
                     <option value="-1"></option>
                     {% for item in items_categoria_raiz %}
                         {% if item.categoria = categoria %}
@@ -73,7 +73,7 @@
         </tr>
         <tr>
             <td>
-                <select id="combo_resultado_comp">
+                <select id="combo_resultado_comp" class="buscador">
                 </select>
             </td>
         </td>
@@ -122,6 +122,8 @@
         </div>
     </div>
 </div>
+<div id="dvLoading" style="display:none;"></div>
+
 
 {% endif%}
 
@@ -138,6 +140,15 @@ $(function() {
     $( document ).tooltip({
         track: true
     });
+
+    $( document ).ajaxStart(function() {
+        $("#dvLoading").show();
+    });
+
+    $( document ).ajaxStop(function() {
+        $("#dvLoading").hide();
+    });
+
 
     /* Permite abrir varios paneles del acordion simultaneamente */
     $('#accordion').accordion({

@@ -149,6 +149,22 @@ class Item(models.Model):
             yield padre
             padre = padre.item_padre
 
+    def es_padre(self, item):
+        """
+        Comprueba si el item pasado como parametro es padre de self
+        """
+        # Se comprueba primero que la categoria del item sea menor que la de self,
+        # ya que en caso contrario jamas sera padre
+        padre = self.item_padre
+        while item.categoria.get_nivel() <= padre.categoria.get_nivel():
+            if item == padre:
+                return True
+            else:
+                padre = padre.item_padre
+        else:
+            return False
+
+
     def get_nivel(self, nivel=1):
         hijo = self.item_padre
         while hijo != None:

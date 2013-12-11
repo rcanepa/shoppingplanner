@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"item",
+				"item_padre"
+			],
+			[
+				"get",
+				"get_nivel"
+			],
+			[
 				"pad",
 				"padding-top"
 			],
@@ -120,10 +128,6 @@
 				"vta_temp"
 			],
 			[
-				"item",
-				"itemplan_obj	statement"
-			],
-			[
 				"item__",
 				"item__temporada__nombre"
 			],
@@ -138,10 +142,6 @@
 			[
 				"ventas",
 				"ventas2	statement"
-			],
-			[
-				"get",
-				"get_padres"
 			],
 			[
 				"se",
@@ -316,26 +316,18 @@
 	"buffers":
 	[
 		{
-			"file": "planes/templates/planes/plan_tree_detail.html",
-			"settings":
-			{
-				"buffer_size": 5272,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "planes/templates/planes/plan_create.html",
-			"settings":
-			{
-				"buffer_size": 1146,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "planes/templates/planes/plan_proyecciones_detail.html",
 			"settings":
 			{
-				"buffer_size": 25810,
+				"buffer_size": 26092,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planes/views.py",
+			"settings":
+			{
+				"buffer_size": 24092,
 				"line_ending": "Unix"
 			}
 		},
@@ -343,7 +335,7 @@
 			"file": "static/css/default.css",
 			"settings":
 			{
-				"buffer_size": 5235,
+				"buffer_size": 5787,
 				"line_ending": "Unix"
 			}
 		}
@@ -376,9 +368,18 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
+		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
+		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
+		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
+		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
+		"/home/rcanepa/Development/planificador/mplanning/planificador/settings.py",
+		"/home/rcanepa/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/rcanepa/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_delete.html",
 		"/home/rcanepa/Development/planificador/mplanning/templates/user_list.html",
-		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_detail.html",
@@ -390,7 +391,6 @@
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_responsable_update.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/views.py",
-		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/templates/calendarios/calendario_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_list.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_list.html",
@@ -406,25 +406,19 @@
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/item_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/templates/categorias/categoria_update.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/temporada_delete.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/index.html",
-		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/index.html",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/pure-skin-mine.css",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/menu.html",
 		"/home/rcanepa/Development/planificador/mplanning/administracion/templates/administracion/menu.html",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/base.css",
 		"/home/rcanepa/Development/planificador/mplanning/templates/base2.html",
-		"/home/rcanepa/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/pure-min.css",
-		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/buttons-min.css",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/tables-min.css",
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/forms-min.css",
@@ -443,7 +437,6 @@
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/itemplan_proyeccion.html",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/urls.py",
-		"/home/rcanepa/Development/planificador/mplanning/planificador/settings.py",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/admin.py",
 		"/home/rcanepa/Development/planificador/mplanning/templates/admin/base_site.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/middleware.py"
@@ -464,6 +457,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"storage",
+			";\"></",
+			"f12",
 			"Usuarios",
 			"li",
 			"temporadaDe",
@@ -542,23 +538,23 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "planes/templates/planes/plan_tree_detail.html",
+					"file": "planes/templates/planes/plan_proyecciones_detail.html",
 					"settings":
 					{
-						"buffer_size": 5272,
+						"buffer_size": 26092,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1767,
-								1767
+								25,
+								25
 							]
 						],
 						"settings":
@@ -568,81 +564,53 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 450.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "planes/templates/planes/plan_create.html",
+					"file": "planes/views.py",
 					"settings":
 					{
-						"buffer_size": 1146,
+						"buffer_size": 24092,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1086,
-								1086
+								17057,
+								17057
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 180.0,
+						"translation.y": 5283.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "planes/templates/planes/plan_proyecciones_detail.html",
-					"settings":
-					{
-						"buffer_size": 25810,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2331,
-								2331
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1350.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "static/css/default.css",
 					"settings":
 					{
-						"buffer_size": 5235,
+						"buffer_size": 5787,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1738,
-								1738
+								619,
+								619
 							]
 						],
 						"settings":
@@ -651,7 +619,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 962.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
