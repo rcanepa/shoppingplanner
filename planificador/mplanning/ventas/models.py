@@ -2,20 +2,11 @@
 from django.db import models
 from categorias.models import Item
 from calendarios.models import Tiempo
+from planes.models import Temporada
 
 class Venta(models.Model):
 	item = models.ForeignKey(Item)
 	tiempo = models.ForeignKey(Tiempo)
-	# campos anio y semana deben desaparecer (son redundantes)
-	#anio = models.PositiveSmallIntegerField(verbose_name="año")
-	#semana = models.PositiveSmallIntegerField()
-	"""
-	tipo
-		0: real
-		1: por proyectar
-		2: proyectada
-	"""
-	#tipo = models.PositiveSmallIntegerField(default=0)
 	vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
 	ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
 	costo = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
@@ -36,8 +27,10 @@ class Ventaperiodo(models.Model):
 		0: real
 		1: por proyectar
 		2: proyectada
+		3: proyectada no guardada (estado temporal)
 	"""
 	tipo = models.PositiveSmallIntegerField(default=0)
+	temporada = models.ForeignKey(Temporada)
 	vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
 	ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
 	costo = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)

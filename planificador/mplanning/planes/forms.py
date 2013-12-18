@@ -5,7 +5,7 @@ from models import Temporada
 
 class PlanForm(forms.ModelForm):
 
-    temporada = forms.ModelChoiceField(queryset=Temporada.objects.exclude(nombre="TT"), empty_label="...")
+    temporada = forms.ModelChoiceField(queryset=Temporada.objects.filter(planificable=True), empty_label="...")
     
     class Meta:
         model = Plan

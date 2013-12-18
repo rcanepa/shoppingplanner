@@ -12,6 +12,7 @@ from django.db.models import Max, Min
 
 class Temporada(models.Model):
     nombre = models.CharField(max_length=50)
+    planificable = models.BooleanField(default=True)
     organizacion = models.ForeignKey(Organizacion)
     periodo = models.ManyToManyField(Periodo)
     periodo_final = models.ForeignKey(Periodo, related_name="+", help_text="Seleccione el último periodo de la temporada.")

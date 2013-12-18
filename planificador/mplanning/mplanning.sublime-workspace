@@ -4,6 +4,42 @@
 		"selected_items":
 		[
 			[
+				"ven",
+				"venta	forflow"
+			],
+			[
+				"vt",
+				"vta_n"
+			],
+			[
+				"vta",
+				"vta_n"
+			],
+			[
+				"du",
+				"dumps	function"
+			],
+			[
+				"pro",
+				"proyeccion"
+			],
+			[
+				"te",
+				"temporadas"
+			],
+			[
+				"tempo",
+				"temporada_new	forflow"
+			],
+			[
+				"tempor",
+				"temporada"
+			],
+			[
+				"bo",
+				"BooleanField	class"
+			],
+			[
 				"item",
 				"item_padre"
 			],
@@ -22,10 +58,6 @@
 			[
 				"fon",
 				"font-size"
-			],
-			[
-				"bo",
-				"border-left"
 			],
 			[
 				"co",
@@ -96,14 +128,6 @@
 				"combo_categorias	statement"
 			],
 			[
-				"vt",
-				"vta_u"
-			],
-			[
-				"tempo",
-				"temporada	forflow"
-			],
-			[
 				"tem",
 				"temporada	forflow"
 			],
@@ -120,24 +144,12 @@
 				"format"
 			],
 			[
-				"te",
-				"temporada	forflow"
-			],
-			[
-				"vta",
-				"vta_temp"
-			],
-			[
 				"item__",
 				"item__temporada__nombre"
 			],
 			[
 				"tempora",
 				"temporadas"
-			],
-			[
-				"ven",
-				"ventas	statement"
 			],
 			[
 				"ventas",
@@ -319,7 +331,7 @@
 			"file": "planes/templates/planes/plan_proyecciones_detail.html",
 			"settings":
 			{
-				"buffer_size": 26741,
+				"buffer_size": 27202,
 				"line_ending": "Unix"
 			}
 		},
@@ -327,7 +339,15 @@
 			"file": "planes/views.py",
 			"settings":
 			{
-				"buffer_size": 24180,
+				"buffer_size": 33160,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planes/models.py",
+			"settings":
+			{
+				"buffer_size": 4678,
 				"line_ending": "Unix"
 			}
 		},
@@ -335,15 +355,23 @@
 			"file": "planes/urls.py",
 			"settings":
 			{
-				"buffer_size": 1720,
+				"buffer_size": 1709,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "static/css/default.css",
+			"file": "planes/templates/planes/plan_create.html",
 			"settings":
 			{
-				"buffer_size": 5903,
+				"buffer_size": 1146,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planes/forms.py",
+			"settings":
+			{
+				"buffer_size": 824,
 				"line_ending": "Unix"
 			}
 		}
@@ -376,14 +404,15 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/mplanning/ventas/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
+		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/forms.py",
+		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/templates/base.html",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_tree_detail.html",
-		"/home/rcanepa/Development/planificador/mplanning/planes/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/static/css/default.css",
 		"/home/rcanepa/Development/planificador/mplanning/planes/views.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/models.py",
-		"/home/rcanepa/Development/planificador/mplanning/planes/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/planes/templates/planes/plan_create.html",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/planificador/settings.py",
@@ -433,7 +462,6 @@
 		"/home/rcanepa/Development/planificador/mplanning/static/css/purecss/forms-min.css",
 		"/home/rcanepa/Development/planificador/mplanning/calendarios/forms.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/forms.py",
-		"/home/rcanepa/Development/planificador/mplanning/ventas/models.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/urls.py",
 		"/home/rcanepa/Development/planificador/mplanning/categorias/admin.py",
 		"/home/rcanepa/Development/planificador/mplanning/userprofile/forms.py",
@@ -451,7 +479,7 @@
 	],
 	"find":
 	{
-		"height": 69.0
+		"height": 173.0
 	},
 	"find_in_files":
 	{
@@ -465,6 +493,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"estado",
+			"LISTA_",
+			"print",
+			"prin",
+			"planificacion.ventas[temporada][x]",
+			"GuardarProyeccionView",
+			"BuscarCategoriaListProyeccionView",
+			"BuscarVentaItemplanProyeccionView",
+			"console.log",
+			"item__temporada__nombre",
+			"temporada_vigente",
+			"temporadas",
+			"periodo",
+			"precio_blanco_sin_iva",
 			"console.",
 			"msg_total",
 			"msg_nodo_activo",
@@ -529,6 +571,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"venta",
 			"dt",
 			"\" + temporada + \"",
 			"margen",
@@ -549,7 +592,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -557,15 +600,15 @@
 					"file": "planes/templates/planes/plan_proyecciones_detail.html",
 					"settings":
 					{
-						"buffer_size": 26741,
+						"buffer_size": 27202,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6811,
-								6811
+								7192,
+								7192
 							]
 						],
 						"settings":
@@ -575,7 +618,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2721.0,
+						"translation.y": 2859.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -585,15 +628,15 @@
 					"file": "planes/views.py",
 					"settings":
 					{
-						"buffer_size": 24180,
+						"buffer_size": 33160,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11606,
-								11606
+								4997,
+								4997
 							]
 						],
 						"settings":
@@ -603,30 +646,86 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3847.0,
+						"translation.y": 3861.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "planes/urls.py",
+					"file": "planes/models.py",
 					"settings":
 					{
-						"buffer_size": 1720,
+						"buffer_size": 4678,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								169,
-								169
+								0,
+								0
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 810.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "planes/urls.py",
+					"settings":
+					{
+						"buffer_size": 1709,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1347,
+								1347
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "planes/templates/planes/plan_create.html",
+					"settings":
+					{
+						"buffer_size": 1146,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -637,28 +736,29 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "static/css/default.css",
+					"buffer": 5,
+					"file": "planes/forms.py",
 					"settings":
 					{
-						"buffer_size": 5903,
+						"buffer_size": 824,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2256,
-								2256
+								306,
+								306
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CSS/CSS.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 540.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
