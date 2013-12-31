@@ -72,8 +72,8 @@ class Plan(models.Model):
     usuario_creador = models.ForeignKey(User)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
 
-    def get_num_items(self):
-        num_items = len(Itemplan.objects.filter(plan=self.id))
+    def get_num_items_planificables(self):
+        num_items = Itemplan.objects.filter(plan=self.id, planificable=True).count()
         return num_items
 
     def __unicode__(self):
@@ -87,12 +87,11 @@ class Itemplan(models.Model):
     ESTADOS = (
         (0, 'Pendiente'),
         (1, 'Proyectado'),
+        (2, 'Planificado'),
         )
     nombre = models.CharField(max_length=70)
-    venta = models.FloatField(default=0)
-    margen = models.FloatField(default=0)
-    contribucion = models.FloatField(default=0)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
+    planificable = models.BooleanField(default=False)
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
     item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan)
@@ -112,3 +111,21 @@ class Itemplan(models.Model):
 
     def __unicode__(self):
         return self.item.nombre
+
+
+class Itemplandet(models.Model):
+    """
+    Clase encapsula el detalle por periodo de cada item que pertenece a la planificacion. Se gestionan
+    en la seccion de planificacion (paso posterior a la proyeccion)
+    """
+    periodo = models.ForeignKey(Periodo)
+    itemplan = models.ForeignKey(Itemplan, related_name='item_planificacion')
+    vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
+    ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
+    dcto = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="descuento", default=0, blank=True, null=True)
+    costo_u = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
+    vta_u = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta en unidades", default=0, blank=True, null=True)
+    margen = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
+
+    def __unicode__(self):
+        return self.itemplan.item.nombre

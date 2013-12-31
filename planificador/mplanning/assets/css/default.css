@@ -30,7 +30,6 @@ img
 h3
 {
 	display: block;
-	width: 100%;
 	padding: .3em 0;
 	margin-bottom: .3em;
 	font-size: 125%;
@@ -38,10 +37,6 @@ h3
 	border-bottom: 1px solid #e5e5e5;
 }
 
-select .buscador
-{
-	width: 150px;
-}
 /* Header styles */
 #header {
 	clear:both;
@@ -51,22 +46,31 @@ select .buscador
 #header {
 	border-bottom:1px solid #000;
 }
-#header p,
-#header h1,
-#header h2 {
-	padding:.4em 15px 0 15px;
-	margin:0;
-}
 
 /* 'widths' sub menu */
 #layoutdims {
+	width: 100%;
+	float: left;
 	clear:both;
-	background:#eee;
-	border-top:4px solid #000;
+	/*background:#eee;*/
+	color: #777;
+	background:white;
+	border-top:1px solid #000;
 	margin:0;
-	padding:3px 20px !important;
+	padding-top: 5px;
+	padding-bottom:5px;
 	text-align:left;
 }
+
+#layoutdims .layoutdims-internal-div{
+	padding: 0px 20px;
+	float:left;
+}
+
+#barra_notificaciones {
+	text-align: center;
+}
+
 /* column container */
 .colmask {
 	position:relative;		/* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
@@ -123,6 +127,8 @@ select .buscador
 #footer p {
 	padding:10px;
 	margin:0;
+	background: white;
+	color:#777;
 }
 /* --> */
 .box_content{
@@ -133,6 +139,12 @@ select .buscador
 	color: #fff;
 	background-color: #0078e7;
 	padding: 3px 3px;
+}
+
+/* Para los select de los buscadores */
+.buscador
+{
+	width: 100%;
 }
 
 input .proybox{
@@ -156,8 +168,8 @@ div .right_label {
 
 .msg_info, .msg_success, .msg_warning, .msg_error {
 	border: 1px solid;
-	margin: 10px 0px;
-	padding:5px 10px;
+	/*margin: 10px 0px;
+	padding:5px 10px;*/
 	background-repeat: no-repeat;
 	background-position: 10px center;-moz-border-radius:.5em;
 	-webkit-border-radius:.5em;
@@ -249,6 +261,25 @@ div .right_label {
 {
 	color: #31B404;	
 }
+/* Las siguientes tres clases se utilizan en la vista de planificacion */
+.datagrid td.par
+{
+	background: white;
+	color: #669;
+}
+
+.datagrid td.impar
+{
+	background: #eee;
+	color: #669;
+}
+
+.datagrid td.plan
+{
+	background: #669;
+	color: white;	
+}
+/**/
 
 .datagrid tbody tr.totales
 {

@@ -64,24 +64,30 @@ $(function() {
 
     // Contar nodos a planificar (visibles)
     function definirVisibles(){
+        var html = "";
+        var nodos_planificables = 0;
         var nodos_visibles = 0;
         $("#itemstree").fancytree("getTree").visit(function(node){
             if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
                 if (node.isVisible()){
                     if (node.hasChildren()){
                         if (!node.isExpanded()){
-                            nodos_visibles++;
+                            nodos_planificables++;
                         }
                     }
                     else{
-                        nodos_visibles++;
+                        nodos_planificables++;
                     }
                     
                 }
             }
+            if (node.isVisible()){
+                nodos_visibles++;
+            }
             
         });
-        $("#msg_visibles").html("<p>Items a planificar: " + nodos_visibles + "</p>");
+        html += "<p>Items Totales: " + nodos_visibles + " | Items a Planificar: " + nodos_planificables + "</p>";
+        $("#msg_visibles").html(html);
         return false;
     }
 
@@ -106,8 +112,6 @@ $(function() {
         
     });
 
-    $("#msg_visibles").html("<p>Items a planificar: 0</p>");
-
     // Expandir todos los nodos
     $("#btnExpand").click(function(){
         $("#itemstree").fancytree("getRootNode").visit(function(node){
@@ -129,9 +133,11 @@ $(function() {
 
     $("#btnSave").click(function(){
         var nodos_lista = [];
+        var nodos_planificables_lista = [];
         var plan = parseInt({{plan.id}});
         /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
         $("#itemstree").fancytree("getTree").visit(function(node){
+            /*
             if (node.isVisible()){                
                 if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
                     if (node.hasChildren()){
@@ -145,11 +151,32 @@ $(function() {
                 }
                 
             }
+            */
+            if (node.isVisible()){
+                nodos_lista.push(parseInt(node.key));
+                if ( (node.extraClasses == "planificable") ){
+                    if (node.hasChildren()){
+                        if (!node.isExpanded()){
+                            nodos_planificables_lista.push(parseInt(node.key));
+                        }
+                    }
+                    else{
+                        nodos_planificables_lista.push(parseInt(node.key));
+                    }
+                }
+            }
         });
-        json_data = JSON.stringify({plan: plan,items: nodos_lista});
+        json_data = JSON.stringify({
+            plan: plan,
+            items: nodos_lista,
+            items_planificables: nodos_planificables_lista
+        });
+        console.log(json_data);
         $("#input_json_data").val(json_data);
         $("#save_form").submit();
     });
+
+    definirVisibles();
 });
 
 </script>

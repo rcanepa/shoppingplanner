@@ -19,9 +19,10 @@
 	</ul>
 	<a class="pure-menu-heading">Trabajar</a>
 	<ul>
-		<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">Seleccionar &aacute;rbol</a></li>
-		<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">Proyectar informaci&oacute;n</a></li>
-		<li><a href="#">Planificar</a></li>
+		<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">1) &Aacute;rbol</a></li>
+		<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">2) Proyectar</a></li>
+		<li><a href="{% url 'planes:plan_planificacion_detail' plan.id %}">3) Planificar</a></li>
+		<li><a href="{% url 'planes:resumen_plan_detail' plan.id %}">4) Resumen</a></li>
 	</ul>
 </div>
 {% endblock %}
@@ -48,7 +49,7 @@
 	
 	<div class="left_label">Número de ítems</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ plan.get_num_items }}</div>
+	<div class="right_label">{{ plan.get_num_items_planificables }}</div>
 	
 	<div class="left_label">Items Proyectados</div>
 	<div class="middle_label">:</div>

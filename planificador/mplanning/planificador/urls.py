@@ -31,4 +31,5 @@ urlpatterns = patterns('',
     url(r'^planes/',  include('planes.urls', namespace="planes")),
     url(r'^organizaciones/',  include('organizaciones.urls', namespace="organizaciones")),
     url(r'^calendarios/',  include('calendarios.urls', namespace="calendarios")),
+    url(r'^ventas/',  include('ventas.urls', namespace="ventas")),
 )
