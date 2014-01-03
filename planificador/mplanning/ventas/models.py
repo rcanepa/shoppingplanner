@@ -2,7 +2,6 @@
 from django.db import models
 from categorias.models import Item
 from calendarios.models import Tiempo, Periodo
-from planes.models import Temporada
 from organizaciones.models import Organizacion
 from django.core.urlresolvers import reverse
 from datetime import datetime, date, time
@@ -39,7 +38,7 @@ class Ventaperiodo(models.Model):
 		2: planificada (no real)
 	"""
 	tipo = models.PositiveSmallIntegerField(default=0)
-	temporada = models.ForeignKey(Temporada)
+	temporada = models.ForeignKey('planes.Temporada')
 	vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
 	ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
 	costo = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)

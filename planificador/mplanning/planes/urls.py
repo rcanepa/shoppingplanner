@@ -41,4 +41,5 @@ urlpatterns = patterns('',
 
     # Vistas relacionadas al resultado de la planificacion
     url(r'^plan/resumen/(?P<pk>\d+)/$', views.ResumenPlanView.as_view(), name='resumen_plan_detail'),
+    url(r'^plan/resumendata/$', views.ResumenDataGraficosView.as_view()),
 )

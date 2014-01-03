@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from datetime import datetime
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.db.models import Q, Sum, Max, Min
+
+from datetime import datetime
+
+from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from organizaciones.models import Organizacion
-from calendarios.models import Periodo, Tiempo
-from django.db.models import Q
-from django.db.models import Max, Min
+from ventas.models import Ventaperiodo
 
 
 class Temporada(models.Model):
@@ -76,6 +78,59 @@ class Plan(models.Model):
         num_items = Itemplan.objects.filter(plan=self.id, planificable=True).count()
         return num_items
 
+    def resumen_estadisticas(self, temporada=None, item=None):
+        """
+        Obtiene la venta asociada a todos los items de una planificacion entre los
+        ultimos 3 años.
+        """
+        # Contiene la lista de items que seran consultados para buscar las ventas
+        item_arr_definitivo = []
+        # Año actual (por planificar)
+        act_anio = self.anio + 1
+        # Año actual - 2 (limite inferior)
+        ant_anio = self.anio - 2
+        if item == None:
+            # Arreglo de items con todos los items de la planificacion
+            item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all() if itemplan.item.categoria.planificable == True]
+        else:
+            # Arreglo de items con todos los items hijos del item entregado como parametro
+            item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable == True]
+        # Se define la temporada sobre la cual se calcularan las ventas
+        if temporada == None:
+            temporada = self.temporada
+            estadisticas = Ventaperiodo.objects.filter(
+            item__in=item_arr_definitivo,
+            anio__gte=ant_anio,
+            anio__lte=act_anio,
+            temporada=temporada).exclude(tipo=2).values(
+            'anio').annotate(
+            vta_n=Sum('vta_n'),
+            vta_u=Sum('vta_u'),
+            ctb_n=Sum('ctb_n')).order_by(
+            'anio')
+        elif temporada == "TT":
+            estadisticas = Ventaperiodo.objects.filter(
+            item__in=item_arr_definitivo,
+            anio__gte=ant_anio,
+            anio__lte=act_anio).exclude(tipo=2).values(
+            'anio').annotate(
+            vta_n=Sum('vta_n'),
+            vta_u=Sum('vta_u'),
+            ctb_n=Sum('ctb_n')).order_by(
+            'anio')
+        else:
+            estadisticas = Ventaperiodo.objects.filter(
+            item__in=item_arr_definitivo,
+            anio__gte=ant_anio,
+            anio__lte=act_anio,
+            temporada=temporada).exclude(tipo=2).values(
+            'anio').annotate(
+            vta_n=Sum('vta_n'),
+            vta_u=Sum('vta_u'),
+            ctb_n=Sum('ctb_n')).order_by(
+            'anio')
+        return estadisticas
+
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)
 
@@ -94,7 +149,7 @@ class Itemplan(models.Model):
     planificable = models.BooleanField(default=False)
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
     item = models.ForeignKey(Item, related_name='item_proyectados')
-    plan = models.ForeignKey(Plan)
+    plan = models.ForeignKey(Plan, related_name='item_planificados')
 
     def as_tree(self):
         """

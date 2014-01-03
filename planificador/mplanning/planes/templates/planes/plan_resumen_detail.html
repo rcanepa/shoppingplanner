@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+    	<li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+	</ul>
+</div>
+<!-- Seccion con parametros de busqueda del item a proyectar  -->
+<div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
+    <a class="caja-header">Par&aacute;metros</a>
+    <table style="width:100%;">
+    	<tr>
+            <td><label>TEMPORADA</label></td>
+        </tr>
+        <tr>
+            <td>
+                <select id="combo_temporada" class="buscador">
+                    <option value="-1" selected="selected"></option>
+                    {% for temporada in temporadas %}
+                        <option value="{{ temporada.id }}">{{ temporada.nombre }}</option>
+                    {% endfor %}
+                    <option value="-2">TOTAL</option>
+                </select>
+            </td>
+        </tr>
+        {% for categoria in combo_categorias_comp %}
+        <tr>
+            <td style="width:80%">
+                <label>{{ categoria.nombre }}</label>
+            </td>
+            <td style="width:20%"></td>
+        </tr>
+        <tr>
+            <td style="width:80%">
+                <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
+                    <option value="-1" selected></option>
+                    {% for item in items_categoria_raiz %}
+                        {% if item.categoria = categoria %}
+                        <option value="{{ item.id }}">{{ item.nombre }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+            <td style="width:20%">
+                <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="float:left;width:30%;">
+	<h3>Resumen Planificaci&oacute;n</h3>
+</div>
+<div style="float:left; width:100%;">
+	<div id="dashboard" class="pure-g" style="display:none;">
+	    <div class="pure-u-1-2">
+	    	<div class="chart-header">Venta</div>
+	        <div id="venta-chart" style="height:200px;"></div>
+	    </div>
+
+	    <div class="pure-u-1-2">
+	    	<div class="chart-header">Contribuci&oacute;n y Margen</div>
+	        <div id="contribucion-chart" style="height:200px;"></div>
+	    </div>
+
+	    <div class="pure-u-1-2">
+	    	<div class="chart-header">Unidades</div>
+	        <div id="unidades-chart" style="height:200px;"></div>
+	    </div>
+
+	    <div class="pure-u-1-2">
+	    	<div class="chart-header">Precio Blanco</div>
+	        <div id="precio-chart" style="height:200px;"></div>
+	    </div>
+	</div>
+</div>
+<div id="dvLoading" style="display:none;"></div>
+{% endblock %}
+
+{% block js %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "assets/css/planes/resumen.css" %}">
+<script>
+google.load("visualization", "1", {packages:["corechart"]});
+
+
+$(function() {
+
+	$( document ).ajaxStart(function() {
+        $("#dvLoading").show();
+    });
+
+    $( document ).ajaxStop(function() {
+        $("#dvLoading").hide();
+    });
+
+    $("#dashboard").resize(function(){
+
+    });
+
+    function drawChart(ventas, unidades, contribucion) {
+		var formatter = new google.visualization.NumberFormat({pattern: "#,###"});
+		var formatter_porcentaje = new google.visualization.NumberFormat({pattern: "#,###.0%"});
+		
+
+		// Create and populate the data table.
+		var precio = google.visualization.arrayToDataTable([
+			['Year', 'Costo', 'Precio Real', 'Descuento'],
+			['2011', 1500, 7500, 3000],
+			['2012', 1600, 8000, 2000],
+			['2013', 1700, 9000, 3300],
+			['2014', 1650, 8790, 3100]
+			]);
+
+		var options = {
+			legend:{position: 'none'},
+			chartArea: {left: 100},
+			colors: ['#5A8CFF'],
+			bar: {groupWidth:"50%"}
+		};
+
+		var options_precio = {
+			title:"",
+            //width:305, 
+            //height:100,
+            bar: {groupWidth:"50%"},
+            colors: ['#5A8CFF',"#D8000C","#4F8A10"],
+            chartArea:{height:100,backgroundColor: {stroke: '#000',strokeWidth: '1'}},
+            //vAxis: {title: '', textStyle:{color: 'white'}, textPosition:'none'},
+            //hAxis: {title: 'Precio Blanco'},
+            focusTarget:'datum',
+            isStacked: true,
+            legend:{position: 'top'},
+		};
+
+		var options_contribucion = {
+			curveType: "function",
+			chartArea: {left: 100},
+			colors: ['#5A8CFF',"#D8000C"],
+			bar: {groupWidth:"50%"},
+          	seriesType: "bars",
+          	vAxes: {
+          		0: {logScale: false}, 
+          		1: {logScale: false, maxValue: 1, format: "#,###.0%"}
+          	},
+    		series:{
+    			0:{targetAxisIndex:0}, 
+    			1:{targetAxisIndex:1, type: "line"},	
+    			2:{targetAxisIndex:1}
+    		}
+        };
+
+		formatter.format(ventas, 1);
+		formatter.format(unidades, 1);
+		formatter.format(contribucion, 1);
+		formatter.format(precio, 1);
+		formatter.format(precio, 2);
+		formatter.format(precio, 3);
+		formatter_porcentaje.format(contribucion, 2);
+
+		var chart_ventas = new google.visualization.ColumnChart(document.getElementById('venta-chart'));
+		var chart_unidades = new google.visualization.ColumnChart(document.getElementById('unidades-chart'));
+		var chart_precio = new google.visualization.BarChart(document.getElementById('precio-chart'));
+		var chart_contribucion = new google.visualization.ComboChart(document.getElementById('contribucion-chart'));
+		chart_ventas.draw(ventas, options);
+		chart_unidades.draw(unidades, options);
+		chart_contribucion.draw(contribucion, options_contribucion);
+		chart_precio.draw(precio, options_precio);
+	}
+
+	function buscarResumen(){
+		var id_temporada_id, id_plan, id_item;
+		var id_this = $(this).attr("id");
+		// Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
+        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
+		id_button_array = id_this.split("_");
+        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
+        if ( id_item == -1 ){
+            alert("Seleccione una opción válida.");
+            return 0;
+        }
+		id_plan = parseInt({{ plan.id }});
+		id_temporada = $("#combo_temporada").val();
+		if (id_temporada != -1 && id_item != -1) {
+			$.ajax({
+	            data: {'id_plan':id_plan, 'id_temporada':id_temporada, 'id_item':id_item},
+	            url: '/planes/plan/resumendata/',
+	            type: 'get',
+	            dataType:'json',
+	            success: function(data){
+	                console.log(data);
+	                $("#dashboard").show();
+	                var data_table_ventas = new google.visualization.DataTable();
+					var data_table_unidades = new google.visualization.DataTable();
+					var data_table_contribucion = new google.visualization.DataTable();
+	                // Ciclo para ventas
+	                $.each(data.estadisticas.venta, function(tipo, fila) {
+	                	if (tipo == "cols"){
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_ventas.addColumn(fila[x]);
+	                		}
+	                	}
+	                	else{
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_ventas.addRow(fila[x]);
+	                		}
+	                		
+	                	}
+	                });
+
+	                // Ciclo para unidades
+	                $.each(data.estadisticas.unidades, function(tipo, fila) {
+	                	if (tipo == "cols"){
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_unidades.addColumn(fila[x]);
+	                		}
+	                	}
+	                	else{
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_unidades.addRow(fila[x]);
+	                		}
+	                		
+	                	}
+	                });
+
+	                // Ciclo para contribucion
+	                $.each(data.estadisticas.contribucion, function(tipo, fila) {
+	                	if (tipo == "cols"){
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_contribucion.addColumn(fila[x]);
+	                		}
+	                	}
+	                	else{
+	                		for (var x=0; x<fila.length; x++){
+	                			data_table_contribucion.addRow(fila[x]);
+	                		}
+	                		
+	                	}
+	                });
+
+	                // Se llama a la funcion encargada de generar los graficos
+	                drawChart(data_table_ventas, data_table_unidades, data_table_contribucion);
+
+
+	                
+	            },
+	            complete: function(data){
+	            	
+	            }
+	        });
+        }
+        else
+        	return 0;
+	}
+
+	/*
+    Se preocupa de cargar los elementos SELECT para la seleccion del item a comparar (comboboxes comparativo).
+    */
+    function buscarCategoriaComparacion(){
+        var id_this = $(this).attr("id");
+        var id_this_arry = id_this.split("_");
+        var id_item = $("#combo_cat_comp_" + id_this_arry[3]).val();
+        var id_plan = parseInt({{plan.id}});
+        if(id_item != -1){
+            $.ajax({
+                data: {'id_item':id_item, 'id_plan':id_plan},
+                url: '/planes/plan/categoriacompsearchlist/',
+                type: 'get',
+                success: function(data){
+                    if ( data.items != null ){
+                        html = '';
+                        html += "<option value=\"-1\"></option>"
+                        for (var x=0; x<data.items.length; x++){
+                            if ( data.items[x].precio != 0 )
+                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
+                            else
+                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
+                        }
+                        $("#combo_cat_comp_" + data.categoria.id_categoria).html(html);
+                    }
+                    else{
+                    }
+                }
+            });
+        }
+    }
+
+	//$("#combo_temporada").change(buscarResumen);
+	$("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
+	$("[id^=button_cat_comp_]").click(buscarResumen);
+
+});
+</script>
+{% endblock %}

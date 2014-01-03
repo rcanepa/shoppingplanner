@@ -15,6 +15,7 @@ from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import View, TemplateView, ListView, DetailView
+from braces.views import LoginRequiredMixin
 from .models import Plan, Itemplan, Temporada
 from ventas.models import Venta, Ventaperiodo, Controlventa
 from calendarios.models import Periodo, Tiempo
@@ -25,25 +26,20 @@ import json
 import pprint
 
 
-class TemporadaListView(UserInfoMixin, ListView):
+class TemporadaListView(LoginRequiredMixin, UserInfoMixin, ListView):
     context_object_name = "temporadas"
     template_name = "planes/temporada_list.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(TemporadaListView, self).dispatch(*args, **kwargs)
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
         return Temporada.objects.filter(organizacion=self.request.user.get_profile().organizacion)
 
 
-class TemporadaCreateView(UserInfoMixin, CreateView):
+class TemporadaCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):
     model = Temporada
     template_name = "planes/temporada_create.html"
     form_class = TemporadaForm
 
-    @method_decorator(login_required)
     @method_decorator(user_passes_test(lambda u: u.groups.filter(name="Administrador")))
     def dispatch(self, *args, **kwargs):
         return super(TemporadaCreateView, self).dispatch(*args, **kwargs)
@@ -57,25 +53,20 @@ class TemporadaCreateView(UserInfoMixin, CreateView):
         return context
 
 
-class TemporadaDetailView(UserInfoMixin, DetailView):
+class TemporadaDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     model = Temporada
     template_name = "planes/temporada_detail.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(TemporadaDetailView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(TemporadaDetailView, self).get_context_data(**kwargs)
         return context
 
 
-class TemporadaUpdateView(UserInfoMixin, UpdateView):
+class TemporadaUpdateView(LoginRequiredMixin, UserInfoMixin, UpdateView):
     model = Temporada
     template_name = "planes/temporada_update.html"
     form_class = TemporadaForm
 
-    @method_decorator(login_required)
     @method_decorator(user_passes_test(lambda u: u.groups.filter(name="Administrador")))
     def dispatch(self, *args, **kwargs):
         return super(TemporadaUpdateView, self).dispatch(*args, **kwargs)
@@ -85,46 +76,33 @@ class TemporadaUpdateView(UserInfoMixin, UpdateView):
         return context
 
 
-class TemporadaDeleteView(UserInfoMixin, DeleteView):
+class TemporadaDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):
     model = Temporada
     template_name = "planes/temporada_delete.html"
     success_url = reverse_lazy('planes:temporada_list')
 
-    @method_decorator(login_required)
     @method_decorator(user_passes_test(lambda u: u.groups.filter(name="Administrador")))
     def dispatch(self, *args, **kwargs):
         return super(TemporadaDeleteView, self).dispatch(*args, **kwargs)
 
 
-class IndexView(UserInfoMixin, TemplateView):
+class IndexView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     template_name = "planes/index.html"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(IndexView, self).dispatch(*args, **kwargs)
 
-
-class PlanListView(UserInfoMixin, ListView):
+class PlanListView(LoginRequiredMixin, UserInfoMixin, ListView):
     context_object_name = "planes"
     template_name = "planes/plan_list.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanListView, self).dispatch(*args, **kwargs)
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
         return Plan.objects.filter(usuario_creador=self.request.user)
 
 
-class PlanCreateView(UserInfoMixin, CreateView):
+class PlanCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):
     model = Plan
     template_name = "planes/plan_create.html"
     form_class = PlanForm
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanCreateView, self).dispatch(*args, **kwargs)
 
     def form_valid(self, form):
         form.instance.usuario_creador = self.request.user
@@ -132,16 +110,12 @@ class PlanCreateView(UserInfoMixin, CreateView):
         return super(PlanCreateView, self).form_valid(form)
 
 
-class PlanDetailView(UserInfoMixin, DetailView):
+class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     Vista para visualizar la ficha de una planificacion.
     '''
     model = Plan
     template_name = "planes/plan_detail.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanDetailView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(PlanDetailView, self).get_context_data(**kwargs)
@@ -150,7 +124,7 @@ class PlanDetailView(UserInfoMixin, DetailView):
         return context
 
         
-class PlanDeleteView(UserInfoMixin, DeleteView):
+class PlanDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):
     '''
     Vista para eliminar una planificacion.
     '''
@@ -158,22 +132,14 @@ class PlanDeleteView(UserInfoMixin, DeleteView):
     template_name = "planes/plan_delete.html"
     success_url = reverse_lazy('planes:plan_list')
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanDeleteView, self).dispatch(*args, **kwargs)
 
-
-class PlanTreeDetailView(UserInfoMixin, DetailView):
+class PlanTreeDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     1era fase del proceso de planificacion.
     Vista principal para la seleccion del arbol de planificacion.
     '''
     model = Plan
     template_name = "planes/plan_tree_detail.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanTreeDetailView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(PlanTreeDetailView, self).get_context_data(**kwargs)
@@ -219,17 +185,13 @@ class GuardarArbolView(UserInfoMixin, View):
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
 
-class ProyeccionesView(UserInfoMixin, DetailView):
+class ProyeccionesView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     2da fase del proceso de planificacion.
     Vista principal para la proyeccion de datos historicos de items.
     '''
     model = Plan
     template_name = "planes/plan_proyecciones_detail.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ProyeccionesView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ProyeccionesView, self).get_context_data(**kwargs)
@@ -243,28 +205,32 @@ class ProyeccionesView(UserInfoMixin, DetailView):
             context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0, planificable=True).count()
             context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
             
-            # La variable categorias deberia desaparecer
-            categorias = Categoria.objects.exclude(categoria_padre=None)
-            # context['categorias'] = sorted(categorias, key= lambda t: t.get_nivel())
-            
-            # 
+            # Lista de items sobre los cuales es el usuario es responsable
+            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
+
+            # Lista de items que pertenecen a la categoria mas alta a mostrar
             items_categoria_raiz = []
             
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
             # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.exclude(Q(categoria_padre=None) | Q(planificable=True))
+            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
 
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.exclude(categoria_padre=None)
+            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
             
             # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-            categoria_raiz = sorted(categorias, key= lambda t: t.get_nivel())[0]
+            categoria_raiz = sorted(items_responsable, key= lambda t: t.categoria.get_nivel())[0]
+
+            # Se recalculan las listas de categorias a mostrar como comboboxes
+            # Se deben mostrar a partir de la categoria sobre la cual el usuario es responsable
+            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
+            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
+
 
             # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
             # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
             # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
             # poder ver como division a Hombre
-
             items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
             
             context['combo_categorias'] = combo_categorias
@@ -758,7 +724,7 @@ class BuscarStatsProyeccionView(View):
         return HttpResponseRedirect(reverse('planes:plan_list'))
 
 
-class PlanificacionView(UserInfoMixin, DetailView):
+class PlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     3era fase del proceso de planificacion.
     Vista principal para la planificacion de items.
@@ -766,31 +732,31 @@ class PlanificacionView(UserInfoMixin, DetailView):
     model = Plan
     template_name = "planes/plan_planificacion_detail.html"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PlanificacionView, self).dispatch(*args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super(PlanificacionView, self).get_context_data(**kwargs)
         if context['plan'].estado == 0:
             # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
             context['msg'] = "Primero debe definir el árbol de planificación."
         else:
-            # La variable categorias deberia desaparecer
-            categorias = Categoria.objects.exclude(categoria_padre=None)
-
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.exclude(categoria_padre=None)
+            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
 
             # 
             items_categoria_raiz = []
             
+            # Lista de items sobre los cuales el usuario es responsable
+            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
+
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
             # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.exclude(Q(categoria_padre=None) | Q(planificable=True))
+            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
             
             # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-            categoria_raiz = sorted(categorias, key= lambda t: t.get_nivel())[0]
+            categoria_raiz = sorted(items_responsable, key= lambda t: t.categoria.get_nivel())[0]
+
+            # Se eliminan las categorias que estan por sobre la categoria de la categoria raiz
+            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
+            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
 
             # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
             # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
@@ -1179,18 +1145,122 @@ class GuardarPlanificacionView(UserInfoMixin, View):
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
-class ResumenPlanView(UserInfoMixin, DetailView):
+class ResumenPlanView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     Vista para visualizar el resultado de una planificacion.
     '''
     model = Plan
-    template_name = "planes/resumen_plan_detail.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ResumenPlanView, self).dispatch(*args, **kwargs)
+    template_name = "planes/plan_resumen_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(ResumenPlanView, self).get_context_data(**kwargs)
         context['temporadas'] = Temporada.objects.all()
+        
+        # 
+        items_categoria_raiz = []
+
+        # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
+        combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
+        # Se busca la lista de items sobre los cuales el usuario es responsable
+        items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
+        
+        # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
+        #categoria_raiz = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())[0]
+        categoria_raiz = sorted(items_responsable, key= lambda t: t.categoria.get_nivel())[0]
+
+        # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
+        # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
+        # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
+        # poder ver como division a Hombre
+
+        # Se obtiene una lista de items que el usuario puede ver de la categoria raiz
+        items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
+
+        # Se eliminan las categorias que esten por sobre la categoria del item responsable
+        combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
+        
+        context['combo_categorias_comp'] = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())
+        context['items_categoria_raiz'] = items_categoria_raiz
         return context
+
+
+class ResumenDataGraficosView(View):
+    '''
+    Recibe un ID de plan, un ID de temporada y un ID de item. Devuelve la venta total
+    de los ultimos 3 años asociadas al plan, temporada e item.
+    '''
+    # PRECIO REAL: venta.vta_n / venta.vta_u * 1.19
+    # COSTO: venta.costo / venta.vta_u
+    # DESCUENTO: precio_blanco - precio_real
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            resumen = {}
+            data = {}
+            rows_venta = []
+            rows_unidades = []
+            rows_contribucion = []
+
+            JSONVenta = OrderedDict()
+            JSONUnidades = OrderedDict()
+            JSONContribucion = OrderedDict()
+            JSON = {}
+            id_plan = request.GET['id_plan']
+            id_temporada = request.GET['id_temporada']
+            id_item = request.GET['id_item']
+            plan_obj = Plan.objects.get(pk=id_plan)
+            item_obj = Item.objects.get(pk=id_item)
+            # Se verifica la existencia de la temporada, ya que la opcion temporada = TOTAL no existe
+            # a nivel de base de datos.
+            try:
+                temporada_obj = Temporada.objects.get(pk=id_temporada)
+                estadisticas = plan_obj.resumen_estadisticas(temporada_obj, item_obj)
+            # Si la temporada no existe, se asume que se trata de la temporada TOTAL, y por lo tanto,
+            # se llama al metodo resumen_estadisticas con el parametro TT
+            except ObjectDoesNotExist:
+                estadisticas = plan_obj.resumen_estadisticas("TT", item_obj)    
+            # Se itera sobre el resultado de la busqueda para generar un objeto con el formato requerido
+            # por los graficos de Google Chart
+            for x in estadisticas:
+                row_venta = []
+                row_unidades = []
+                row_contribucion = []
+                row_venta.append({'v':str(x['anio'])})
+                row_unidades.append({'v':str(x['anio'])})
+                row_contribucion.append({'v':str(x['anio'])})
+                row_venta.append({'v':int(x['vta_n'])})
+                row_unidades.append({'v':int(x['vta_u'])})
+                row_contribucion.append({'v':int(x['ctb_n'])})
+                if x['vta_n'] != 0:
+                    row_contribucion.append({'v':float(x['ctb_n'] / x['vta_n'])})
+                rows_venta.append(row_venta)
+                rows_unidades.append(row_unidades)
+                rows_contribucion.append(row_contribucion)
+                
+            # Se especifican las cabeceras (tipos de datos y etiquetas) de cada grafico
+            cols_venta = []
+            cols_unidades = []
+            cols_contribucion = []
+            col1 = {'label':'Año','type':'string'}
+            col2_venta = {'label':'Venta','type':'number'}
+            col2_unidades = {'label':'Unidades','type':'number'}
+            col2_contribucion = {'label':'Contribucion','type':'number'}
+            col3_contribucion = {'label':'Margen','type':'number'}
+            cols_venta.append(col1)
+            cols_venta.append(col2_venta)
+            cols_unidades.append(col1)
+            cols_unidades.append(col2_unidades)
+            cols_contribucion.append(col1)
+            cols_contribucion.append(col2_contribucion)
+            cols_contribucion.append(col3_contribucion)
+            JSONVenta['cols'] = cols_venta
+            JSONVenta['rows'] = rows_venta
+            JSONUnidades['cols'] = cols_unidades
+            JSONUnidades['rows'] = rows_unidades
+            JSONContribucion['cols'] = cols_contribucion
+            JSONContribucion['rows'] = rows_contribucion
+            JSON['venta'] = JSONVenta
+            JSON['unidades'] = JSONUnidades
+            JSON['contribucion'] = JSONContribucion
+            resumen['estadisticas'] = JSON
+            data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+            return HttpResponse(data, mimetype='application/json')
