@@ -9,8 +9,7 @@ body
 	background:#fff;
 	min-width:600px;    /* Minimum width of layout - remove line if not required */
 	/* The min-width property does not work in old versions of Internet Explorer */
-	font-size:80%;
-
+	font-size:70%;
 }
 a
 {
@@ -139,6 +138,13 @@ h3
 	color: #fff;
 	background-color: #0078e7;
 	padding: 3px 3px;
+}
+
+div.floating-left-menu {
+	position:fixed;
+	/*top: 10px;
+	left: 10px;*/
+	z-index:100;
 }
 
 /* Para los select de los buscadores */

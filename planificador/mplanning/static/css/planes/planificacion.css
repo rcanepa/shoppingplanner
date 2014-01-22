@@ -1,11 +1,21 @@
+#tab_proyeccion_datos, #tab_comparativo_datos{
+	overflow: auto;
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
+}
+
+/* Con esto se disminuye el tamaño de las letras dentro del acordeon en la vista de proyeccion */
+#accordion
+{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", "Sans-Serif";
+	font-size: 10px;
+}
+
 .datagrid
 {
-	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
-	font-size: 10px;
 	background: #fff;
 	border-collapse: collapse;
 	text-align: left;
-	margin: 5px;
 }
 
 .datagrid th
@@ -16,6 +26,7 @@
 	color: #039;
 	border-bottom: 2px solid #6678b1;
 	text-align: center;
+	width: 150px;
 }
 
 .datagrid tbody tr:hover td 
@@ -29,68 +40,65 @@
 	color: #669;
 	padding: 2px 5px;
 	text-align: right;
-}
-
-.datagrid td.separador
-{
-	text-align: left;
+	min-width: 75px;
+	min-height: 10px;
 }
 
 .datagrid td.label
 {
-	width: 200px;
+	
 }
 
 .datagrid th.label
 {
-	width: 200px;
+	
 }
 
 .datagrid th.impar
 {
-	width: 200px;
+	
 	background: #eee;
 	color: #669;
 }
 
 .datagrid th.plan
 {
-	width: 200px;
+	
 	background: #FFFFB7;
 	color: #666699;	
 }
 
 .datagrid td.par
 {
-	width: 200px;
+	
 	background: white;
 	color: #669;
 }
 
 .datagrid td.impar
 {
-	width: 200px;
+	
 	background: #eee;
 	color: #669;
 }
 
 .datagrid td.plan
 {
-	width: 200px;
+	
 	background: #FFFFB7;
 	color: #666699;	
 }
 
 .datagrid td.par.estado1
 {
-	width: 200px;
+	
 	background: #FFFFB7;
 	color: #666699;
 }
 
 .datagrid td.par.estado3
 {
-	width: 200px;
+	
 	background: #FFFFB7;
 	color: #666699;
 }
@@ -99,10 +107,4 @@
 {
 	border-top: 2px solid #6678b1;
 	border-bottom: 2px solid #6678b1;
-}
-
-/* Con esto se disminuye el tamaño de las letras dentro del acordeon en la vista de proyeccion */
-#accordion
-{
-	font-size: 85%;
 }

@@ -63,29 +63,30 @@
 {% endblock %}
 
 {% block content %}
-<div style="float:left;width:30%;">
+<div id="titulo" style="float:left;width:30%;">
 	<h3>Resumen Planificaci&oacute;n</h3>
 </div>
-<div style="float:left; width:100%;">
+<div id="nombre-item" style="float:left; width:100%; display:none;"></div>
+<div style="float:left; width:100%; padding-top: 10px;">
 	<div id="dashboard" class="pure-g" style="display:none;">
-	    <div class="pure-u-1-2">
-	    	<div class="chart-header">Venta</div>
-	        <div id="venta-chart" style="height:200px;"></div>
+	    <div class="pure-u-1-2" style="height:270px;">
+	    	<div>Venta</div>
+	        <div style="height:90%;"><canvas id="venta-chart" width="500" height="250">[No canvas support]</canvas></div>
 	    </div>
 
-	    <div class="pure-u-1-2">
-	    	<div class="chart-header">Contribuci&oacute;n y Margen</div>
-	        <div id="contribucion-chart" style="height:200px;"></div>
+	    <div class="pure-u-1-2" style="height:270px;">
+	    	<div>Contribuci&oacute;n y Margen</div>
+	        <div style="height:90%;"><canvas id="contribucion-chart" width="500" height="250">[No canvas support]</canvas></div>
 	    </div>
 
-	    <div class="pure-u-1-2">
-	    	<div class="chart-header">Unidades</div>
-	        <div id="unidades-chart" style="height:200px;"></div>
+	    <div class="pure-u-1-2" style="height:270px;">
+	    	<div>Unidades</div>
+	        <div style="height:90%;"><canvas id="unidades-chart" width="500" height="250">[No canvas support]</canvas></div>
 	    </div>
 
-	    <div class="pure-u-1-2">
-	    	<div class="chart-header">Precio Blanco</div>
-	        <div id="precio-chart" style="height:200px;"></div>
+	    <div class="pure-u-1-2" style="height:270px;">
+	    	<div>Precio Blanco</div>
+	        <div style="height:90%;"><canvas id="precio-chart" width="500" height="250">[No canvas support]</canvas></div>
 	    </div>
 	</div>
 </div>
@@ -95,12 +96,24 @@
 {% block js %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "assets/css/planes/resumen.css" %}">
+<script src="{% static "assets/js/rgraph/RGraph.common.core.js" %}"></script>
+<script src="{% static "assets/js/rgraph/RGraph.common.dynamic.js" %}"></script>   <!-- Just needed for dynamic features (eg tooltips) -->
+
+<script src="{% static "assets/js/rgraph/RGraph.common.annotate.js" %}"></script>  <!-- Just needed for annotating -->
+<script src="{% static "assets/js/rgraph/RGraph.common.context.js" %}"></script>   <!-- Just needed for context menus -->
+<script src="{% static "assets/js/rgraph/RGraph.common.tooltips.js" %}"></script>  <!-- Just needed for tooltips -->
+<script src="{% static "assets/js/rgraph/RGraph.drawing.rect.js" %}"></script>
+
+<script src="{% static "assets/js/rgraph/RGraph.bar.js" %}"></script>              <!-- Just needed for Bar charts -->
+<script src="{% static "assets/js/rgraph/RGraph.line.js" %}"></script>             <!-- Just needed for Line charts -->
 <script>
 google.load("visualization", "1", {packages:["corechart"]});
 
 
 $(function() {
 
+	// Controla la aparicion y desaparicion de la imagen animada que indica que hay un proceso
+	// en ejecucion
 	$( document ).ajaxStart(function() {
         $("#dvLoading").show();
     });
@@ -109,79 +122,10 @@ $(function() {
         $("#dvLoading").hide();
     });
 
-    $("#dashboard").resize(function(){
-
-    });
-
-    function drawChart(ventas, unidades, contribucion) {
-		var formatter = new google.visualization.NumberFormat({pattern: "#,###"});
-		var formatter_porcentaje = new google.visualization.NumberFormat({pattern: "#,###.0%"});
-		
-
-		// Create and populate the data table.
-		var precio = google.visualization.arrayToDataTable([
-			['Year', 'Costo', 'Precio Real', 'Descuento'],
-			['2011', 1500, 7500, 3000],
-			['2012', 1600, 8000, 2000],
-			['2013', 1700, 9000, 3300],
-			['2014', 1650, 8790, 3100]
-			]);
-
-		var options = {
-			legend:{position: 'none'},
-			chartArea: {left: 100},
-			colors: ['#5A8CFF'],
-			bar: {groupWidth:"50%"}
-		};
-
-		var options_precio = {
-			title:"",
-            //width:305, 
-            //height:100,
-            bar: {groupWidth:"50%"},
-            colors: ['#5A8CFF',"#D8000C","#4F8A10"],
-            chartArea:{height:100,backgroundColor: {stroke: '#000',strokeWidth: '1'}},
-            //vAxis: {title: '', textStyle:{color: 'white'}, textPosition:'none'},
-            //hAxis: {title: 'Precio Blanco'},
-            focusTarget:'datum',
-            isStacked: true,
-            legend:{position: 'top'},
-		};
-
-		var options_contribucion = {
-			curveType: "function",
-			chartArea: {left: 100},
-			colors: ['#5A8CFF',"#D8000C"],
-			bar: {groupWidth:"50%"},
-          	seriesType: "bars",
-          	vAxes: {
-          		0: {logScale: false}, 
-          		1: {logScale: false, maxValue: 1, format: "#,###.0%"}
-          	},
-    		series:{
-    			0:{targetAxisIndex:0}, 
-    			1:{targetAxisIndex:1, type: "line"},	
-    			2:{targetAxisIndex:1}
-    		}
-        };
-
-		formatter.format(ventas, 1);
-		formatter.format(unidades, 1);
-		formatter.format(contribucion, 1);
-		formatter.format(precio, 1);
-		formatter.format(precio, 2);
-		formatter.format(precio, 3);
-		formatter_porcentaje.format(contribucion, 2);
-
-		var chart_ventas = new google.visualization.ColumnChart(document.getElementById('venta-chart'));
-		var chart_unidades = new google.visualization.ColumnChart(document.getElementById('unidades-chart'));
-		var chart_precio = new google.visualization.BarChart(document.getElementById('precio-chart'));
-		var chart_contribucion = new google.visualization.ComboChart(document.getElementById('contribucion-chart'));
-		chart_ventas.draw(ventas, options);
-		chart_unidades.draw(unidades, options);
-		chart_contribucion.draw(contribucion, options_contribucion);
-		chart_precio.draw(precio, options_precio);
-	}
+	/*
+	Gatilla un request AJAX y devuelve un response JSON con la informacion
+	que despliegan los graficos
+	*/
 
 	function buscarResumen(){
 		var id_temporada_id, id_plan, id_item;
@@ -205,67 +149,155 @@ $(function() {
 	            success: function(data){
 	                console.log(data);
 	                $("#dashboard").show();
-	                var data_table_ventas = new google.visualization.DataTable();
-					var data_table_unidades = new google.visualization.DataTable();
-					var data_table_contribucion = new google.visualization.DataTable();
-	                // Ciclo para ventas
-	                $.each(data.estadisticas.venta, function(tipo, fila) {
-	                	if (tipo == "cols"){
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_ventas.addColumn(fila[x]);
-	                		}
-	                	}
-	                	else{
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_ventas.addRow(fila[x]);
-	                		}
-	                		
-	                	}
-	                });
 
-	                // Ciclo para unidades
-	                $.each(data.estadisticas.unidades, function(tipo, fila) {
-	                	if (tipo == "cols"){
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_unidades.addColumn(fila[x]);
-	                		}
-	                	}
-	                	else{
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_unidades.addRow(fila[x]);
-	                		}
-	                		
-	                	}
-	                });
+	                var data_unidades = data.estadisticas.unidades;
+	                var data_venta = data.estadisticas.venta;
+	                var data_contribucion = data.estadisticas.contribucion;
+	                var data_margen = data.estadisticas.margen;
+	                var data_costo = data.estadisticas.costo;
+	                var data_dcto_precio = data.estadisticas.dcto_precio;
 
-	                // Ciclo para contribucion
-	                $.each(data.estadisticas.contribucion, function(tipo, fila) {
-	                	if (tipo == "cols"){
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_contribucion.addColumn(fila[x]);
-	                		}
-	                	}
-	                	else{
-	                		for (var x=0; x<fila.length; x++){
-	                			data_table_contribucion.addRow(fila[x]);
-	                		}
-	                		
-	                	}
-	                });
+	                var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
+	                var color_linea_margen = ['#0055bb'];
+	                var color_texto = '#777';
+	                var tipo_letra = "Sans-Serif";
+	                var tamano_letra = 10;
 
-	                // Se llama a la funcion encargada de generar los graficos
-	                drawChart(data_table_ventas, data_table_unidades, data_table_contribucion);
+	                // Reset the canvas
+            		RGraph.Reset(document.getElementById("venta-chart"));
+            		RGraph.Reset(document.getElementById("unidades-chart"));
+            		RGraph.Reset(document.getElementById("contribucion-chart"));
+            		RGraph.Reset(document.getElementById("precio-chart"));
 
+	                var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)
+			            .Set('text.color', color_texto)
+			            //.Set('text.font', tipo_letra)
+			            .Set('labels', data_venta.cols)
+			            .Set('labels.above', true)
+			            .Set('labels.above.size', tamano_letra)
+			            .Set('colors', colores_arr)
+				        .Set('ylabels', false)
+				        .Set('noyaxis', true)
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)
+				        .Set('background.grid', false)
+				        .Set('labels.ingraph', data_venta.ingraph)
+			            .Draw();
 
-	                
+			        var bar_unidades = new RGraph.Bar('unidades-chart', data_unidades.rows)
+			            .Set('text.color', color_texto)
+			            .Set('labels', data_unidades.cols)
+			            .Set('labels.above', true)
+			            .Set('labels.above.size', tamano_letra)
+			            .Set('colors', colores_arr)
+				        .Set('ylabels', false)
+				        .Set('noyaxis', true)
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)
+				        .Set('background.grid', false)
+				        .Set('labels.ingraph', data_unidades.ingraph)
+			            .Draw();
+
+			        var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
+			            .Set('text.color', color_texto)
+			            .Set('tooltips', data_contribucion.tooltips)
+			            .Set('tooltips.event','onmousemove')
+			            .Set('labels', data_contribucion.cols)
+			            .Set('labels.above', true)
+			            .Set('labels.above.size', tamano_letra)
+			            .Set('colors', colores_arr)
+				        .Set('ylabels', false)
+				        .Set('noyaxis', true)
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)
+				        .Set('background.grid', false)
+				        .Set('labels.ingraph', data_contribucion.ingraph)
+
+			        var line_margen = new RGraph.Line('contribucion-chart', data_margen.rows)
+			            .Set('tooltips', data_margen.tooltips)
+			            .Set('tooltips.hotspot.size', 20)
+			            .Set('colors', color_linea_margen)
+			            .Set('tickmarks', 'circle')
+				        .Set('ylabels', false)
+				        .Set('noyaxis', true)
+				        .Set('linewidth', 2)
+				        .Set('units.post', '%')
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)	
+				        .Set('background.grid', false)
+                		.Set('outofbounds', true) // Para valores negativos
+	                var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
+    				combo.Draw();
+
+			        var bar_precio_dcto = new RGraph.Bar('precio-chart', data_dcto_precio.rows)
+			            .Set('text.color', color_texto)
+			            .Set('colors', colores_arr)
+			            .Set('labels', data_dcto_precio.cols)
+			            .Set('labels.above', true)
+			            .Set('labels.above.size', tamano_letra)
+			            .Set('grouping', 'stacked')
+				        .Set('noyaxis', true)
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)
+				        .Set('background.grid', false)
+				        .Set('ylabels', false)
+				        .Set('linewidth', 2)
+                		.Set('strokestyle', 'white')
+			            .Draw();
+
+			        // Esta funcion se utiliza para unificar los pedazos de cada barra, con el objetivo de que
+			        // los tooltips se muestren al pasar el mouse sobre cualquiera de ellos
+			        RGraph.each (bar_precio_dcto.coords2, function (key, value)
+		            {
+		                var x = value[0][0];
+		                var y = value[0][1];
+		                var w = value[0][2];
+		                var h = value[0][3] + value[1][3] + value[2][3]; // Sum up the heights of the bar segments
+
+		                var rect = new RGraph.Drawing.Rect('precio-chart', x, y, w, h)
+		                    .Set('strokestyle', 'rgba(0,0,0,0)')
+		                    .Set('fillstyle', 'rgba(0,0,0,0)')
+		                    .Set('tooltips', [data_dcto_precio.tooltips[key]])
+		                    .Set('tooltips.event','onmousemove')
+		                    .Set('highlight.stroke', 'rgba(0,0,0,0)')
+		                    .Draw();
+		            }, bar_precio_dcto);
+
+			        var bar_costo = new RGraph.Bar('precio-chart', data_costo.rows)
+			            .Set('text.color', color_texto)
+			            .Set('ymax', bar_precio_dcto.scale2.max)
+			            .Set('gutter.left', bar_precio_dcto.Get('gutter.left'))
+			            .Set('colors', color_linea_margen)
+			            .Set('noaxes', true)
+			            .Set('labels.above', true)
+			            .Set('labels.above.size', tamano_letra)
+			            .Set('hmargin', 20)
+			            .Set('ylabels', false)
+				        .Set('noyaxis', true)
+				        .Set('gutter.left', 10)
+				        .Set('gutter.right', 10)
+                		.Set('gutter.bottom', 60)
+				        .Set('background.grid', false)
+			            .Draw();
 	            },
 	            complete: function(data){
 	            	
 	            }
 	        });
+			
+			// Todo combobox que este por debajo del boton de busqueda presionado, debera quedar con la opcion en blanco como seleccionada
+			$( "select[id^='combo_cat_comp_']" ).each(function(){
+     			if(id_button_array[3] < $(this).attr('id').split("_")[3])
+     				$(this).val(-1);
+			});
         }
-        else
-        	return 0;
+        // Se escribe el nombre del item seleccionado
+        $("#nombre-item").html("Item: " + $("#combo_cat_comp_" + id_button_array[3] + " option:selected").text());
 	}
 
 	/*
@@ -285,7 +317,7 @@ $(function() {
                     if ( data.items != null ){
                         html = '';
                         html += "<option value=\"-1\"></option>"
-                        for (var x=0; x<data.items.length; x++){
+                        for (var x = 0, largo = data.items.length; x<largo; x++){
                             if ( data.items[x].precio != 0 )
                                 html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
                             else
@@ -297,6 +329,11 @@ $(function() {
                     }
                 }
             });
+			// Se selecciona la opcion en blanco de cada combobox que se encuentra por debajo del seleccionado
+			$( "select[id^='combo_cat_comp_']" ).each(function(){
+     			if(id_this_arry[3] < $(this).attr('id').split("_")[3])
+     				$(this).val(-1);
+			});
         }
     }
 

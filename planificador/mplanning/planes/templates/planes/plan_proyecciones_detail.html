@@ -76,6 +76,13 @@
         {% endfor %}
     </table>
 </div>
+
+<div id="panel-acciones" class="pure-menu pure-menu-open" style="float:left; display:none;">
+    <a class="pure-menu-heading">Acciones</a>
+    <ul>
+        <li><a href="" id="btnSave">Guardar Proyecci&oacute;n</a></li>
+    </ul>
+</div>
 <!-- Seccion con parametros de busqueda del item a proyectar  -->
 {% endblock %}
 
@@ -90,8 +97,8 @@
 <div id="accordion">
     <h3>Proyecci&oacute;n</h3>
     <div>
-        <div id="estadisticas-proyeccion"></div>
-        <div id="item-proyeccion"></div>
+        <div id="estadisticas-proyeccion" style="display:none;"></div>
+        <div id="item-proyeccion" style="display:none;"></div>
         <div style="width:100%; float:left">
             <form id="proyform" class="pure-form">
                 {% csrf_token %}
@@ -101,7 +108,7 @@
                 </div>
                 <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
                     <input id="input_json_data" type="hidden" name="proyeccion" value="" />
-                    <button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button>
+                    <!--button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button-->
                 </div>
             </form>
             <div id="dialog-box" title="Proyección" style="text-align:center;">
@@ -236,6 +243,17 @@ $(function() {
                 tablaDctoUni(planificacion);
             }
         });
+        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
+        // los datos que se guardaron de la ultima planificacion
+        var id_item_comparativo = -1;
+
+        $("[id^=combo_cat_comp_]").each(function(index){
+            if ( $(this).val() != -1 ){
+                id_item_comparativo = $(this).val();
+            }
+        });
+        if ( id_item_comparativo != -1 )
+            buscarTablaComparacionAJAX_par(id_item_comparativo);
     });
 
     /*
@@ -319,7 +337,7 @@ $(function() {
             url: '/planes/plan/itemplanventasearch/',
             type: 'get',
             success: function(data){
-                console.log(data);
+                //console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -333,31 +351,22 @@ $(function() {
                 
             }
         });
-        $("#btnSave").show();
+        if ( $("#panel-acciones").is(":hidden") )
+            $("#panel-acciones").show("slow");
     }
 
     /*
         Busca la informacion historica para la seccion de comparacion. Esta funcion se gatilla al
         hacer click en uno de los BUTTON que se presentan al lado de cada uno de los SELECT de comparacion
     */
-    function buscarTablaComparacionAJAX(){
-        var id_item;
-        var id_this = $(this).attr("id");
-        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
-        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
-        id_button_array = id_this.split("_");
-        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
-        if ( id_item == -1 ){
-            alert("Seleccione una opción válida.");
-            return 0;
-        }
+    function buscarTablaComparacionAJAX_par(id_item){
         var id_plan = parseInt({{plan.id}});
         $.ajax({
             data: {'id_item':id_item, 'id_plan':id_plan},
             url: '/planes/plan/itemplancompventasearch/',
             type: 'get',
             success: function(data){
-                console.log(data);
+                //console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -734,7 +743,19 @@ $(function() {
         }
     }
     $("#combo_resultado").change(buscarTablaProyeccionAJAX);
-    $("[id^=button_cat_comp_]").click(buscarTablaComparacionAJAX);
+    $("[id^=button_cat_comp_]").click(function(){
+        var id_item;
+        var id_this = $(this).attr("id");
+        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
+        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
+        id_button_array = id_this.split("_");
+        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
+        if ( id_item == -1 ){
+            alert("Seleccione una opción válida.");
+            return 0;
+        }
+        buscarTablaComparacionAJAX_par(id_item);
+    });
     $("[id^=combo_cat_proy_]").change(buscarCategoriaProyeccion);
     $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
     buscarEstadisticasPlan();

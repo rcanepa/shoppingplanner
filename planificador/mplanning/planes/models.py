@@ -2,7 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Sum, Max, Min
+from django.db.models import Q, Sum, Max, Min, Avg
 
 from datetime import datetime
 
@@ -102,32 +102,38 @@ class Plan(models.Model):
             item__in=item_arr_definitivo,
             anio__gte=ant_anio,
             anio__lte=act_anio,
-            temporada=temporada).exclude(tipo=2).values(
+            temporada=temporada).values(
             'anio').annotate(
             vta_n=Sum('vta_n'),
             vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n')).order_by(
+            ctb_n=Sum('ctb_n'),
+            costo=Sum('costo'),
+            precio_prom=Avg('item__precio')).order_by(
             'anio')
         elif temporada == "TT":
             estadisticas = Ventaperiodo.objects.filter(
             item__in=item_arr_definitivo,
             anio__gte=ant_anio,
-            anio__lte=act_anio).exclude(tipo=2).values(
+            anio__lte=act_anio).values(
             'anio').annotate(
             vta_n=Sum('vta_n'),
             vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n')).order_by(
+            ctb_n=Sum('ctb_n'),
+            costo=Sum('costo'),
+            precio_prom=Avg('item__precio')).order_by(
             'anio')
         else:
             estadisticas = Ventaperiodo.objects.filter(
             item__in=item_arr_definitivo,
             anio__gte=ant_anio,
             anio__lte=act_anio,
-            temporada=temporada).exclude(tipo=2).values(
+            temporada=temporada).values(
             'anio').annotate(
             vta_n=Sum('vta_n'),
             vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n')).order_by(
+            ctb_n=Sum('ctb_n'),
+            costo=Sum('costo'),
+            precio_prom=Avg('item__precio')).order_by(
             'anio')
         return estadisticas
 

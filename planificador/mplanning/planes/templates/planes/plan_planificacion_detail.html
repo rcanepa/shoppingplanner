@@ -76,6 +76,13 @@
         {% endfor %}
     </table>
 </div>
+
+<div id="panel-acciones" class="pure-menu pure-menu-open" style="float:left; display:none;">
+    <a class="pure-menu-heading">Acciones</a>
+    <ul>
+        <li><a href="" id="btnSave">Guardar Proyecci&oacute;n</a></li>
+    </ul>
+</div>
 <!-- Seccion con parametros de busqueda del item a proyectar  -->
 {% endblock %}
 
@@ -90,19 +97,28 @@
 <div id="accordion">
     <h3>Planificaci&oacute;n</h3>
     <div>
-        <div id="estadisticas-proyeccion"></div>
-        <div style="float:left; width:100%;"><div style="float:left; width:7%;">Item:</div><div id="item-planificacion" style="float:left; width:50%;"></div></div>
-        <div style="float:left; width:100%;"><div style="float:left; width:7%;">Precio:</div><div id="precio_blanco" class="editable" style="float:left; width:50%;"></div></div>
+        <div id="estadisticas-proyeccion" style="display:none;"></div>
+        <div style="float:left; width:100%; display:none;">
+            <div style="float:left; width:7%;">Item:</div><div id="item-planificacion" style="float:left; width:50%;"></div>
+        </div>
+        <div style="float:left; width:100%;">
+            <div style="float:left; width:7%;">Precio Blanco:</div>
+            <div id="itemprecio_blanco" class="editable" style="float:left; width:7%;"></div>
+            <div style="float:left; width:7%; padding-left: 10px;">Costo Unitario:</div>
+            <div id="itemcosto_unitario" class="editable" style="float:left; width:20%;"></div>
+        </div>
         <div style="width:100%; float:left">
             <form id="proyform" class="pure-form">
                 {% csrf_token %}
-                <div id="tab_proyeccion" style="float:left; width:100%;">
-                </div>
-                <div style="float:left; width:100%;">
+                <div style="width:100%; float:left;">
+                    <div id="tab_proyeccion_etiquetas" style="width:10%; float:left;">
+                    </div>
+                    <div id="tab_proyeccion_datos" style="width:90%; float:left;">
+                    </div>
                 </div>
                 <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
                     <input id="input_json_data" type="hidden" name="proyeccion" value="" />
-                    <button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button>
+                    <!--button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button-->
                 </div>
             </form>
         </div>
@@ -110,8 +126,11 @@
     <h3>Comparativo</h3>
     <div>
         <div id="item-comparativo"></div>
-        <div style="width:100%; float:left">
-            <div id="tab_comparativo" style="float:left; width:100%;">
+        
+        <div style="width:100%; float:left;">
+            <div id="tab_comparativo_etiquetas" style="width:10%; float:left;">
+            </div>
+            <div id="tab_comparativo_datos" style="width:90%; float:left;">
             </div>
         </div>
     </div>
@@ -149,6 +168,17 @@ $(function() {
     $( document ).ajaxStop(function() {
         $("#dvLoading").hide();
     });
+
+    // Mantener sincronizado el movimiento del scroll inferior con el superior
+    $("#tab_proyeccion_datos").on("scroll", function () {
+        $("#tab_comparativo_datos").scrollLeft($(this).scrollLeft());
+    });
+
+    // Mantener sincronizado el movimiento del scroll superior con el inferior
+    $("#tab_comparativo_datos").on("scroll", function () {
+        $("#tab_proyeccion_datos").scrollLeft($(this).scrollLeft());
+    });
+
 
     /* Actualiza las estadisticas generales de proyeccion */
     function buscarEstadisticasPlan(){
@@ -196,7 +226,7 @@ $(function() {
     });
     
     /*
-        Guarda la proyeccion sobre la cual se esta trabajando.
+        Guarda la planificacion sobre la cual se esta trabajando.
     */
 
     $("#btnSave").click(function(event){
@@ -235,6 +265,18 @@ $(function() {
                 tablaDctoUni(planificacion);
             }
         });
+
+        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
+        // los datos que se guardaron de la ultima planificacion
+        var id_item_comparativo = -1;
+
+        $("[id^=combo_cat_comp_]").each(function(index){
+            if ( $(this).val() != -1 ){
+                id_item_comparativo = $(this).val();
+            }
+        });
+        if ( id_item_comparativo != -1 )
+            buscarTablaComparacionAJAX_par(id_item_comparativo);
     });
 
     /*
@@ -318,13 +360,15 @@ $(function() {
             url: '/planes/plan/itemplanventatemp/',
             type: 'get',
             success: function(data){
-                console.log(data);
+                //console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
                     $("#item-planificacion").text(data.itemplan.nombre);
-                    $("#precio_blanco").text(numeral(data.itemplan.precio).format('0,0'));
+                    $("#itemprecio_blanco").text(numeral(data.itemplan.precio).format('0,0'));
+                    $("#itemcosto_unitario").text(numeral(data.itemplan.costo_unitario).format('0,0'));
                     planificacion = data;
+                    actualizarPlanificacion();
                     tablaDctoUni(data);
                 }
                 else{
@@ -333,31 +377,22 @@ $(function() {
                 
             }
         });
-        $("#btnSave").show();
+        if ( $("#panel-acciones").is(":hidden") )
+            $("#panel-acciones").show("slow");
     }
 
     /*
         Busca la informacion historica para la seccion de comparacion. Esta funcion se gatilla al
         hacer click en uno de los BUTTON que se presentan al lado de cada uno de los SELECT de comparacion
     */
-    function buscarTablaComparacionAJAX(){
-        var id_item;
-        var id_this = $(this).attr("id");
-        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
-        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
-        id_button_array = id_this.split("_");
-        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
-        if ( id_item == -1 ){
-            alert("Seleccione una opción válida.");
-            return 0;
-        }
+    function buscarTablaComparacionAJAX_par(id_item){
         var id_plan = parseInt({{plan.id}});
         $.ajax({
             data: {'id_item':id_item, 'id_plan':id_plan},
             url: '/planes/plan/itemplanventatempcomp/',
             type: 'get',
             success: function(data){
-                console.log(data);
+                //console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -384,7 +419,8 @@ $(function() {
                 var parametros = [];
                 parametros = td.attr("id").split("_");
                 td.text($("#inputval").val());
-                if (parametros[0] != "precio"){
+            
+                if ( parametros[0].indexOf("item") == -1){
                 /*
                     parametros[0]: tipo de metrica (unidades, descuentos, costos)
                     parametros[1]: periodo
@@ -393,8 +429,12 @@ $(function() {
                     actualizarPerPlanificacion(parametros[0], parametros[1], parametros[2]);
                 }
                 else{
-                    planificacion.itemplan.precio = numeral().unformat($("#inputval").val());
+                    if ( parametros[0] == "itemprecio" )
+                        planificacion.itemplan.precio = numeral().unformat($("#inputval").val());    
+                    else
+                        planificacion.itemplan.costo_unitario = numeral().unformat($("#inputval").val());
                     actualizarPlanificacion();
+                    //console.log(planificacion);
                 }
                 $("#inputval").val("");
                 $( this ).dialog( "close" );
@@ -420,8 +460,10 @@ $(function() {
             $("#dialog_help_msg").text("Ingresar porcentaje (0%-100%):");
         else if(parametros[0] == 'costos')
             $("#dialog_help_msg").text("Ingresar costo unitario:");
-        else
+        else if(parametros[0] == 'itemprecio')
             $("#dialog_help_msg").text("Ingresar precio blanco:");
+        else
+            $("#dialog_help_msg").text("Ingresar costo unitario:");
         $( "#dialog-box" ).dialog( "open" );
     }
     
@@ -432,11 +474,16 @@ $(function() {
         var html_tot_ctb_n = "";
         var html_tot_margen = "";
         var html_tot_unidades = "";
-        var html = "";        
-        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        var html = "";
+        var html_div_etiquetas = "";
+
+        html += "<table class=\"datagrid\">";
         html += "<thead>";
         html += "<tr>";
-        html += "<th class=\"label\">Año</th>";
+        html_div_etiquetas += "<table class=\"datagrid\">";
+        html_div_etiquetas += "<thead>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<th class=\"label\">Año</th>";
         // Se genera la cabecera con los años
         for (var x=0; x<data.periodos.length; x++){
             if ( (x % html_num_periodos) == 0 ){
@@ -454,7 +501,9 @@ $(function() {
         }
         html += "</tr>";
         html += "<tr>";
-        html += "<th class=\"label\">Periodo</th>";
+        html_div_etiquetas += "</tr>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<th class=\"label\">Periodo</th>";
         // Se genera la fila con los periodos
         for (var x=0; x<data.periodos.length; x++){
             if ( data.periodos[x].temporada ){
@@ -470,16 +519,25 @@ $(function() {
         html += "</tr>";
         html += "</thead>";
         html += "<tbody>";
+        html_div_etiquetas += "</tr>";
+        html_div_etiquetas += "</thead>";
+        html_div_etiquetas += "<tbody>";
         
         /* Se itera por cada temporada */
         $.each(data.ventas, function(temporada, ventas) {
             html += "<tr>";
-            html += "<td class=\"separador\" colspan=\"25\"><b>Temporada: " + temporada + "</b></td>";
+            html += "<td class=\"separador\" colspan=\"24\">-</td>";
             html += "</tr>";
+
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td class=\"separador\"><b>Temporada: " + temporada + "</b></td>";
+            html_div_etiquetas += "</tr>";
 
             /* Unidades vendidas */
             html += "<tr>";
-            html += "<td title=\"Unidades vendidas.\" class=\"label\">Unidades</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Unidades vendidas.\" class=\"label\">Unidades</td>";
+
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td id=\"unidades_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"unidades editable plan\">" + numeral(venta.vta_u).format('0,0') + "</td>";
@@ -493,10 +551,12 @@ $(function() {
 
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
             
             /* Descuentos */
             html += "<tr>";
-            html += "<td title=\"Descuento sobre el precio blanco.\" class=\"label\">Descuento %</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Descuento sobre el precio blanco.\" class=\"label\">Dcto. %</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td id=\"descuentos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"descuentos editable plan\">" + numeral(venta.dcto).format('0.00%') + "</td>";
@@ -509,10 +569,12 @@ $(function() {
                     
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Precio Real */
             html += "<tr>";
-            html += "<td title=\"Precio real de venta.\" class=\"label\">Precio Real</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Precio real de venta.\" class=\"label\">Precio Real</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.precio_real).format('0,0') + "</td>";
@@ -524,13 +586,15 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Costo unitario */
             html += "<tr>";
-            html += "<td title=\"Costo unitario.\" class=\"label\">Costo Unitario</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Costo unitario.\" class=\"label\">Costo Uni.</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
-                    html += "<td id=\"costos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"costos editable plan\">" + numeral(venta.costo_u).format('0,0') + "</td>";
+                    html += "<td id=\"costos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"costos plan\">" + numeral(venta.costo_u).format('0,0') + "</td>";
                 else{
                     if ( (venta.anio % 2) == 0 )
                         html += "<td class=\"par\">" + numeral(venta.costo_u).format('0,0') + "</td>";
@@ -540,10 +604,12 @@ $(function() {
                     
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Venta neta */
             html += "<tr>";
-            html += "<td title=\"Venta en pesos.\" class=\"label\">Venta</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Venta en pesos.\" class=\"label\">Venta</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.vta_n).format('0,0') + "</td>";
@@ -555,10 +621,12 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
             
              /* Contribucion */
             html += "<tr>";
-            html += "<td title=\"Contribucion en pesos.\" class=\"label\">Contribuci&oacute;n</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Contribucion en pesos.\" class=\"label\">Contribuci&oacute;n</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
@@ -570,10 +638,12 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
             
             /* Margen */
             html += "<tr>";
-            html += "<td title=\"Margen porcentual.\" class=\"label\">Margen %</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Margen porcentual.\" class=\"label\">Margen %</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.margen).format('0.00%') + "</td>";
@@ -585,13 +655,17 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
         });
         
         /* Totales */
         html += "<tr>";
-        html += "<td class=\"separador\" colspan=\"25\"><b>Totales:</b></td>";
+        html += "<td class=\"separador\" colspan=\"24\">-</td>";
         html += "</tr>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<td class=\"separador\"><b>Totales:</b></td>";
+        html_div_etiquetas += "</tr>";
         for (var x=0; x<data.periodos.length; x++){
             var total_unidades = 0;
             var total_vta_n = 0;
@@ -631,25 +705,41 @@ $(function() {
                 }
             }
         }
+        
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total unidades temporadas.\" class=\"label\">Unidades</td>";
         html += html_tot_unidades;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total unidades temporadas.\" class=\"label\">Unidades</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total venta temporadas.\" class=\"label\">Venta</td>";
         html += html_tot_vta_n;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total venta temporadas.\" class=\"label\">Venta</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total contribuci&oacute;n.\" class=\"label\">Contribuci&oacute;n</td>";
         html += html_tot_ctb_n;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total contribuci&oacute;n.\" class=\"label\">Contribuci&oacute;n</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total margen.\" class=\"label\">Margen</td>";
         html += html_tot_margen;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total margen.\" class=\"label\">Margen</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "</tbody>";
         html += "</table>";
-        $("#tab_proyeccion").html(html);
+        html_div_etiquetas += "</tbody>";
+        html_div_etiquetas += "</table>";
+        $("#tab_proyeccion_datos").html(html);
+        $("#tab_proyeccion_etiquetas").html(html_div_etiquetas);
         $(".editable").click(planificarMetricas);
     }
 
@@ -661,10 +751,15 @@ $(function() {
         var html_tot_margen = "";
         var html_tot_unidades = "";
         var html = "";        
-        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        var html_div_etiquetas = "";
+
+        html += "<table class=\"datagrid\">";
         html += "<thead>";
         html += "<tr>";
-        html += "<th class=\"label\">Año</th>";
+        html_div_etiquetas += "<table class=\"datagrid\">";
+        html_div_etiquetas += "<thead>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<th class=\"label\">Año</th>";
         // Se genera la cabecera con los años
         for (var x=0; x<data.periodos.length; x++){
             if ( (x % html_num_periodos) == 0 ){
@@ -682,7 +777,9 @@ $(function() {
         }
         html += "</tr>";
         html += "<tr>";
-        html += "<th class=\"label\">Periodo</th>";
+        html_div_etiquetas += "</tr>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<th class=\"label\">Periodo</th>";
         // Se genera la fila con los periodos
         for (var x=0; x<data.periodos.length; x++){
             if ( data.periodos[x].temporada ){
@@ -698,16 +795,22 @@ $(function() {
         html += "</tr>";
         html += "</thead>";
         html += "<tbody>";
-        
+        html_div_etiquetas += "</tr>";
+        html_div_etiquetas += "</thead>";
+        html_div_etiquetas += "<tbody>";
         /* Se itera por cada temporada */
         $.each(data.ventas, function(temporada, ventas) {
             html += "<tr>";
-            html += "<td class=\"separador\" colspan=\"25\"><b>Temporada: " + temporada + "</b></td>";
+            html += "<td class=\"separador\" colspan=\"24\">-</td>";
             html += "</tr>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td class=\"separador\"><b>Temporada: " + temporada + "</b></td>";
+            html_div_etiquetas += "</tr>";
 
             /* Unidades vendidas */
             html += "<tr>";
-            html += "<td title=\"Unidades vendidas.\" class=\"label\">Unidades</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Unidades vendidas.\" class=\"label\">Unidades</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td id=\"unidades_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"unidades plan\">" + numeral(venta.vta_u).format('0,0') + "</td>";
@@ -721,10 +824,12 @@ $(function() {
 
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
             
             /* Descuentos */
             html += "<tr>";
-            html += "<td title=\"Descuento sobre el precio blanco.\" class=\"label\">Descuento %</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Descuento sobre el precio blanco.\" class=\"label\">Descuento %</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td id=\"descuentos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"descuentos plan\">" + numeral(venta.dcto).format('0.00%') + "</td>";
@@ -737,10 +842,12 @@ $(function() {
                     
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Precio Real */
             html += "<tr>";
-            html += "<td title=\"Precio real de venta.\" class=\"label\">Precio Real</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Precio real de venta.\" class=\"label\">Precio Real</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.precio_real).format('0,0') + "</td>";
@@ -752,10 +859,12 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Costo unitario */
             html += "<tr>";
-            html += "<td title=\"Costo unitario.\" class=\"label\">Costo Unitario</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Costo unitario.\" class=\"label\">Costo Unitario</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td id=\"costos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"costos plan\">" + numeral(venta.costo_u).format('0,0') + "</td>";
@@ -768,10 +877,12 @@ $(function() {
                     
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
             /* Venta neta */
             html += "<tr>";
-            html += "<td title=\"Venta en pesos.\" class=\"label\">Venta</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Venta en pesos.\" class=\"label\">Venta</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.vta_n).format('0,0') + "</td>";
@@ -783,10 +894,12 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
             
              /* Contribucion */
             html += "<tr>";
-            html += "<td title=\"Contribucion en pesos.\" class=\"label\">Contribuci&oacute;n</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Contribucion en pesos.\" class=\"label\">Contribuci&oacute;n</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
@@ -798,10 +911,12 @@ $(function() {
                 }
             });
             html += "</tr>";
-            
+            html_div_etiquetas += "</tr>";
+
             /* Margen */
             html += "<tr>";
-            html += "<td title=\"Margen porcentual.\" class=\"label\">Margen %</td>";
+            html_div_etiquetas += "<tr>";
+            html_div_etiquetas += "<td title=\"Margen porcentual.\" class=\"label\">Margen %</td>";
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (data.temporada_vigente['anio'] + 1) )
                     html += "<td class=\"plan\">" + numeral(venta.margen).format('0.00%') + "</td>";
@@ -813,13 +928,17 @@ $(function() {
                 }
             });
             html += "</tr>";
+            html_div_etiquetas += "</tr>";
 
         });
         
         /* Totales */
         html += "<tr>";
-        html += "<td class=\"separador\" colspan=\"25\"><b>Totales:</b></td>";
+        html += "<td class=\"separador\" colspan=\"24\">-</td>";
         html += "</tr>";
+        html_div_etiquetas += "<tr>";
+        html_div_etiquetas += "<td class=\"separador\"><b>Totales:</b></td>";
+        html_div_etiquetas += "</tr>";
         for (var x=0; x<data.periodos.length; x++){
             var total_unidades = 0;
             var total_vta_n = 0;
@@ -860,24 +979,39 @@ $(function() {
             }
         }
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total unidades temporadas.\" class=\"label\">Unidades</td>";
         html += html_tot_unidades;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total unidades temporadas.\" class=\"label\">Unidades</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total venta temporadas.\" class=\"label\">Venta</td>";
         html += html_tot_vta_n;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total venta temporadas.\" class=\"label\">Venta</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total contribuci&oacute;n.\" class=\"label\">Contribuci&oacute;n</td>";
         html += html_tot_ctb_n;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total contribuci&oacute;n.\" class=\"label\">Contribuci&oacute;n</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "<tr class=\"totales\">";
-        html += "<td title=\"Total margen.\" class=\"label\">Margen</td>";
         html += html_tot_margen;
         html += "</tr>";
+        html_div_etiquetas += "<tr class=\"totales\">";
+        html_div_etiquetas += "<td title=\"Total margen.\" class=\"label\">Margen</td>";
+        html_div_etiquetas += "</tr>";
+
         html += "</tbody>";
         html += "</table>";
-        $("#tab_comparativo").html(html);
+        html_div_etiquetas += "</tbody>";
+        html_div_etiquetas += "</table>";
+        $("#tab_comparativo_etiquetas").html(html_div_etiquetas);
+        $("#tab_comparativo_datos").html(html);
     }
 
     // Recalcula todas las metricas de todo el objeto de planificacion
@@ -885,6 +1019,9 @@ $(function() {
         $.each(planificacion.ventas, function(temporada, ventas) {
             $.each(ventas, function(periodo, venta) {
                 if( venta.anio == (planificacion.temporada_vigente['anio'] + 1) ){
+                    // Costo unitario               
+                    venta.costo_u = planificacion.itemplan.costo_unitario
+                    
                     // Venta Neta
                     venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
                         
@@ -940,7 +1077,8 @@ $(function() {
                 if((venta.anio + "" + venta.periodo) == periodo.trim()){
                     // Se asigna tipo temporal 3 (modificada no guardada)
                     venta.tipo = 3;
-                    // Se lee el valor de la celda y se quita su formato
+                    
+                    // Se lee el valor de su celda y se quita su formato
                     venta.dcto = numeral().unformat(td.text());
                     
                     // Venta Neta
@@ -992,7 +1130,19 @@ $(function() {
         }
     }
     $("#combo_resultado").change(buscarTablaPlanificacionAJAX);
-    $("[id^=button_cat_comp_]").click(buscarTablaComparacionAJAX);
+    $("[id^=button_cat_comp_]").click(function(){
+        var id_item;
+        var id_this = $(this).attr("id");
+        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
+        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
+        id_button_array = id_this.split("_");
+        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
+        if ( id_item == -1 ){
+            alert("Seleccione una opción válida.");
+            return 0;
+        }
+        buscarTablaComparacionAJAX_par(id_item);
+    });
     $("[id^=combo_cat_plan_]").change(buscarCategoriaPlanificacion);
     $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
     buscarEstadisticasPlan();

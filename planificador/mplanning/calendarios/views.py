@@ -3,18 +3,15 @@ from calendarios.models import Calendario, Periodo, Tiempo
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import user_passes_test
+from braces.views import LoginRequiredMixin, GroupRequiredMixin
 from planificador.views import UserInfoMixin
 from calendarios.forms import CalendarioForm
 
 
-class CalendarioListView(UserInfoMixin, ListView):
+class CalendarioListView(LoginRequiredMixin, UserInfoMixin, ListView):
     """docstring for CalendarioListView"""
     context_object_name = "calendarios"
     template_name = "calendarios/calendario_list.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CalendarioListView, self).dispatch(*args, **kwargs)
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
@@ -31,15 +28,11 @@ class CalendarioUpdateView(object):
 	pass
 
 
-class CalendarioCreateView(UserInfoMixin, CreateView):
+class CalendarioCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, CreateView):
     model = Calendario
     template_name = "calendarios/calendario_create.html"
     form_class = CalendarioForm
-
-    @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda u: u.groups.filter(name="Administrador")))
-    def dispatch(self, *args, **kwargs):
-        return super(CalendarioCreateView, self).dispatch(*args, **kwargs)
+    group_required = u'Administrador'
 
     def form_valid(self, form):
         form.instance.organizacion = self.request.user.get_profile().organizacion

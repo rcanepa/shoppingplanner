@@ -67,6 +67,11 @@ class Categoria(models.Model):
 Modelo Item
 """
 
+class VigenteManager(models.Manager):
+    """docstring for VigenteManager"models.Manager"""
+    def get_queryset(self):
+        return super(VigenteManager, self).get_queryset().filter(vigencia=True)
+
 class Item(models.Model):
     id_real = models.IntegerField(blank=True, null=True)
     nombre = models.CharField(max_length=70)
@@ -77,11 +82,18 @@ class Item(models.Model):
     temporada = models.ForeignKey('planes.Temporada', blank=True, null=True, related_name='items_temporada')
     precio = models.PositiveIntegerField(default=0)
     
+    objects = models.Manager()
+    vigente = VigenteManager()
+
     def __unicode__(self):
         return self.nombre
 
     def get_children(self):
-        return self.items_hijos.all().order_by('nombre','precio')
+        """
+        Devuelve la lista de items hijos vigente del item. Se utiliza para recorrer en forma inversa
+        la relacion padre-hijo (item_padre) filtrando los items no vigentes.
+        """
+        return self.items_hijos.all().filter(vigencia=True).order_by('nombre','precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})
@@ -90,7 +102,7 @@ class Item(models.Model):
         """
         Obtiene recursivamente la lista de hijos en forma de arbol
         """
-        children = list(self.items_hijos.all())
+        children = list(self.get_children())
         branch = bool(children)
         yield branch, self
         for child in children:
@@ -102,7 +114,7 @@ class Item(models.Model):
         """
         Obtiene recursivamente la lista de hijos en forma de arbol 
         """
-        children = list(self.items_hijos.all())
+        children = list(self.get_children())
         branch = bool(children)
         yield branch, self
         for child in children:
@@ -117,7 +129,7 @@ class Item(models.Model):
         """
         Obtiene recursivamente la lista de hijos en forma de arbol
         """
-        children = list(self.items_hijos.all())
+        children = list(self.get_children())
         #branch = bool(children)
         # Se revisa si el item pertenece a la categoria sin hijos (articulos),
         # en ese caso, se devuelve el nodo
@@ -133,7 +145,7 @@ class Item(models.Model):
         nivel el cual permite especificar hasta que profundidad del arbol se buscaran hijos.
         Parametro: nivel de profundidad
         """
-        children = list(self.items_hijos.all())        
+        children = list(self.get_children())        
         yield self
         for child in children:
             if child.get_nivel() <= nivel:
@@ -177,3 +189,18 @@ class Item(models.Model):
 
     def get_precio_promedio(self):
         return self.precio
+
+
+"""
+Modelo Grupoitem
+"""
+class Grupoitem(models.Model):
+    """
+    Esta clase guarda el registro de agrupaciones de items creadas por usuarios.
+    """
+    item_nuevo = models.ForeignKey(Item, related_name='items_agrupados')
+    item_agrupado = models.ForeignKey(Item, related_name='+')
+    fecha_creacion = models.DateTimeField(default=datetime.now, blank=True)
+
+    def __unicode__(self):
+        return self.item_nuevo.nombre
