@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<!-- Menu general -->
+<div>
+    <div class="pure-menu pure-menu-open">
+        <a class="pure-menu-heading">M&oacute;dulos</a>
+        <ul>
+            <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+        </ul>
+    </div>
+    <p></p>
+    <!-- Menu general -->
+    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
+        {% csrf_token %}
+        <input id="input_json_data" type="hidden" name="plan" value="" />
+    </form>
+    <!-- Menu de acciones -->
+    <div class="pure-menu pure-menu-open">
+        <a class="pure-menu-heading">Acciones</a>
+        <ul>
+            <li><a id="btnExpand">Expandir Nodos</a></li>
+            <li><a id="btnCollapse">Collapsar Nodos</a></li>
+            <li><a id="btnSave">Guardar &Aacute;rbol</a></li>
+        </ul>
+    </div>        
+</div>
+<!-- Menu de acciones -->
+{% endblock %}
+
+{% block content %}
+<h3>Arbol de Planificaci&oacute;n</h3>
+<div style="width:100%; float:left">
+    {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"></span>
+    
+</div>
+<div style="width:62%; float:left">
+    <div id="itemstree">
+        <ul id="treeData" style="display: none;">
+            {% for obj in items %}
+            <li id="{{ obj.id }}" class="folder lazy"><a href="{% url 'categorias:categoria_detail' obj.id %}" target="_self">{{ obj.nombre }}</a>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<!-- DIV DERECHO DEL SITIO -->
+<div class="floating-menu-agrupaciones">
+    <div id="menu-derecho" class="pure-menu pure-menu-open" style="display:none;overflow-x:scroll;">
+        <a class="pure-menu-heading">SELECCIÓN</a>
+        <ul id="seleccion">
+        </ul>
+        <a class="pure-menu-heading">ACCIONES</a>
+        <ul>
+            <li><a id="btnAgrupar">Agrupar Items</a></li>
+            <li><a id="btnCancelar">Cancelar Selecci&oacute;n</a></li>
+        </ul>
+    </div>        
+    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
+        {% csrf_token %}
+        <input id="input_json_data" type="hidden" name="plan" value="" />
+    </form>
+</div>
+<!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
+<div id="dialog-form" title="Crear nuevo Item" style="display:none;">
+    <p class="validateTips">Todos los campos son requeridos.</p>
+    <form id="crear_item_form">
+        {% csrf_token %}
+        <!--fieldset>
+            <label for="nombre">Nombre</label>
+            <input type="text" name="nombre" id="nombre" class="text ui-widget-content ui-corner-all">
+            <label for="temporada">Temporada</label>
+            <select id="combo_temporada_dialog" class="buscador" name="temporada">
+                    <option value="-1" selected="selected"></option>
+                    {% for temporada in temporadas %}
+                        <option value="{{ temporada.id }}">{{ temporada.nombre }}</option>
+                    {% endfor %}
+                </select>
+            <label for="precio">Precio</label>
+            <input type="text" name="precio" id="precio" value="" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" name="grupo_items" id="grupo_items">
+        </fieldset-->
+        <fieldset>
+            <label for="nombre">Nombre</label>
+            <input type="text" name="nombre" id="nombre" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" name="grupo_items" id="grupo_items">
+        </fieldset>
+    </form>
+</div>
+<div id="dvLoading" style="display:none;"></div>
+<!-- DIV DERECHO DEL SITIO -->
+{% endblock %}
+
+{% block js %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "css/planes/arbol.css" %}">
+
+<script>
+
+$(function() {
+    
+    var contenedor_plantree = {}; // namespace para variables globales
+    contenedor_plantree.tips = $( ".validateTips" );
+
+    // Controla la aparicion y desaparicion de la imagen animada que indica que hay un proceso
+    // en ejecucion
+    $( document ).ajaxStart(function() {
+        $("#dvLoading").show();
+    });
+
+    $( document ).ajaxStop(function() {
+        $("#dvLoading").hide();
+    });
+    
+    $("#dialog-form").show();
+
+    function updateTips( t ) {
+        contenedor_plantree.tips
+        .text( t )
+        .addClass( "ui-state-highlight" );
+        setTimeout(function() {
+            contenedor_plantree.tips.removeClass( "ui-state-highlight", 1500 );
+        }, 500 );
+    }
+
+    function checkLength( o, n, min, max ) {
+        if ( o.val().length > max || o.val().length < min ) {
+            o.addClass( "ui-state-error" );
+            updateTips( "El largo del campo " + n + " debe contener entre " +
+            min + " y " + max + " letras." );
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function checkRegexp( o, regexp, n ) {
+        if ( !( regexp.test( o.val() ) ) ) {
+            o.addClass( "ui-state-error" );
+            updateTips( n );
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    $( "#dialog-form" ).dialog({
+        autoOpen: false,
+        height: 200,
+        width: 300,
+        modal: true,
+        buttons: {
+            "Guardar": function() {
+                var nombre = $( "#nombre" ),
+                    //temporada = $( "#combo_temporada_dialog" ),
+                    //precio = $( "#precio" ),
+                    grupo_items = $( "#grupo_items" ),
+                    allFields = $( [] ).add( nombre );
+                var bValid = true;
+                allFields.removeClass( "ui-state-error" );
+
+                bValid = bValid && checkLength( nombre, "nombre", 5, 70 );
+                //bValid = bValid && checkLength( precio, "precio", 1, 10 );
+
+                bValid = bValid && checkRegexp( nombre, /^[a-zA-ZñÑ]*/, "El nombre debe comenzar con una letra (a-z)." );
+                
+                // Se valida que el valor seleccionado sea positivo (la opcion nula tiene el valor -1)
+                //bValid = bValid && checkRegexp( temporada, /^[1-9]\d*$/, "Debe escoger una temporada." );
+                //bValid = bValid && checkRegexp( precio, /^\d+$/, "El precio solo admite números enteros (0-9)." );
+
+                // Si todas las validaciones resultaron positivas se gatilla la solicitud AJAX que crea el nuevo item,
+                // grupoitem, quita la vigencia de los antiguos items y crea los nuevos registros de venta asociados
+                // al nuevo item
+                if ( bValid ) {
+                    var tree = $("#itemstree").fancytree("getTree");
+                    nombre.val("(GRUPO) " + nombre.val());
+                    $.ajax({
+                        data: $("#crear_item_form").serialize(),
+                        url: '/categorias/grupoitem/create/',
+                        type: 'post',
+                        success: function(data){
+                            //console.log(data);
+                            var nodo_padre = tree.getNodeByKey(data.item_padre_id);
+                            nodo_padre.lazyLoad(true);
+                            // Se despliega un mensaje informando lo ocurrido
+                            $("#barra_notificaciones")
+                                .html(data.msg)
+                                .addClass("msg_success")
+                                .delay(5000)
+                                .queue( function(next){ 
+                                    $(this).removeClass("msg_success");
+                                    $(this).html("");
+                                        next(); 
+                            });
+                        }
+                    });
+                    $( this ).dialog( "close" );
+                }
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+                }
+            },
+            close: function() {
+                var nombre = $( "#nombre" ),
+                    //temporada = $( "#combo_temporada_dialog" ),
+                    //precio = $( "#precio" ),
+                    allFields = $( [] ).add( nombre );
+                allFields.val( "" ).removeClass( "ui-state-error" );
+                //temporada.prop('selectedIndex', 0);
+            }
+    });
+
+
+    // Contar nodos a planificar (visibles)
+    function definirVisibles(){
+        var html = "";
+        var nodos_planificables = 0;
+        var nodos_visibles = 0;
+        $("#itemstree").fancytree("getTree").visit(function(node){
+            if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
+                if (node.isVisible()){
+                    if (node.hasChildren()){
+                        if (!node.isExpanded()){
+                            nodos_planificables++;
+                        }
+                    }
+                    else{
+                        nodos_planificables++;
+                    }
+                    
+                }
+            }
+            if (node.isVisible()){
+                nodos_visibles++;
+            }
+            
+        });
+        html += "<p>Items Totales: " + nodos_visibles + " | Items a Planificar: " + nodos_planificables + "</p>";
+        $("#msg_visibles").html(html);
+        return false;
+    }
+
+    $("#itemstree").fancytree({
+        selectMode: 2,
+        checkbox: true,
+        lazyload: function(e, data){
+        // return a source in 'data.result'
+            data.result = {
+            url: "{% url 'categorias:item_nodesearch' %}",
+            data: {key: data.node.key}
+            };
+        },
+        postProcess: function(event,data){
+            //console.log(data);
+        },
+        expand: function(event, data){
+            definirVisibles();
+        },
+        collapse: function(event, data){
+            definirVisibles();
+        },
+        beforeSelect: function(e, data) {
+            if( data.node.folder ){
+                return false;
+            }
+        },
+        select: function(e, data) {
+            var html = "";
+            // Se obtiene la lista de nodos seleccionados
+            var selNodes = data.tree.getSelectedNodes();
+            if (selNodes.length == 0)
+                $("#menu-derecho").hide("slow");
+            else{
+                for (x=0; x<selNodes.length; x++){
+                    html += "<li><a>" + parseInt(x+1) + ". " + selNodes[x].title + "</a></li>";
+                }
+            }
+            $("#seleccion").html(html);
+            if ( $("#menu-derecho").is(":hidden") )
+                $("#menu-derecho").show("slow");
+        },
+    });
+
+    // Expandir todos los nodos
+    $("#btnExpand").click(function(){
+        $("#itemstree").fancytree("getRootNode").visit(function(node){
+            node.setExpanded(true);
+        });
+        return false;
+    });
+
+    $("#btnCollapse").click(function(){
+        $("#itemstree").fancytree("getRootNode").visit(function(node){
+            node.setExpanded(false);
+        });
+        return false;
+    });
+
+    /*
+        Se cancela la seleccion de todos los items que han sido seleccionados y se esconde la caja de
+        seleccion de la derecha.
+    */
+    $("#btnCancelar").click(function(){
+        tree = $("#itemstree").fancytree("getTree");
+        items_arr = tree.getSelectedNodes();
+        for (var x=0; x<items_arr.length; x++){
+            items_arr[x].setSelected(false);
+        }
+        $("#menu-derecho").hide("slow");
+    })
+
+    /*
+        Genera un registro de agrupacion de item (Grupoitem). Esto implica la creacion de un nuevo
+        Item y un registro de Grupoitem por cada Item que se agrupo.
+    */
+    function crearGrupoitem(){
+        var agrupacion_valida = true;
+        var num_items = 0;        
+        var items_arr = [],
+            items_arr_keys = [];
+        var tree;
+        tree = $("#itemstree").fancytree("getTree");
+        // Se genera obtiene un arreglo con los nodos seleccionados por el usuario
+        items_arr = tree.getSelectedNodes();
+        // Se almacena la cantidad de items que han sido seleccionados por el usuario
+        num_items = items_arr.length;
+        
+        // Validaciones antes de permitir guardar la agrupacion
+        // Se verifica que el usuario haya seleccionado al menos dos items para crear una agrupacion
+        if ( num_items <= 1 ){
+            agrupacion_valida = false;
+            msg = "Una agrupación debe contener al menos 2 items.";
+            tipo = "msg_warning";
+            mostrarMensaje(msg, tipo);
+            return false;
+        }
+        else{
+            // Se valida que todos los items pertenezcan al mismo padre. Es decir, no se pueden
+            // agrupar items de distintas ramas (padres)
+            for (var x=1; x<num_items; x++){
+                if ( items_arr[x].parent != items_arr[x-1].parent ){
+                    agrupacion_valida = false;
+                    break;
+                }
+            }
+            if ( !agrupacion_valida ){
+                msg = "No es posible agrupar items que pertenezcan a distintas ramas (padres).";
+                tipo = "msg_warning";
+                mostrarMensaje(msg, tipo);
+                return false;
+            }
+        }
+        // Fin validaciones
+
+        // Se despliega el dialog con el formulario a completar (informacion del nuevo item a crear)
+        for(var x = 0; x<num_items; x++){
+            items_arr_keys.push(items_arr[x].key);
+        }
+
+        items_arr[0].title
+
+        $("#grupo_items").val(items_arr_keys);
+        $( "#dialog-form" ).dialog( "open" );
+
+    }
+
+    /*
+        Enviar por POST dos campos, el ID del plan y un string de IDs de items
+    */
+    $("#btnSave").click(function(){
+        var nodos_lista = [];
+        var nodos_planificables_lista = [];
+        var plan = parseInt({{plan.id}});
+        /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
+        $("#itemstree").fancytree("getTree").visit(function(node){
+            if (node.isVisible()){
+                nodos_lista.push(parseInt(node.key));
+                if ( (node.extraClasses == "planificable") ){
+                    if (node.hasChildren()){
+                        if (!node.isExpanded()){
+                            nodos_planificables_lista.push(parseInt(node.key));
+                        }
+                    }
+                    else{
+                        nodos_planificables_lista.push(parseInt(node.key));
+                    }
+                }
+            }
+        });
+        json_data = JSON.stringify({
+            plan: plan,
+            items: nodos_lista,
+            items_planificables: nodos_planificables_lista
+        });
+        console.log(json_data);
+        $("#input_json_data").val(json_data);
+        $("#save_form").submit();
+    });
+    
+    function mostrarMensaje(msg, tipo){
+        $("#barra_notificaciones")
+        .html(msg)
+        .addClass(tipo)
+        .delay(4000)
+        .queue(function(next){ 
+            $(this).removeClass(tipo);
+            $(this).html("");
+                next(); 
+        });
+    }
+
+    definirVisibles();
+    $("#btnAgrupar").click(crearGrupoitem);
+});
+
+</script>
+
+{% endblock %}

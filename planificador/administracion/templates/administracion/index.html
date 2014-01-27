@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+        <li><a href="/admin/" target="_blank">Administraci&oacute;n</a></li>
+        <li><a href="{% url 'user_list' %}">Usuarios</a></li>
+        {% endif %}
+        <li><a href="{% url 'categorias:categoria_list' %}">Categor&iacute;as</a></li>
+        <li><a href="{% url 'categorias:item_list' %}">Items</a></li>
+        <li><a href="{% url 'planes:temporada_list' %}">Temporadas</a></li>
+        <li><a href="{% url 'calendarios:calendario_list' %}">Calendario</a></li>
+        <li><a href="{% url 'ventas:controlventa_list' %}">Ventas</a></li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<h3>M&oacute;dulo de Administraci&oacute;n</h3>
+
+{% endblock %}

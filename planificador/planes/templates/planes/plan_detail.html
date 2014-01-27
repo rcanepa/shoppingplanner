@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+    	<li><a href="{% url 'planes:plan_delete' plan.id %}">Eliminar</a></li>
+    	<li><a href="{% url 'planes:plan_list' %}">Volver</a></li>
+	</ul>
+	<a class="pure-menu-heading">Trabajar</a>
+	<ul>
+		<li><a href="{% url 'planes:plan_tree_detail' plan.id %}">1) &Aacute;rbol</a></li>
+		<li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">2) Proyectar</a></li>
+		<li><a href="{% url 'planes:plan_planificacion_detail' plan.id %}">3) Planificar</a></li>
+		<li><a href="{% url 'planes:resumen_plan_detail' plan.id %}">4) Resumen</a></li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h3>Plan</h3></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.nombre }}</div>
+
+	<div class="left_label">Año</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.anio }}</div>
+	
+	<div class="left_label">Temporada</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.temporada }}</div>
+	
+	<div class="left_label">Estado</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.get_estado_display }}</div>
+	
+	<div class="left_label">Número de ítems</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.get_num_items_planificables }}</div>
+	
+	<div class="left_label">Items Proyectados</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ num_items_pro }}</div>
+
+	<div class="left_label">Items Pendientes</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ num_items_nopro }}</div>
+
+	<div class="left_label">Responsable</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ plan.usuario_creador.first_name }} {{ plan.usuario_creador.last_name }}</div>
+</div>
+
+{% endblock %}

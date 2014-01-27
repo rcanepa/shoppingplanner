@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        <li><a href="{% url 'administracion:index' %}">Volver</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<h3>Items</h3>
+
+<div id="itemstree">
+    <ul id="treeData" style="display: none;">
+        {% for item in items %}
+            {% for branch, obj in item.as_tree_min %}
+                {% if obj %}
+                    {% if branch %}
+                        <li id="{{ obj.id }}" class="folder">
+                            <a href="{% url 'categorias:item_responsable_update' obj.id %}" target="_self">{{ obj.nombre }}
+                            {% if  obj.usuario_responsable %}
+                            | {{ obj.usuario_responsable.first_name }} {{ obj.usuario_responsable.last_name }}
+                            {% endif %}</a>
+                        <ul>
+                    {% else %}
+                        <li id="{{ obj.id }}" class="folder">
+                            <a href="{% url 'categorias:item_responsable_update' obj.id %}" target="_self">{{ obj.nombre }}
+                            {% if  obj.usuario_responsable %}
+                            | {{ obj.usuario_responsable.first_name }} {{ obj.usuario_responsable.last_name }}
+                            {% endif %}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    {% if branch %}
+                        </ul>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+
+$(function() {
+    $("#itemstree").fancytree({
+        activate: function(e, data) {
+            var node = data.node;
+            if( node.data.href ){
+                window.open(node.data.href, node.data.target);
+            }
+        }
+    });
+    /*
+    function expandir(){
+        $("#itemstree").fancytree("getRootNode").visit(function(node){
+            node.setExpanded(true);
+        });
+        return false;
+    }
+    expandir();
+    */
+
+});
+
+</script>
+{% endblock %}

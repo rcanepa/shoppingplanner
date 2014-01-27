@@ -1,0 +1,90 @@
+{% load static %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<head>
+	<title>{% block title %}Planificador{% endblock %}</title>
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="{% static "css/default.css" %}">
+	
+	<!-- PURECSS -->
+	<link rel="stylesheet" type="text/css" href="{% static "css/purecss/pure-min.css" %}">
+
+	<!-- JQuery -->
+	<!--script src="{% static "js/jquery-1.10.2.min.js" %}"></script-->
+	<link rel="stylesheet" type="text/css" href="{% static "jquery-ui-smoothness/css/smoothness/jquery-ui-1.10.3.custom.min.css" %}">
+	<script src="{% static "jquery-ui-smoothness/js/jquery-1.9.1.js" %}"></script>
+	<script src="{% static "jquery-ui-smoothness/js/jquery-ui-1.10.3.custom.min.js" %}"></script>
+	<!-- Fancytree -->
+	<link href="{% static "fancytree/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
+	<script src="{% static "fancytree/jquery.fancytree-all.js" %}" type="text/javascript"></script>
+
+	<!-- jQuery custom content scroller
+	http://manos.malihu.gr/jquery-custom-content-scroller/-->
+	<script src="{% static "custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js" %}" type="text/javascript"></script>
+	<link href="{% static "custom-scrollbar-plugin/jquery.mCustomScrollbar.css" %}" rel="stylesheet" type="text/css">
+
+	<!-- Numeral.js A javascript library for formatting and manipulating numbers.-->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/1.4.5/numeral.min.js"></script>
+	
+</head>
+<body class="pure-skin-mine">
+	<div id="header">
+		{% block topbar %}
+		<div class="pure-menu pure-menu-open pure-menu-horizontal">
+		    <ul>
+		        <li class="pure-menu-selected"><a href="{% url 'home' %}">Inicio</a></li>
+		        <li><a href="{% url 'planes:plan_list' %}">Planificar Temporada</a></li>
+		        <li class="pure-menu-disabled"><a href="#">Lista Compra</a></li>
+				<li class="pure-menu-disabled"><a href="#">An&aacute;lisis KPIs</a></li>
+				<li><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
+				<li class="pure-menu-disabled"><a href="#">Ayuda</a></li>
+		    </ul>
+		</div>
+		{% endblock %}	
+		<div id="layoutdims">
+			<div class="layoutdims-internal-div" style="width:25%">{% block username %} {% endblock %}<a href="{% url 'user_logout' %}" title="">(Salir)</a></div>
+			<div class="layoutdims-internal-div" id="barra_notificaciones" style="width:60%"></div>
+		</div>
+	</div>
+	<div class="colmask leftmenu">
+		<div class="colright">
+			<div class="col1wrap">
+				<div class="col1">
+					<!-- Column 2 start -->
+					{% block content %}
+					<h2>Bienvenido a ....</h2>
+					<p>All the dimensions are in percentage widths so the layout adjusts to any screen resolution. Vertical dimensions are not set so they stretch to the height of the content.</p>
+					<h3>Maximum column content widths</h3>
+					<p>To prevent wide content (like long URLs) from destroying the layout (long content can make the page scroll horizontally) the column content divs are set to overflow:hidden. This chops off any content that is wider than the div. Because of this, it's important to know the maximum widths allowable at common screen resolutions. For example, if you choose 800 x 600 pixels as your minimum compatible resolution what is the widest image that can be safely added to each column before it gets chopped off? Here are the figures:</p>
+					<dl>
+						<dt><strong>800 x 600</strong></dt>
+						<dd>Left column: 162 pixels</dd>
+						<dd>Main page: 550 pixels</dd>
+						<dt><strong>1024 x 768</strong></dt>
+
+						<dd>Left column: 210 pixels</dd>
+						<dd>Main page: 709 pixels</dd>
+					</dl>
+					<h2>The nested div structure</h2>
+					<p>I've colour coded each div so it's easy to see:</p>
+					<p>The header, colmask and footer divs are 100% wide and stacked vertically one after the other. Colleft is inside colmask. The two column content divs (col1 &amp; col2) are inside colleft. Notice that the main content column (col1) comes before the side column.</p>
+					{% endblock %}
+					<!-- Column 2 end -->
+				</div>
+			</div>
+			<div class="col2">
+				<!-- Column 1 start -->
+				{% block sidebar %}
+	    		{% endblock %}
+				<!-- Column 1 end -->
+			</div>
+		</div>
+	</div>
+	<div id="footer">
+		<p></p>
+	</div>
+{% block js %}
+{% endblock %}
+</body>
+</html>

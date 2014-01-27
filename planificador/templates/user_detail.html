@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+	    <li><a href="#">Editar</a></li>
+	    <li><a href="#">Eliminar</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'user_list' %}">Volver</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h3>Informaci&oacute;n General</h3></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ usuario.first_name }} {{ usuario.lastname }}</div>
+
+	<div class="left_label">Username</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ usuario.username }}</div>
+	
+	<div class="left_label">Activo</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{% if usuario.is_active %} S&iacute; {% else %} No {% endif %}</div>
+	
+	<div class="left_label">Fecha de ingreso</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ usuario.date_joined }}</div>
+</div>
+
+{% endblock %}

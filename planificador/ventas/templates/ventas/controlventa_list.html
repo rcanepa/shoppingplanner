@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open" style="width:85%;">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+	    <li><a href="{% url 'ventas:controlventa_create' %}">Crear</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<h3>Fecha de &uacute;ltima carga</h3>
+
+<ol class="rectangle-list">
+    {% for registro in registros %}
+
+    <li><a href="{% url 'ventas:controlventa_detail' registro.id %}"> {{ registro.anio }} {{ registro.periodo.nombre }} </a></li>
+
+    {% endfor %}
+</ol>
+
+{% endblock %}

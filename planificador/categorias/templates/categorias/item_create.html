@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        <li><a href="{% url 'categorias:item_list' %}">Cancelar</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<h4>Crear Item</h4>
+
+<form class="pure-form pure-form-aligned" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+	        <div class="fieldWrapper pure-control-group">
+	           	{{ field.label_tag }} {{ field }}
+        		{% for error in field.errors %}
+    				<span class="msg_error">(*) {{ error }}</span>
+    			{% endfor %}
+	        </div>
+	    {% endfor %}
+	    <div class="pure-controls">
+            <button type="submit" class="pure-button pure-button-primary">Guardar</button>
+        </div>
+</form>
+
+{% endblock content %}

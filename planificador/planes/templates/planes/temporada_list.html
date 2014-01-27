@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+	    {% if admin %}
+	    <li><a href="{% url 'planes:temporada_create' %}">Crear</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'administracion:index' %}">Volver</a></li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<h3>Temporadas</h3>
+
+<ol class="rectangle-list">
+    {% for temporada in temporadas %}
+
+    <li><a href="{% url 'planes:temporada_detail' temporada.id %}"> {{ temporada.nombre }} </a></li>
+
+    {% endfor %}
+</ol>
+
+{% endblock %}

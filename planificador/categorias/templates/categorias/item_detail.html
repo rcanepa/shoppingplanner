@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block topbar %}
+
+{% include "administracion/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        {% if admin %}
+	    <li><a href="{% url 'categorias:item_update' item.id %}">Editar</a></li>
+	    <li><a href="{% url 'categorias:item_delete' item.id %}">Eliminar</a></li>
+	    {% endif %}
+	    <li><a href="{% url 'categorias:item_list' %}">Volver</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="float:left; width:40%;">
+	<div style="float:left; width:100%;"><h2>Informaci&oacute;n General</h2></div>
+	<div class="left_label">Nombre</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.nombre }}</div>
+
+	<div class="left_label">Pertenece a</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.item_padre }}</div>
+	
+	<div class="left_label">Vigencia</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{% if item.vigencia %} S&iacute; {% else %} No {% endif %}</div>
+	
+	<div class="left_label">Usuario responsable</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.usuario_responsable }}</div>
+	
+	<div class="left_label">Precio Blanco</div>
+	<div class="middle_label">:</div>
+	<div class="right_label">{{ item.precio|intcomma }}</div>
+
+</div>
+
+<div style="float:left; width:25%;">
+	<div style="float:left; width:100%;"><h2>Informaci&oacute;n Comercial</h2></div>
+	<div style="float:left; width:30%;">Año</div>
+	<div style="float:left; width:35%; text-align:right;">Venta $M</div>
+	<div style="float:left; width:35%; text-align:right;">Venta U</div>
+	{% for obj in ventas %}
+		<div style="float:left; width:30%;">{{ obj.anio|intcomma }}</div>
+		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_n|intcomma }}</div>
+		<div style="float:left; width:35%; text-align:right;">{{ obj.vta_u|intcomma }}</div>
+	{% endfor%}
+
+</div>
+
+{% endblock %}

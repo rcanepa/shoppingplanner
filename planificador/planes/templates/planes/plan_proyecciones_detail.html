@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% include "planes/menu.html" %}
+
+{% endblock %}
+
+{% block username %}
+	Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block sidebar %}
+<div class="pure-menu pure-menu-open">
+    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <ul>
+        <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+    </ul>
+</div>
+
+<!-- Seccion con parametros de busqueda del item a proyectar  -->
+<div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
+    <a class="caja-header">Proyecci&oacute;n</a>
+    <table style="width:100%;">
+        {% for categoria in combo_categorias %}
+        <tr>
+            <td><label>{{ categoria.nombre }}</label></td>
+        </tr>
+        <tr>
+            <td>
+                <select id="combo_cat_proy_{{ categoria.id }}" class="buscador">
+                    <option value="-1" selected></option>
+                    {% for item in items_categoria_raiz %}
+                        {% if item.categoria = categoria %}
+                        <option value="{{ item.id }}">{{ item.nombre }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td><label>ITEMS</label></td>
+        </tr>
+        <tr>
+            <td>
+                <select id="combo_resultado" class="buscador">
+                </select>
+            </td>
+        </tr>
+    </table>
+    <a class="caja-header">Comparativo</a>
+    <table style="width:100%;">
+        {% for categoria in combo_categorias_comp %}
+        <tr>
+            <td style="width:80%">
+                <label>{{ categoria.nombre }}</label>
+            </td>
+            <td style="width:20%"></td>
+        </tr>
+        <tr>
+            <td style="width:80%">
+                <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
+                    <option value="-1" selected></option>
+                    {% for item in items_categoria_raiz %}
+                        {% if item.categoria = categoria %}
+                        <option value="{{ item.id }}">{{ item.nombre }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+            <td style="width:20%">
+                <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div id="panel-acciones" class="pure-menu pure-menu-open" style="float:left; display:none;">
+    <a class="pure-menu-heading">Acciones</a>
+    <ul>
+        <li><a href="" id="btnSave">Guardar Proyecci&oacute;n</a></li>
+    </ul>
+</div>
+<!-- Seccion con parametros de busqueda del item a proyectar  -->
+{% endblock %}
+
+{% block content %}
+{% if msg %}
+<h3>Proyectar Información</h3>
+<div class="msg_warning">
+    {{ msg }}
+</div>
+{% else %}
+
+<div id="accordion">
+    <h3>Proyecci&oacute;n</h3>
+    <div>
+        <div id="estadisticas-proyeccion" style="display:none;"></div>
+        <div id="item-proyeccion" style="display:none;"></div>
+        <div style="width:100%; float:left">
+            <form id="proyform" class="pure-form">
+                {% csrf_token %}
+                <div id="tab_proyeccion" style="float:left; width:100%;">
+                </div>
+                <div style="float:left; width:100%;">
+                </div>
+                <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
+                    <input id="input_json_data" type="hidden" name="proyeccion" value="" />
+                    <!--button id="btnSave" type="submit" class="pure-button pure-button-primary" style="display:none;">Guardar</button-->
+                </div>
+            </form>
+            <div id="dialog-box" title="Proyección" style="text-align:center;">
+                <p id="dialog_help_msg"></p>
+                <input id="inputval" type="text" style="width:8em">
+            </div>
+        </div>
+    </div>
+    <h3>Comparativo</h3>
+    <div>
+        <div id="item-comparativo"></div>
+        <div style="width:100%; float:left">
+            <div id="tab_comparativo" style="float:left; width:100%;">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="dvLoading" style="display:none;"></div>
+
+{% endif%}
+
+{% endblock %}
+
+{% block js %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "css/planes/proyeccion.css" %}">
+<script>
+
+$(function() {
+
+    var planificacion = [];
+    var comparacion = [];
+
+    var td = "";
+
+    // Esta variable almacena el ID de base de datos del ultimo item que ha sido escogido en alguno de los combos de comparacion
+    var id_item_comparador = -1;
+
+    $( document ).tooltip({
+        track: true
+    });
+
+    $( document ).ajaxStart(function() {
+        $("#dvLoading").show();
+    });
+
+    $( document ).ajaxStop(function() {
+        $("#dvLoading").hide();
+    });
+
+    /* Actualiza las estadisticas generales de proyeccion */
+    function buscarEstadisticasPlan(){
+        var id_plan = parseInt({{plan.id}});
+        $.ajax({
+            data: {'id_plan':id_plan}, // Se envia el form serializado para que contenga el token CSRF
+            url: '/planes/plan/proystats/',
+            type: 'get',
+            success: function(data){
+                msg = "Totales: " + data['num_items_tot'] + " | Proyectados: " + data['num_items_pro'] + " | Pendientes: " + data['num_items_nopro'];
+                $("#estadisticas-proyeccion").html(msg);
+            }
+        });
+    }    
+
+    /* Permite abrir varios paneles del acordion simultaneamente */
+    $('#accordion').accordion({
+        collapsible: true,
+        heightStyle: "content",
+        beforeActivate: function(event, ui) {
+             // The accordion believes a panel is being opened
+            if (ui.newHeader[0]) {
+                var currHeader  = ui.newHeader;
+                var currContent = currHeader.next('.ui-accordion-content');
+             // The accordion believes a panel is being closed
+            } else {
+                var currHeader  = ui.oldHeader;
+                var currContent = currHeader.next('.ui-accordion-content');
+            }
+             // Since we've changed the default behavior, this detects the actual status
+            var isPanelSelected = currHeader.attr('aria-selected') == 'true';
+            
+             // Toggle the panel's header
+            currHeader.toggleClass('ui-corner-all',isPanelSelected).toggleClass('accordion-header-active ui-state-active ui-corner-top',!isPanelSelected).attr('aria-selected',((!isPanelSelected).toString()));
+            
+            // Toggle the panel's icon
+            currHeader.children('.ui-icon').toggleClass('ui-icon-triangle-1-e',isPanelSelected).toggleClass('ui-icon-triangle-1-s',!isPanelSelected);
+            
+             // Toggle the panel's content
+            currContent.toggleClass('accordion-content-active',!isPanelSelected)    
+            if (isPanelSelected) { currContent.slideUp(); }  else { currContent.slideDown(); }
+
+            return false; // Cancels the default action
+        }
+    });
+    
+    /*
+        Guarda la proyeccion sobre la cual se esta trabajando.
+    */
+    $("#btnSave").click(function(event){
+        event.preventDefault();
+        var plan = parseInt({{plan.id}});
+        var itemplan = planificacion['itemplan'].id_itemplan
+        
+        json_data = JSON.stringify({
+            'plan': plan, 
+            'itemplan': itemplan,
+            'ventas': planificacion.ventas
+        });
+        
+        $("#input_json_data").val(json_data);
+        $.ajax({
+            data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
+            url: '/planes/plan/savestage2/',
+            type: 'post',
+            success: function(data){
+                $("#barra_notificaciones")
+                .html(data.msg)
+                .addClass("msg_success")
+                .delay(5000)
+                .queue( function(next){ 
+                    $(this).removeClass("msg_success");
+                    $(this).html("");
+                        next(); 
+                });
+
+                // Se gatillan los eventos vinculados a los combobox de items para que
+                // se recargue la informacion de las tablas en base a lo que existe en la BD
+
+                // Se recarga el cuadro de proyeccion con la opcion escogida
+                $("#combo_resultado").trigger("change");
+                buscarEstadisticasPlan();
+                tablaDctoUni(planificacion);
+            }
+        });
+        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
+        // los datos que se guardaron de la ultima planificacion
+        var id_item_comparativo = -1;
+
+        $("[id^=combo_cat_comp_]").each(function(index){
+            if ( $(this).val() != -1 ){
+                id_item_comparativo = $(this).val();
+            }
+        });
+        if ( id_item_comparativo != -1 )
+            buscarTablaComparacionAJAX_par(id_item_comparativo);
+    });
+
+    /*
+    Se preocupa de cargar los elementos SELECT para la seleccion del item a proyectar (comboboxes de proyeccion).
+    */
+    function buscarCategoriaProyeccion(){
+        var id_this = $(this).attr("id");
+        var id_item = $(this).val();
+        var id_plan = parseInt({{plan.id}});
+        if(id_item != -1){
+            $.ajax({
+                data: {'id_item':id_item, 'id_plan':id_plan},
+                url: '/planes/plan/categoriasearchlist/',
+                type: 'get',
+                success: function(data){
+                    // Se revisa si la consulta AJAX devolvio un resultado procesable (lista de items o itemsplan)
+                    html = '';
+                    html += "<option value=\"-1\"></option>"
+                    for (var x=0; x<data.items.length; x++){
+                        // Se revisa si el tipo de resultado es una lista de itemplan (combo de resultado) o items (combo de busqueda o comparacion)
+                        if ( typeof data.items[x].precio === "undefined" )
+                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
+                        else
+                            html += '<option value="' + data.items[x].id + '">' + data.items[x].estado + ' | ' + data.items[x].categoria_nombre + ' | ' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
+                    }
+                    // Se revisa si la categoria es planificable (por lo tanto carga el resultado en el combo de items)
+                    if (!data.categoria.planificable)
+                        $("#combo_cat_proy_" + data.categoria.id_categoria).html(html);
+                    else
+                        $("#combo_resultado").html(html);       
+                }
+            });
+        }
+        else{
+        }
+    }
+
+    /*
+    Se preocupa de cargar los elementos SELECT para la seleccion del item a comparar (comboboxes comparativo).
+    */
+    function buscarCategoriaComparacion(){
+        var id_this = $(this).attr("id");
+        var id_this_arry = id_this.split("_");
+        var id_item = $("#combo_cat_comp_" + id_this_arry[3]).val();
+        var id_plan = parseInt({{plan.id}});
+        if(id_item != -1){
+            $.ajax({
+                data: {'id_item':id_item, 'id_plan':id_plan},
+                url: '/planes/plan/categoriacompsearchlist/',
+                type: 'get',
+                success: function(data){
+                    if ( data.items != null ){
+                        html = '';
+                        html += "<option value=\"-1\"></option>"
+                        for (var x=0; x<data.items.length; x++){
+                            if ( data.items[x].precio != 0 )
+                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
+                            else
+                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
+                        }
+                        $("#combo_cat_comp_" + data.categoria.id_categoria).html(html);
+                    }
+                    else{
+                    }
+                }
+            });
+        }
+    }
+
+    /*
+        Controla los cambios hechos sobre el combobox de itemplan.
+        Gatilla una busqueda sobre la informacion comercial del itemplan
+        selccionado.
+    */
+    function buscarTablaProyeccionAJAX(){
+        var id_this = $(this).attr("id");
+        var id_itemplan = $(this).val();
+        var id_plan = parseInt({{plan.id}});
+        $.ajax({
+            data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
+            url: '/planes/plan/itemplanventasearch/',
+            type: 'get',
+            success: function(data){
+                //console.log(data);
+                // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
+                // que se estaba buscando
+                if( data.ventas != null ){
+                    $("#item-proyeccion").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+                    planificacion = data;
+                    tablaDctoUni(data);
+                }
+                else{
+                    alert("El item seleccionado no es válido. Por favor verifique que haya escogido correctamente un item y que tenga los permisos necesarios para verlo");
+                }
+                
+            }
+        });
+        if ( $("#panel-acciones").is(":hidden") )
+            $("#panel-acciones").show("slow");
+    }
+
+    /*
+        Busca la informacion historica para la seccion de comparacion. Esta funcion se gatilla al
+        hacer click en uno de los BUTTON que se presentan al lado de cada uno de los SELECT de comparacion
+    */
+    function buscarTablaComparacionAJAX_par(id_item){
+        var id_plan = parseInt({{plan.id}});
+        $.ajax({
+            data: {'id_item':id_item, 'id_plan':id_plan},
+            url: '/planes/plan/itemplancompventasearch/',
+            type: 'get',
+            success: function(data){
+                //console.log(data);
+                // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
+                // que se estaba buscando
+                if( data.ventas != null ){
+                    $("#item-comparativo").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+                    comparacion = data;
+                    tablaDctoUniComp(data);
+                    
+                }
+                else{
+                    alert("El item seleccionado no es válido. Por favor verifique que haya escogido correctamente un item y que tenga los permisos necesarios para verlo");
+                }
+                
+            }
+        });
+    }
+
+    $( "#dialog-box" ).dialog({
+        autoOpen: false,
+        //height: 300,
+        width: 220,
+        modal: true,
+        buttons: {
+            "Guardar": function() {
+                var parametros = [];
+                parametros = td.attr("id").split("_");
+                td.text($("#inputval").val());
+                $("#inputval").val("");
+                /*
+                parametros[0]: tipo de metrica (unidades, descuentos)
+                parametros[1]: periodo
+                parametros[2]: temporada
+                */
+                actualizarPlanificacion(parametros[0], parametros[1], parametros[2]);
+                $( this ).dialog( "close" );
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    });
+    
+    function proyectar(){
+        // Se asigna a td la celda que ha sido presionada para proyectar su valor
+        td = $(this);
+        // Se hace un split sobre el id de la celda para obtener el tipo de celda (unidad o dcto), periodo y temporada
+        parametros = td.attr("id").split("_");
+        // Se agrega el valor de la celda al input box del dialog
+        $("#inputval").val(td.text());
+        // Se customiza el mensaje del dialog en base al tipo de celda que se esta proyectando
+        if(parametros[0] == 'unidades')
+            $("#dialog_help_msg").text("Ingresar unidades:");
+        else
+            $("#dialog_help_msg").text("Ingresar porcentaje (0%-100%):");
+        $( "#dialog-box" ).dialog( "open" );
+    }
+    
+    function tablaDctoUni(data){
+
+        var html_tot_vta_n = "";
+        var html_tot_ctb_n = "";
+        var html_tot_margen = "";
+        var html_tot_unidades = "";
+        var html = "";        
+        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        html += "<thead>";
+        html += "<tr>";
+        html += "<th style=\"width:16%;\">Temporada</th>";
+        for (var x=0; x<data.periodos.length; x++){
+            if (data.periodos[x].temporada)
+                html += "<th title=\"Periodo de la temporada " + data.temporada_vigente.nombre + " - " + data.temporada_vigente.anio + " a proyectar\" style=\"width:7%;background-color:#669;color:white\">" + data.periodos[x].nombre + "</th>";
+            else
+                html += "<th>" + data.periodos[x].nombre + "</th>";
+        }
+        html += "</tr>";
+        html += "</thead>";
+        html += "<tbody>";
+        
+        /* Se itera por cada temporada */
+        $.each(data.ventas, function(temporada, ventas) {
+            html += "<tr>";
+            html += "<td class=\"separador\" colspan=\"13\"><b>Temporada: " + temporada + "</b></td>";
+            html += "</tr>";
+
+            /* Unidades vendidas */
+            html += "<tr>";
+            html += "<td title=\"Unidades vendidas.\" style=\"width:16%;\">Unidades</td>";
+            $.each(ventas, function(periodo, venta) {
+                if(venta.tipo != 0)
+                    html += "<td id=\"unidades_" + venta.periodo + "_" + temporada + "\" class=\"par unidades editable estado" + venta.tipo + "\">" + numeral(venta.vta_u).format('0,0') + "</td>";
+                else
+                    html += "<td class=\"par unidades\">" + numeral(venta.vta_u).format('0,0') + "</td>";
+
+            });
+            html += "</tr>";
+            
+             /* Descuentos */
+            html += "<tr>";
+            html += "<td title=\"Descuento sobre el precio blanco.\" style=\"width:16%;\">Descuento %</td>";
+            $.each(ventas, function(periodo, venta) {
+                if(venta.tipo != 0)
+                    html += "<td id=\"descuentos_" + venta.periodo + "_" + temporada + "\" class=\"par descuentos editable estado" + venta.tipo + "\">" + numeral(venta.dcto).format('0.00%') + "</td>";
+                else
+                    html += "<td class=\"par descuentos\">" + numeral(venta.dcto).format('0.00%') + "</td>";
+            });
+            html += "</tr>";
+
+            /* Precio Real */
+            html += "<tr>";
+            html += "<td title=\"Precio real de venta.\" style=\"width:16%;\">Precio Real</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.precio_real).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+
+            /* Venta neta */
+            html += "<tr>";
+            html += "<td title=\"Venta en pesos.\" style=\"width:16%;\">Venta</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.vta_n).format('0,0') + "</td>";    
+            });
+            html += "</tr>";
+            
+             /* Contribucion */
+            html += "<tr>";
+            html += "<td title=\"Contribucion en pesos.\" style=\"width:16%;\">Contribuci&oacute;n</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+            
+            /* Margen */
+            html += "<tr>";
+            html += "<td title=\"Margen porcentual.\" style=\"width:16%;\">Margen %</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.margen).format('0.00%') + "</td>";
+            });
+            html += "</tr>";
+
+        });
+        
+        /* Totales */
+        html += "<tr>";
+        html += "<td class=\"separador\" colspan=\"13\"><b>Totales:</b></td>";
+        html += "</tr>";
+        for (var x=0; x<data.periodos.length; x++){
+            var total_unidades = 0;
+            var total_vta_n = 0;
+            var total_ctb_n = 0;
+            var total_margen = 0;
+            $.each(data.ventas, function(temporada, ventas) {
+                $.each(ventas, function(periodo, venta) {
+                    if (periodo == data.periodos[x].nombre){
+                        total_unidades += parseFloat(venta.vta_u);
+                        total_vta_n += parseFloat(venta.vta_n);
+                        total_ctb_n += parseFloat(venta.ctb_n);
+                        return false;
+                    }
+                });
+
+            });
+            if (total_vta_n != 0)
+                total_margen = total_ctb_n / total_vta_n;
+            html_tot_unidades += "<td>" + numeral(total_unidades).format('0,0') + "</td>";
+            html_tot_vta_n += "<td>" + numeral(total_vta_n).format('0,0') + "</td>";
+            html_tot_ctb_n += "<td>" + numeral(total_ctb_n).format('0,0') + "</td>";
+            html_tot_margen += "<td>" + numeral(total_margen).format('0.00%') + "</td>";
+        }
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total unidades temporadas.\" style=\"width:16%;\">Unidades</td>";
+        html += html_tot_unidades;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total venta temporadas.\" style=\"width:16%;\">Venta</td>";
+        html += html_tot_vta_n;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total contribuci&oacute;n.\" style=\"width:16%;\">Contribuci&oacute;n</td>";
+        html += html_tot_ctb_n;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total margen.\" style=\"width:16%;\">Margen</td>";
+        html += html_tot_margen;
+        html += "</tr>";
+        html += "</tbody>";
+        html += "</table>";
+        $("#tab_proyeccion").html(html);
+        $(".editable").click(proyectar);
+    }
+
+    function tablaDctoUniComp(data){
+
+        var html_tot_vta_n = "";
+        var html_tot_ctb_n = "";
+        var html_tot_margen = "";
+        var html_tot_unidades = "";
+        var html = "";        
+        html += "<table class=\"datagrid\" style=\"width:100%;\">";
+        html += "<thead>";
+        html += "<tr>";
+        html += "<th style=\"width:16%;\">Temporada</th>";
+        for (var x=0; x<data.periodos.length; x++){
+            if (data.periodos[x].temporada)
+                html += "<th title=\"Periodo de la temporada " + data.temporada_vigente.nombre + " - " + data.temporada_vigente.anio + " a proyectar\" style=\"width:7%;background-color:#669;color:white\">" + data.periodos[x].nombre + "</th>";
+            else
+                html += "<th style=\"width:7%;\">" + data.periodos[x].nombre + "</th>";
+        }
+        html += "</tr>";
+        html += "</thead>";
+        html += "<tbody>";
+        
+        /* Se itera por cada temporada */
+        $.each(data.ventas, function(temporada, ventas) {
+
+            html += "<tr>";
+            html += "<td class=\"separador\" colspan=\"13\"><b>Temporada: " + temporada + "</b></td>";
+            html += "</tr>";
+
+            /* Unidades vendidas */
+            html += "<tr>";
+            html += "<td title=\"Unidades vendidas.\" style=\"width:16%;\">Unidades</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par unidades\">" + numeral(venta.vta_u).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+            
+             /* Descuentos */
+            html += "<tr>";
+            html += "<td title=\"Descuento sobre el precio blanco.\" style=\"width:16%;\">Descuento %</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par descuentos\">" + numeral(venta.dcto).format('0.00%') + "</td>";
+            });
+            html += "</tr>";
+
+            /* Precio Real */
+            html += "<tr>";
+            html += "<td title=\"Precio real de venta.\" style=\"width:16%;\">Precio Real</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.precio_real).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+
+            /* Venta neta */
+            html += "<tr>";
+            html += "<td title=\"Venta en pesos.\" style=\"width:16%;\">Venta</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.vta_n).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+            
+             /* Contribucion */
+            html += "<tr>";
+            html += "<td title=\"Contribucion en pesos.\" style=\"width:16%;\">Contribuci&oacute;n</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
+            });
+            html += "</tr>";
+            
+            /* Margen */
+            html += "<tr>";
+            html += "<td title=\"Margen porcentual.\" style=\"width:16%;\">Margen %</td>";
+            $.each(ventas, function(periodo, venta) {
+                html += "<td class=\"par\">" + numeral(venta.margen).format('0.00%') + "</td>";
+            });
+            html += "</tr>";
+
+        });
+        
+        /* Totales */
+        html += "<tr>";
+        html += "<td class=\"separador\" colspan=\"13\"><b>Totales:</b></td>";
+        html += "</tr>";
+        for (var x=0; x<data.periodos.length; x++){
+            var total_unidades = 0;
+            var total_vta_n = 0;
+            var total_ctb_n = 0;
+            var total_margen = 0;
+            $.each(data.ventas, function(temporada, ventas) {
+                $.each(ventas, function(periodo, venta) {
+                    if (periodo == data.periodos[x].nombre){
+                        total_unidades += parseFloat(venta.vta_u);
+                        total_vta_n += parseFloat(venta.vta_n);
+                        total_ctb_n += parseFloat(venta.ctb_n);
+                        return false;
+                    }
+                });
+            });
+            if (total_vta_n != 0)
+                total_margen = total_ctb_n / total_vta_n;
+            html_tot_unidades += "<td>" + numeral(total_unidades).format('0,0') + "</td>";
+            html_tot_vta_n += "<td>" + numeral(total_vta_n).format('0,0') + "</td>";
+            html_tot_ctb_n += "<td>" + numeral(total_ctb_n).format('0,0') + "</td>";
+            html_tot_margen += "<td>" + numeral(total_margen).format('0.00%') + "</td>";
+        }
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total unidades temporadas.\" style=\"width:16%;\">Unidades</td>";
+        html += html_tot_unidades;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total venta temporadas.\" style=\"width:16%;\">Venta</td>";
+        html += html_tot_vta_n;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total contribuci&oacute;n.\" style=\"width:16%;\">Contribuci&oacute;n</td>";
+        html += html_tot_ctb_n;
+        html += "</tr>";
+        html += "<tr class=\"par totales\">";
+        html += "<td title=\"Total margen.\" style=\"width:16%;\">Margen</td>";
+        html += html_tot_margen;
+        html += "</tr>";
+        html += "</tbody>";
+        html += "</table>";
+        $("#tab_comparativo").html(html);
+    }
+
+    function actualizarPlanificacion(metrica, periodo, temporada){
+        // Si se proyectaron las unidades, se entra al ciclo if
+        if(metrica == 'unidades'){
+            $.each(planificacion.ventas[temporada], function(periodo_venta, venta) {
+                if(periodo_venta == periodo.trim()){
+                    // Se asigna tipo temporal 3 (proyectada no guardada)
+                    venta.tipo = 3;
+                    // Se lee el valor de la celda y se quita su formato
+                    venta.vta_u = numeral().unformat(td.text());
+
+                    // Venta Neta
+                    venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
+                    
+                    // Contribucion
+                    venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion['itemplan'].costo_unitario)).toFixed(1);
+                    
+                    // Margen                   
+                    if(venta.vta_n != 0)
+                        venta.margen = venta.ctb_n / venta.vta_n;
+
+                    // Precio Real
+                    if(venta.vta_n != 0)
+                        venta.precio_real = venta.vta_n / venta.vta_u * 1.19;
+
+                    // Costo
+                    venta.costo = parseFloat(venta.vta_u * planificacion['itemplan'].costo_unitario).toFixed(1);
+
+                    tablaDctoUni(planificacion);
+                    return false;
+                }
+            });
+        }
+        // Si se proyectaron los descuentos, se entra al ciclo if
+        else if(metrica == 'descuentos'){
+            $.each(planificacion.ventas[temporada], function(periodo_venta, venta) {
+                if(periodo_venta == periodo.trim()){
+                    // Se asigna tipo temporal 3 (proyectada no guardada)
+                    venta.tipo = 3;
+                    // Se lee el valor de la celda y se quita su formato
+                    venta.dcto = numeral().unformat(td.text());
+                    
+                    // Venta Neta
+                    venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
+                    
+                    // Contribucion
+                    venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion['itemplan'].costo_unitario)).toFixed(1);
+                    
+                    // Margen                   
+                    if(venta.vta_n != 0)
+                        venta.margen = venta.ctb_n / venta.vta_n;
+
+                    // Precio Real
+                    if(venta.vta_n != 0)
+                        venta.precio_real = venta.vta_n / venta.vta_u * 1.19;
+
+                    tablaDctoUni(planificacion);
+                    return false;
+                }
+            });
+        }
+    }
+    $("#combo_resultado").change(buscarTablaProyeccionAJAX);
+    $("[id^=button_cat_comp_]").click(function(){
+        var id_item;
+        var id_this = $(this).attr("id");
+        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
+        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
+        id_button_array = id_this.split("_");
+        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
+        if ( id_item == -1 ){
+            alert("Seleccione una opción válida.");
+            return 0;
+        }
+        buscarTablaComparacionAJAX_par(id_item);
+    });
+    $("[id^=combo_cat_proy_]").change(buscarCategoriaProyeccion);
+    $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
+    buscarEstadisticasPlan();
+
+});
+
+</script>
+
+{% endblock %}
