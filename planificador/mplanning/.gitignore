@@ -6,4 +6,3 @@
 */*.pot
 */*.pyc
 */local_settings.py
-*/settings.py

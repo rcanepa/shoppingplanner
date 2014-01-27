@@ -95,20 +95,18 @@
 
 {% block js %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static "assets/css/planes/resumen.css" %}">
-<script src="{% static "assets/js/rgraph/RGraph.common.core.js" %}"></script>
-<script src="{% static "assets/js/rgraph/RGraph.common.dynamic.js" %}"></script>   <!-- Just needed for dynamic features (eg tooltips) -->
+<link rel="stylesheet" type="text/css" href="{% static "css/planes/resumen.css" %}">
+<script src="{% static "js/rgraph/RGraph.common.core.js" %}"></script>
+<script src="{% static "js/rgraph/RGraph.common.dynamic.js" %}"></script>   <!-- Just needed for dynamic features (eg tooltips) -->
 
-<script src="{% static "assets/js/rgraph/RGraph.common.annotate.js" %}"></script>  <!-- Just needed for annotating -->
-<script src="{% static "assets/js/rgraph/RGraph.common.context.js" %}"></script>   <!-- Just needed for context menus -->
-<script src="{% static "assets/js/rgraph/RGraph.common.tooltips.js" %}"></script>  <!-- Just needed for tooltips -->
-<script src="{% static "assets/js/rgraph/RGraph.drawing.rect.js" %}"></script>
+<script src="{% static "js/rgraph/RGraph.common.annotate.js" %}"></script>  <!-- Just needed for annotating -->
+<script src="{% static "js/rgraph/RGraph.common.context.js" %}"></script>   <!-- Just needed for context menus -->
+<script src="{% static "js/rgraph/RGraph.common.tooltips.js" %}"></script>  <!-- Just needed for tooltips -->
+<script src="{% static "js/rgraph/RGraph.drawing.rect.js" %}"></script>
 
-<script src="{% static "assets/js/rgraph/RGraph.bar.js" %}"></script>              <!-- Just needed for Bar charts -->
-<script src="{% static "assets/js/rgraph/RGraph.line.js" %}"></script>             <!-- Just needed for Line charts -->
+<script src="{% static "js/rgraph/RGraph.bar.js" %}"></script>              <!-- Just needed for Bar charts -->
+<script src="{% static "js/rgraph/RGraph.line.js" %}"></script>             <!-- Just needed for Line charts -->
 <script>
-google.load("visualization", "1", {packages:["corechart"]});
-
 
 $(function() {
 
