@@ -245,6 +245,13 @@ class GuardarProyeccionView(UserInfoMixin, View):
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
             
+            # Se revisa si la categoria del item que esta siendo proyectado tiene hijos (si pertenece a una categoria hoja o no), 
+            # en caso de tener hijos, se imputa la proyeccion al primero de ellos
+            if itemplan_obj.item.categoria.get_children():
+                item_proyectado = itemplan_obj.item.get_children()[0]
+            else:
+                item_proyectado = itemplan_obj.item
+
             # Se itera por cada temporada, periodo del objeto de proyeccion
             for temporada, periodos in data['ventas'].iteritems():
                 temporada_obj = Temporada.objects.get(nombre=temporada)
@@ -263,7 +270,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
                             'margen': venta['margen']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
-                            item=itemplan_obj.item,
+                            item=item_proyectado,
                             anio=venta['anio'],
                             periodo=venta['periodo'],
                             temporada=temporada_obj, 
@@ -276,7 +283,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
                             obj.margen = float(venta['margen'])
                             obj.costo = float(venta['costo'])
                             if venta['vta_n'] != 0:
-                                # Tipo = 2 -> Proyectada
+                                # Tipo = 1 -> Proyectada
                                 obj.tipo = 1
                             obj.save()
 
@@ -388,8 +395,6 @@ class BuscarVentaItemplanProyeccionView(View):
                 'nombre':plan_obj.temporada.nombre,
                 'anio':plan_obj.anio
                 }
-            act_anio = plan_obj.anio
-            ant_anio = plan_obj.anio - 1            
             # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
             # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
             # a si mismo
@@ -409,19 +414,16 @@ class BuscarVentaItemplanProyeccionView(View):
                 costo_unitario = 0
 
                 # Se busca el periodo inferior y superior de la temporada a proyectar
-                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
+                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0] 
                 limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
 
                 # Se buscan las temporadas de los items a proyectar.
                 # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
                 # mas de una temporada.
-                #temporadas = ventas.order_by('item__temporada__id','item__temporada__nombre').values('item__temporada__id','item__temporada__nombre').distinct()
-                #temporadas = Temporada.objects.all().order_by('-planificable','nombre')
                 temporadas = Temporada.objects.all().values('nombre','id'
                     ).order_by('-planificable','nombre').distinct()
                 
                 # Lista de los X periodos a considerar en la proyeccion
-                #periodos = ventas.order_by('anio','periodo').values('anio','periodo').distinct()
                 periodos = Periodo.objects.filter(
                     Q(tiempo__anio=limite_sup['anio'],nombre__lte=limite_sup['periodo__nombre']) | 
                     Q(tiempo__anio=limite_inf['anio'],nombre__gte=limite_inf['periodo__nombre'])
@@ -558,8 +560,7 @@ class BuscarVentaItemplanCompProyeccionView(View):
                 'nombre':plan_obj.temporada.nombre,
                 'anio':plan_obj.anio
                 }
-            act_anio = plan_obj.anio
-            ant_anio = plan_obj.anio - 1
+            
             # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
             # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
             # a si mismo
@@ -579,6 +580,8 @@ class BuscarVentaItemplanCompProyeccionView(View):
             # Se busca el periodo inferior y superior de la temporada a proyectar
             limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
             limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
+
+            print limite_inf, limite_sup
 
             # Se buscan las temporadas de los items a proyectar.
             # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
@@ -786,10 +789,10 @@ class BuscarVentaTemporadaItemplanView(View):
                 'anio':itemplan_obj.plan.anio
                 }
             
-            # Año actual + 1 (por planificar)
-            act_anio = plan_obj.anio + 1
-            # Año actual - 2 (limite inferior)
-            ant_anio = plan_obj.anio - 2
+            # Año actual
+            act_anio = plan_obj.anio
+            # Año actual - 3 (limite inferior)
+            ant_anio = plan_obj.anio - 3
 
             # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
             # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
@@ -806,21 +809,11 @@ class BuscarVentaTemporadaItemplanView(View):
                 proyeccion = OrderedDict()
                 costo_unitario = 0            
 
-                # Se buscan las temporadas de los items a proyectar.
-                # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
-                # mas de una temporada.
-                #temporadas = ventas.order_by('item__temporada__id','item__temporada__nombre').values('item__temporada__id','item__temporada__nombre').distinct()
-                #temporadas = Temporada.objects.all().order_by('-planificable','nombre')
+                # Se buscan todas las temporadas
                 temporadas = Temporada.objects.all().values('nombre','id'
                     ).order_by('-planificable','nombre').distinct()
                 
-                # Lista de los X periodos a considerar en la proyeccion
-                """
-                periodos = Periodo.objects.filter(
-                    Q(tiempo__anio=limite_sup['anio'],nombre__lte=limite_sup['periodo__nombre']) | 
-                    Q(tiempo__anio=limite_inf['anio'],nombre__gte=limite_inf['periodo__nombre'])
-                    ).order_by('tiempo__anio','nombre').values('tiempo__anio','nombre').distinct()
-                """
+                # Se buscan los periodos considerados en la vista de planificacion
                 periodos = plan_obj.temporada.periodo.filter(
                     tiempo__anio__lte=act_anio,
                     tiempo__anio__gte=ant_anio
@@ -947,10 +940,10 @@ class BuscarVentaTemporadaItemplanCompView(View):
                 'anio':plan_obj.anio
                 }
             
-            # Año actual + 1 (por planificar)
-            act_anio = plan_obj.anio + 1
-            # Año actual - 2 (limite inferior)
-            ant_anio = plan_obj.anio - 2
+            # Año actual (por planificar)
+            act_anio = plan_obj.anio
+            # Año actual - 3 (limite inferior)
+            ant_anio = plan_obj.anio - 3
 
             # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
             # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
@@ -1095,6 +1088,13 @@ class GuardarPlanificacionView(View):
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
             
+            # Se revisa si la categoria del item que esta siendo planificado tiene hijos (si pertenece a una categoria hoja o no), 
+            # en caso de tener hijos, se imputa la planificacion al primero de ellos
+            if itemplan_obj.item.categoria.get_children():
+                item_proyectado = itemplan_obj.item.get_children()[0]
+            else:
+                item_proyectado = itemplan_obj.item
+
             # Se itera por cada temporada, periodo del objeto de proyeccion
             for temporada, periodos in data['ventas'].iteritems():
                 temporada_obj = Temporada.objects.get(nombre=temporada)
@@ -1113,7 +1113,7 @@ class GuardarPlanificacionView(View):
                             'margen': venta['margen']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
-                            item=itemplan_obj.item,
+                            item=item_proyectado,
                             anio=venta['anio'],
                             periodo=venta['periodo'],
                             temporada=temporada_obj, 
@@ -1244,7 +1244,7 @@ class ResumenDataGraficosView(View):
             temp_vta_n, temp_vta_u, temp_ctb_n = 0, 0, 0
             
             # Se itera sobre el resultado de la busqueda para generar un objeto con el formato requerido
-            # por los graficos de Google Chart
+            # por los graficos
             for x in estadisticas:
                 
                 row_venta = []

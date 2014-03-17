@@ -31,8 +31,8 @@ class Temporada(models.Model):
         temporada que se quieren encontrar. Devuelve el periodo que esta bajo X periodos del periodo
         inferior de una temporada y el periodo superior por X periodos del periodo superior de una temporada
         """
-        anio_pre = anio - 1
-        anio_post = anio + 1
+        anio_pre = anio - 2
+        anio_post = anio
         data = []
         # Se buscan todos los periodos asociados a la temporada
         periodos = self.periodo.all()
@@ -41,11 +41,11 @@ class Temporada(models.Model):
         # Se obtiene el periodo superior
         periodo_sup = periodos[periodos.count()-1]
         # Se obtiene el periodo superior + X periodos
-        periodo_sup_vta = Tiempo.objects.filter(Q(anio=anio,periodo__nombre__gt=periodo_sup.nombre) | Q(anio=anio_post,periodo__nombre__lt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Max('semana')).order_by('anio','semana')[2]
+        periodos_sup_vta = Tiempo.objects.filter(Q(anio=anio-1,periodo__nombre__gt=periodo_sup.nombre) | Q(anio=anio_post,periodo__nombre__lt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Max('semana')).order_by('anio','semana')[2]
         # Se obtiene el periodo inferior - X periodos
-        periodos_inf_vta = Tiempo.objects.filter(Q(anio=anio,periodo__nombre__lt=periodo_inf.nombre) | Q(anio=anio_pre,periodo__nombre__gt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Min('semana')).order_by('-anio','-semana')[2]
+        periodos_inf_vta = Tiempo.objects.filter(Q(anio=anio-1,periodo__nombre__lt=periodo_inf.nombre) | Q(anio=anio_pre,periodo__nombre__gt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Min('semana')).order_by('-anio','-semana')[2]
         data.append(periodos_inf_vta)
-        data.append(periodo_sup_vta)
+        data.append(periodos_sup_vta)
         return data
 
     def comprobar_periodo(self, periodo):
@@ -86,9 +86,9 @@ class Plan(models.Model):
         # Contiene la lista de items que seran consultados para buscar las ventas
         item_arr_definitivo = []
         # Año actual (por planificar)
-        act_anio = self.anio + 1
-        # Año actual - 2 (limite inferior)
-        ant_anio = self.anio - 2
+        act_anio = self.anio
+        # Año actual - 3 (limite inferior)
+        ant_anio = self.anio - 3
         if item == None:
             # Arreglo de items con todos los items de la planificacion
             item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all() if itemplan.item.categoria.planificable == True]
@@ -172,21 +172,3 @@ class Itemplan(models.Model):
 
     def __unicode__(self):
         return self.item.nombre
-
-
-class Itemplandet(models.Model):
-    """
-    Clase encapsula el detalle por periodo de cada item que pertenece a la planificacion. Se gestionan
-    en la seccion de planificacion (paso posterior a la proyeccion)
-    """
-    periodo = models.ForeignKey(Periodo)
-    itemplan = models.ForeignKey(Itemplan, related_name='item_planificacion')
-    vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
-    ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
-    dcto = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="descuento", default=0, blank=True, null=True)
-    costo_u = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
-    vta_u = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta en unidades", default=0, blank=True, null=True)
-    margen = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
-
-    def __unicode__(self):
-        return self.itemplan.item.nombre

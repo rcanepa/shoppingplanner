@@ -12,9 +12,10 @@
 
 {% block sidebar %}
 <div class="pure-menu pure-menu-open">
-    <a class="pure-menu-heading">M&oacute;dulos</a>
+    <a class="pure-menu-heading">Acciones</a>
     <ul>
         <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+        <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar Proyecci&oacute;n</a></li>
     </ul>
 </div>
 
@@ -77,12 +78,6 @@
     </table>
 </div>
 
-<div id="panel-acciones" class="pure-menu pure-menu-open" style="float:left; display:none;">
-    <a class="pure-menu-heading">Acciones</a>
-    <ul>
-        <li><a href="" id="btnSave">Guardar Proyecci&oacute;n</a></li>
-    </ul>
-</div>
 <!-- Seccion con parametros de busqueda del item a proyectar  -->
 {% endblock %}
 
@@ -139,6 +134,31 @@
 
 $(function() {
 
+    proyeccion = function(){
+        var id_item = null;
+        var id_item_comp = null;
+        var id_plan = parseInt({{plan.id}});
+        
+        function setItem(id){
+            id_item = id;
+        }
+        
+        function getItem(){
+            return id_item;
+        }
+        
+        function getPlan(){
+            return id_plan;
+        }
+        
+        return{
+            setItem:setItem,
+            getItem:getItem,
+            getPlan:getPlan
+        }
+
+    }();
+
     var planificacion = [];
     var comparacion = [];
 
@@ -157,6 +177,14 @@ $(function() {
 
     $( document ).ajaxStop(function() {
         $("#dvLoading").hide();
+    });
+
+    // Para que al hacer click en la tecla ENTER, los formularios de los dialogs sean enviados
+    $('body').on('keypress', '.ui-dialog', function(event) { 
+        if (event.keyCode === $.ui.keyCode.ENTER) { 
+            $('.ui-dialog-buttonpane button:first', $(this)).click();
+            return false;
+        }
     });
 
     /* Actualiza las estadisticas generales de proyeccion */
@@ -204,6 +232,39 @@ $(function() {
         }
     });
     
+
+    /*
+        Ajax done callback para el evento que guarda una proyeccion
+    */
+    var saveAJAXDone = function(data){
+        $("#barra_notificaciones")
+            .html(data.msg)
+            .addClass("msg_success")
+            .delay(5000)
+            .queue( function(next){ 
+                $(this).removeClass("msg_success");
+                $(this).html("");
+                    next(); 
+            });
+
+        // Se recarga el cuadro de proyeccion con la opcion escogida
+        $("#combo_resultado").trigger("change");
+        buscarEstadisticasPlan();
+        tablaDctoUni(planificacion);
+
+        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
+        // los datos que se guardaron de la ultima planificacion
+        var id_item_comparativo = -1;
+
+        $("[id^=combo_cat_comp_]").each(function(index){
+            if ( $(this).val() != -1 ){
+                id_item_comparativo = $(this).val();
+            }
+        });
+        if ( id_item_comparativo != -1 )
+            buscarTablaComparacionAJAX_par(id_item_comparativo);
+    };
+
     /*
         Guarda la proyeccion sobre la cual se esta trabajando.
     */
@@ -219,41 +280,14 @@ $(function() {
         });
         
         $("#input_json_data").val(json_data);
+
         $.ajax({
             data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
             url: '/planes/plan/savestage2/',
             type: 'post',
-            success: function(data){
-                $("#barra_notificaciones")
-                .html(data.msg)
-                .addClass("msg_success")
-                .delay(5000)
-                .queue( function(next){ 
-                    $(this).removeClass("msg_success");
-                    $(this).html("");
-                        next(); 
-                });
-
-                // Se gatillan los eventos vinculados a los combobox de items para que
-                // se recargue la informacion de las tablas en base a lo que existe en la BD
-
-                // Se recarga el cuadro de proyeccion con la opcion escogida
-                $("#combo_resultado").trigger("change");
-                buscarEstadisticasPlan();
-                tablaDctoUni(planificacion);
-            }
-        });
-        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
-        // los datos que se guardaron de la ultima planificacion
-        var id_item_comparativo = -1;
-
-        $("[id^=combo_cat_comp_]").each(function(index){
-            if ( $(this).val() != -1 ){
-                id_item_comparativo = $(this).val();
-            }
-        });
-        if ( id_item_comparativo != -1 )
-            buscarTablaComparacionAJAX_par(id_item_comparativo);
+            
+        }).done(saveAJAXDone);
+        
     });
 
     /*
@@ -277,7 +311,12 @@ $(function() {
                         if ( typeof data.items[x].precio === "undefined" )
                                 html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
                         else
-                            html += '<option value="' + data.items[x].id + '">' + data.items[x].estado + ' | ' + data.items[x].categoria_nombre + ' | ' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
+                            html += '<option value="' 
+                            + data.items[x].id + '">' 
+                            + data.items[x].estado + ' | ' 
+                            //+ data.items[x].categoria_nombre + ' | ' 
+                            + data.items[x].nombre + ' | ' 
+                            + numeral(data.items[x].precio).format('0,0') + '</option>';
                     }
                     // Se revisa si la categoria es planificable (por lo tanto carga el resultado en el combo de items)
                     if (!data.categoria.planificable)
@@ -329,15 +368,13 @@ $(function() {
         selccionado.
     */
     function buscarTablaProyeccionAJAX(){
-        var id_this = $(this).attr("id");
-        var id_itemplan = $(this).val();
-        var id_plan = parseInt({{plan.id}});
+        proyeccion.setItem($(this).val());
         $.ajax({
-            data: {'id_itemplan':id_itemplan, 'id_plan':id_plan},
+            data: {'id_itemplan':proyeccion.getItem(), 'id_plan':proyeccion.getPlan()},
             url: '/planes/plan/itemplanventasearch/',
             type: 'get',
             success: function(data){
-                //console.log(data);
+                console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -351,8 +388,8 @@ $(function() {
                 
             }
         });
-        if ( $("#panel-acciones").is(":hidden") )
-            $("#panel-acciones").show("slow");
+        if ( $("#panel-acciones").hasClass("pure-menu-disabled") )
+            $("#panel-acciones").removeClass("pure-menu-disabled");
     }
 
     /*
@@ -435,8 +472,13 @@ $(function() {
         html += "<tr>";
         html += "<th style=\"width:16%;\">Temporada</th>";
         for (var x=0; x<data.periodos.length; x++){
-            if (data.periodos[x].temporada)
-                html += "<th title=\"Periodo de la temporada " + data.temporada_vigente.nombre + " - " + data.temporada_vigente.anio + " a proyectar\" style=\"width:7%;background-color:#669;color:white\">" + data.periodos[x].nombre + "</th>";
+            if (data.periodos[x].temporada){
+                html += "<th title=\"Periodo de la temporada " 
+                    + data.temporada_vigente.nombre + " - " 
+                    + (parseInt(data.temporada_vigente.anio) - 1)  
+                    + "\" style=\"width:7%;background-color:#669;color:white\">" 
+                    + data.periodos[x].nombre + "</th>";
+            }
             else
                 html += "<th>" + data.periodos[x].nombre + "</th>";
         }
@@ -568,8 +610,13 @@ $(function() {
         html += "<tr>";
         html += "<th style=\"width:16%;\">Temporada</th>";
         for (var x=0; x<data.periodos.length; x++){
-            if (data.periodos[x].temporada)
-                html += "<th title=\"Periodo de la temporada " + data.temporada_vigente.nombre + " - " + data.temporada_vigente.anio + " a proyectar\" style=\"width:7%;background-color:#669;color:white\">" + data.periodos[x].nombre + "</th>";
+            if (data.periodos[x].temporada){
+                html += "<th title=\"Periodo de la temporada " 
+                    + data.temporada_vigente.nombre + " - " 
+                    + (parseInt(data.temporada_vigente.anio) - 1)  
+                    + "\" style=\"width:7%;background-color:#669;color:white\">" 
+                    + data.periodos[x].nombre + "</th>";
+            }
             else
                 html += "<th style=\"width:7%;\">" + data.periodos[x].nombre + "</th>";
         }

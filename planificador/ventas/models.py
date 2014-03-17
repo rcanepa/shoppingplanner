@@ -26,13 +26,7 @@ class Ventaperiodo(models.Model):
 	periodo = models.CharField(max_length=20)
 	anio = models.PositiveSmallIntegerField(verbose_name="año")
 	"""
-	tipo
-		0: real
-		1: por proyectar
-		2: proyectada
-		3: proyectada no guardada (estado temporal)
-
-	Estos estados debieran quedar de la siguiente manera:
+	Tipos:
 		0: real
 		1: proyectada (no real)
 		2: planificada (no real)
