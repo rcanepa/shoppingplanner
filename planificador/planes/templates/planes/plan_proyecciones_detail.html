@@ -427,17 +427,64 @@ $(function() {
         modal: true,
         buttons: {
             "Guardar": function() {
-                var parametros = [];
-                parametros = td.attr("id").split("_");
-                td.text($("#inputval").val());
-                $("#inputval").val("");
                 /*
                 parametros[0]: tipo de metrica (unidades, descuentos)
                 parametros[1]: periodo
                 parametros[2]: temporada
                 */
-                actualizarPlanificacion(parametros[0], parametros[1], parametros[2]);
-                $( this ).dialog( "close" );
+                var parametros = [];
+                var valor;
+                var intRegex = /^\d+$/;
+                var floatRegex = /^\-?([0-9]+(\.[0-9]+)?|Infinity)$/;
+                var texto = "";
+                parametros = td.attr( "id" ).split("_");
+                valor = $( "#inputval" ).val().replace('%','').replace(',','.');
+                console.log(valor);
+
+                // Se revisa si el cambio corresponde a unidades o a un % de descuento
+                if ( parametros[0] == "unidades" ) {
+                    // Se valida que el valor ingresado sea un numero entero
+                    if(intRegex.test(valor)) {
+                       td.text(valor);
+                       actualizarPlanificacion(parametros[0], parametros[1], parametros[2]);
+                       $( "#inputval" ).val("");
+                       if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                            $( "#inputval" ).removeClass( "ui-state-error" );
+                       $( this ).dialog( "close" );
+                    }
+                    else {
+                        $( "#inputval" ).addClass( "ui-state-error" );
+                        texto = $( "#dialog_help_msg" ).text();
+                        $( "#dialog_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
+                        $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+                        setTimeout(function() {
+                            $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                            $( "#dialog_help_msg" ).html(texto);
+                        }, 3000 );
+                    }
+                }
+
+                // Se trata de un ajuste de % de descuento
+                else {
+                    if(floatRegex.test(valor)) {
+                        td.text(valor + "%");
+                        actualizarPlanificacion(parametros[0], parametros[1], parametros[2]);
+                        $( "#inputval" ).val("");
+                        if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                        $( "#inputval" ).removeClass( "ui-state-error" );
+                        $( this ).dialog( "close" );
+                    }
+                    else {
+                        $( "#inputval" ).addClass( "ui-state-error" );
+                        texto = $( "#dialog_help_msg" ).text();
+                        $( "#dialog_help_msg" ).html( "Debe ingresar un número respetando el formato señalado." );
+                        $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+                        setTimeout(function() {
+                            $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                            $( "#dialog_help_msg" ).html(texto);
+                        }, 3000 );
+                    }
+                }
             },
             Cancelar: function() {
                 $( this ).dialog( "close" );

@@ -69,7 +69,7 @@ class Plan(models.Model):
         (3, 'Plafinicacion finalizada'),
         )
     nombre = models.CharField(max_length=70)
-    anio = models.PositiveSmallIntegerField(verbose_name="año", default=(datetime.now()).year + 1)
+    anio = models.PositiveSmallIntegerField(verbose_name="año", default=(datetime.now()).year)
     temporada = models.ForeignKey(Temporada)
     usuario_creador = models.ForeignKey(User)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])

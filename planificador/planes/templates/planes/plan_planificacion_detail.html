@@ -567,33 +567,104 @@ $(function() {
         
     $( "#dialog-box" ).dialog({
         autoOpen: false,
-        //height: 300,
-        width: 220,
+        height: 200,
+        width: 250,
         modal: true,
         buttons: {
             "Guardar": function() {
-                var parametros = [];
-                parametros = td.attr("id").split("_");
-                td.text($("#inputval").val());
-            
-                if ( parametros[0].indexOf("item") == -1){
                 /*
-                    parametros[0]: tipo de metrica (unidades, descuentos, costos)
+                    parametros[0]: tipo de metrica (unidades, descuentos, costos, costo unitario, precio blanco)
                     parametros[1]: periodo
                     parametros[2]: temporada
                 */
-                    actualizarPerPlanificacion(parametros[0], parametros[1], parametros[2]);
+                var parametros = [];
+                var valor;
+                var intRegex = /^\d+$/;
+                var floatRegex = /^\-?([0-9]+(\.[0-9]+)?|Infinity)$/;
+                var texto = "";
+                parametros = td.attr("id").split("_");
+                valor = $( "#inputval" ).val().replace('%','').replace(',','.');
+            
+                // Se valida si el pararametro que esta siendo modificado pertenece al grupo precio blanco / costo unitario
+                // o al grupo descuento / unidades / costos
+                if ( parametros[0].indexOf("item") == -1){
+                    // Se revisa si el cambio corresponde a unidades o a un % de descuento
+                    if ( parametros[0] == "unidades" ) {
+                        // Se valida que el valor ingresado sea un numero entero
+                        if(intRegex.test(valor)) {
+                           td.text(valor);
+                           actualizarPerPlanificacion(parametros[0], parametros[1], parametros[2]);
+                           $( "#inputval" ).val("");
+                           if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                                $( "#inputval" ).removeClass( "ui-state-error" );
+                           $( this ).dialog( "close" );
+                        }
+                        else {
+                            $( "#inputval" ).addClass( "ui-state-error" );
+                            texto = $( "#dialog_help_msg" ).text();
+                            $( "#dialog_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
+                            $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+                            setTimeout(function() {
+                                $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                                $( "#dialog_help_msg" ).html(texto);
+                            }, 3000 );
+                        }
+                    }
+
+                    // Se trata de un ajuste de % de descuento
+                    else {
+                        if(floatRegex.test(valor)) {
+                            td.text(valor + "%");
+                            actualizarPerPlanificacion(parametros[0], parametros[1], parametros[2]);
+                            $( "#inputval" ).val("");
+                            if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                                $( "#inputval" ).removeClass( "ui-state-error" );
+                            $( this ).dialog( "close" );
+                        }
+                        else {
+                            $( "#inputval" ).addClass( "ui-state-error" );
+                            texto = $( "#dialog_help_msg" ).text();
+                            $( "#dialog_help_msg" ).html( "Debe ingresar un número respetando el formato señalado." );
+                            $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+                            setTimeout(function() {
+                                $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                                $( "#dialog_help_msg" ).html(texto);
+                            }, 3000 );
+                        }
+                    }
+                    
                 }
+                // Se trata del precio blanco o costo unitario
                 else{
-                    if ( parametros[0] == "itemprecio" )
-                        planificacion.itemplan.precio = numeral().unformat($("#inputval").val());    
-                    else
-                        planificacion.itemplan.costo_unitario = numeral().unformat($("#inputval").val());
-                    actualizarPlanificacion();
-                    //console.log(planificacion);
+                    // Se valida que el precio blanco o costo unitario sea un numero entero
+                    valor = valor.replace(',','').replace('.','');
+                    if ( intRegex.test(valor) ){
+                        if ( parametros[0] == "itemprecio" ){
+                            planificacion.itemplan.precio = numeral().unformat(valor);    
+                            $("#itemprecio_blanco").text(numeral(valor).format('0,0'));
+                        }
+                        else{
+                            planificacion.itemplan.costo_unitario = numeral().unformat(valor);
+                            $("#itemcosto_unitario").text(numeral(valor).format('0,0'));  
+                        }
+                            
+                        $( "#inputval" ).val("");
+                        if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                            $( "#inputval" ).removeClass( "ui-state-error" );
+                        actualizarPlanificacion();  
+                        $( this ).dialog( "close" );
+                    }
+                    else{
+                        $( "#inputval" ).addClass( "ui-state-error" );
+                        texto = $( "#dialog_help_msg" ).text();
+                        $( "#dialog_help_msg" ).html( "Debe ingresar un número entero." );
+                        $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+                        setTimeout(function() {
+                            $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                            $( "#dialog_help_msg" ).html(texto);
+                        }, 3000 );
+                    }
                 }
-                $("#inputval").val("");
-                $( this ).dialog( "close" );
             },
             Cancelar: function() {
                 $( this ).dialog( "close" );
@@ -1174,7 +1245,7 @@ $(function() {
     function actualizarPlanificacion(){
         $.each(planificacion.ventas, function(temporada, ventas) {
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (planificacion.temporada_vigente['anio'] + 1) ){
+                if( venta.anio == (planificacion.temporada_vigente['anio']) ){
                     // Costo unitario               
                     venta.costo_u = planificacion.itemplan.costo_unitario
                     
@@ -1496,22 +1567,68 @@ $(function() {
     */
     $( "#dialog-box-proyeccion" ).dialog({
         autoOpen: false,
-        //height: 300,
-        width: 220,
+        height: 200,
+        width: 250,
         modal: true,
         buttons: {
             "Guardar": function() {
-                var parametros = [];
-                parametros = td.attr("id").split("_");
-                td.text($("#inputvalproy").val());
-                $("#inputvalproy").val("");
                 /*
                 parametros[0]: tipo de metrica (unidades, descuentos)
                 parametros[1]: periodo
                 parametros[2]: temporada
                 */
-                actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
-                $( this ).dialog( "close" );
+                var parametros = [];
+                var valor;
+                var intRegex = /^\d+$/;
+                var floatRegex = /^\-?([0-9]+(\.[0-9]+)?|Infinity)$/;
+                var texto = "";
+                parametros = td.attr( "id" ).split("_");
+                valor = $( "#inputvalproy" ).val().replace('%','').replace(',','.');
+
+                // Se revisa si el cambio corresponde a unidades o a un % de descuento
+                if ( parametros[0] == "unidades" ) {
+                    // Se valida que el valor ingresado sea un numero entero
+                    if(intRegex.test(valor)) {
+                       td.text(valor);
+                       actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                       $( "#inputvalproy" ).val("");
+                       if ( $( "#inputvalproy" ).hasClass( "ui-state-error" ) )
+                            $( "#inputvalproy" ).removeClass( "ui-state-error" );
+                       $( this ).dialog( "close" );
+                    }
+                    else {
+                        $( "#inputvalproy" ).addClass( "ui-state-error" );
+                        texto = $( "#dialog_proy_help_msg" ).text();
+                        $( "#dialog_proy_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
+                        $( "#dialog_proy_help_msg" ).addClass( "ui-state-highlight" );
+                        setTimeout(function() {
+                            $( "#dialog_proy_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                            $( "#dialog_proy_help_msg" ).html(texto);
+                        }, 3000 );
+                    }
+                }
+
+                // Se trata de un ajuste de % de descuento
+                else {
+                    if(floatRegex.test(valor)) {
+                        td.text(valor + "%");
+                        actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                        $( "#inputvalproy" ).val("");
+                        if ( $( "#inputvalproy" ).hasClass( "ui-state-error" ) )
+                        $( "#inputvalproy" ).removeClass( "ui-state-error" );
+                        $( this ).dialog( "close" );
+                    }
+                    else {
+                        $( "#inputvalproy" ).addClass( "ui-state-error" );
+                        texto = $( "#dialog_proy_help_msg" ).text();
+                        $( "#dialog_proy_help_msg" ).html( "Debe ingresar un número respetando el formato señalado." );
+                        $( "#dialog_proy_help_msg" ).addClass( "ui-state-highlight" );
+                        setTimeout(function() {
+                            $( "#dialog_proy_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                            $( "#dialog_proy_help_msg" ).html(texto);
+                        }, 3000 );
+                    }
+                }
             },
             Cancelar: function() {
                 $( this ).dialog( "close" );

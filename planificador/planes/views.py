@@ -87,7 +87,7 @@ class PlanListView(LoginRequiredMixin, UserInfoMixin, ListView):
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
-        return Plan.objects.filter(usuario_creador=self.request.user)
+        return Plan.objects.filter(usuario_creador=self.request.user).order_by('-anio','temporada__nombre')
 
 
 class PlanCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):

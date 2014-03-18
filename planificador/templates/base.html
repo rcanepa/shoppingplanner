@@ -5,10 +5,11 @@
 <head>
 	<title>{% block title %}Planificador{% endblock %}</title>
 	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
-	<link rel="stylesheet" type="text/css" href="{% static "css/default.css" %}">
 	
 	<!-- PURECSS -->
 	<link rel="stylesheet" type="text/css" href="{% static "css/purecss/pure-min.css" %}">
+
+	<link rel="stylesheet" type="text/css" href="{% static "css/default.css" %}">
 
 	<!-- JQuery -->
 	<!--script src="{% static "js/jquery-1.10.2.min.js" %}"></script-->
@@ -30,18 +31,19 @@
 </head>
 <body class="pure-skin-mine">
 	<div id="header">
+		<div class="top-menu">
 		{% block topbar %}
-		<div class="pure-menu pure-menu-open pure-menu-horizontal">
-		    <ul>
-		        <li class="pure-menu-selected"><a href="{% url 'home' %}">Inicio</a></li>
-		        <li><a href="{% url 'planes:plan_list' %}">Planificar Temporada</a></li>
-		        <li class="pure-menu-disabled"><a href="#">Lista Compra</a></li>
-				<li class="pure-menu-disabled"><a href="#">An&aacute;lisis KPIs</a></li>
-				<li><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
-				<li class="pure-menu-disabled"><a href="#">Ayuda</a></li>
-		    </ul>
-		</div>
+			<div class="pure-menu pure-menu-open pure-menu-horizontal">
+			    <ul>
+			        <li class="pure-menu-selected"><a href="{% url 'home' %}">INICIO</a></li>
+			        <li><a href="{% url 'planes:plan_list' %}">PLANIFICAR TEMPORADA</a></li>
+					{% if admin %}
+					<li><a href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
+					{% endif %}
+			    </ul>
+			</div>
 		{% endblock %}	
+		</div>
 		<div id="layoutdims">
 			<div class="layoutdims-internal-div" style="width:25%">{% block username %} {% endblock %}<a href="{% url 'user_logout' %}" title="">(Salir)</a></div>
 			<div class="layoutdims-internal-div" id="barra_notificaciones" style="width:60%"></div>

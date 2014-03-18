@@ -1,7 +1,3 @@
-$(document).ready(function() {
-    $("#extracontent").hide();
-    $("#togglecontent").click(function(){
-        $("#extracontent").show();
-        $("#togglecontent").hide();
-    });
-});
+function validarRegEx(expresion, valor){
+	return valor.test(expresion);
+}
