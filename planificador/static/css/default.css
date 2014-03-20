@@ -46,13 +46,18 @@ h3
 	border-bottom:1px solid #000;
 }
 
-.top-menu{	
+.top-menu {	
 	padding-bottom:2px;
 }
 
-.top-menu li a{
+.top-menu li a {
 	padding-left: 10px;
 	padding-right: 10px;
+}
+
+.opcion-seleccionada {
+	font-weight: bolder;
+	background-color: #eee;
 }
 
 /* 'widths' sub menu */

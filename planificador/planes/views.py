@@ -1388,3 +1388,203 @@ class ResumenDataGraficosView(View):
 
             data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
+
+
+class SaldosAvancesView(LoginRequiredMixin, UserInfoMixin, DetailView):
+    '''
+    4ta fase del proceso de planificacion.
+    Vista principal para la planificacion de saldos y avances
+    '''
+    model = Plan
+    template_name = "planes/plan_saldosavances_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(SaldosAvancesView, self).get_context_data(**kwargs)
+        if context['plan'].estado == 0:
+            # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
+            context['msg'] = "Primero debe definir el árbol de planificación."
+        else:            
+            # Lista de items sobre los cuales es el usuario es responsable
+            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
+
+            # Lista de items que pertenecen a la categoria mas alta a mostrar
+            items_categoria_raiz = []
+            
+            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
+            # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
+            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
+
+            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
+            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
+            
+            # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
+            categoria_raiz = sorted(items_responsable, key= lambda t: t.categoria.get_nivel())[0]
+
+            # Se recalculan las listas de categorias a mostrar como comboboxes
+            # Se deben mostrar a partir de la categoria sobre la cual el usuario es responsable
+            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
+            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
+
+
+            # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
+            # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
+            # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
+            # poder ver como division a Hombre
+            items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
+            
+            context['combo_categorias'] = combo_categorias
+            context['combo_categorias_comp'] = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())
+            context['items_categoria_raiz'] = items_categoria_raiz
+
+        return context
+
+
+class BuscarVentaSaldosAvancesView(View):
+    '''
+    Recibe un itemplan y un plan, y busca toda la informacion comercial de los 3 meses anteriores y posteriores
+    a la temporada que se esta planificando
+    '''
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            resumen = {}
+            id_plan = request.GET['id_plan']
+            id_itemplan = request.GET['id_itemplan']
+            try:
+                itemplan_obj = Itemplan.objects.get(plan=id_plan,id=id_itemplan)
+            except ObjectDoesNotExist:
+                resumen['itemplan'] = None
+                resumen['temporadas'] = None
+                resumen['temporada_vigente'] = None
+                resumen['periodos'] = None
+                resumen['ventas'] = None
+                data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+                return HttpResponse(data, mimetype='application/json')
+
+            plan_obj = Plan.objects.get(pk=id_plan)
+            temporada_vigente = {
+                'id':plan_obj.temporada.id,
+                'nombre':plan_obj.temporada.nombre,
+                'anio':plan_obj.anio
+                }
+            # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
+            # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
+            # a si mismo
+            item = itemplan_obj.item
+            lista_hijos = []
+            lista_hijos.append(item)
+            for hijo in item.get_hijos():
+                lista_hijos.append(hijo)
+
+            # Se verifica que el item recibido exista
+            if bool(itemplan_obj):
+
+                proyeccion = OrderedDict()
+                total_vta_u = 0
+                total_costo = 0
+                costo_unitario = 0
+
+                # Se busca el periodo inferior y superior de la temporada a proyectar
+                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[0] 
+                limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[1]
+
+                # Se buscan las temporadas de los items a proyectar.
+                # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
+                # mas de una temporada.
+                temporadas = Temporada.objects.all().values('nombre','id'
+                    ).order_by('-planificable','nombre').distinct()
+                
+                # Lista de los X periodos a considerar en la proyeccion
+                periodos = Periodo.objects.filter(
+                    Q(tiempo__anio=limite_sup['anio'],nombre__lte=limite_sup['periodo__nombre']) | 
+                    Q(tiempo__anio=limite_inf['anio'],nombre__gte=limite_inf['periodo__nombre'])
+                    ).order_by('tiempo__anio','nombre').values('tiempo__anio','nombre').distinct()
+                
+                # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
+                # Esto se utiliza en la vista para "pintar" de un color diferente los periodos de la temporada que esta siendo planificada
+                for periodo in periodos:
+                    if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
+                        periodo['temporada'] = True
+                    else:
+                        periodo['temporada'] = False
+
+                # Se llena el diccionario proyeccion, temporada->periodo->venta
+                for temporada in temporadas:
+                    proyeccion[temporada['nombre']] = OrderedDict()
+                    for periodo in periodos:
+                        ventas = Ventaperiodo.objects.filter(
+                            item__in=lista_hijos,
+                            anio=periodo['tiempo__anio'],
+                            periodo=periodo['nombre'],
+                            temporada__nombre=temporada['nombre']
+                            ).values('anio','periodo','temporada').annotate(
+                            vta_n=Sum('vta_n'),vta_u=Sum('vta_u'),
+                            ctb_n=Sum('ctb_n'),costo=Sum('costo'),
+                            margen=Avg('margen'), tipo=Min('tipo')
+                            ).order_by('anio','periodo','temporada')
+                        # Se revisa si existe una venta asociada a la temporada y periodo en curso
+                        if ventas.exists():
+                            if ventas.count() > 1:
+                                print "MAS DE UNA VENTA!!!!"
+                            # Se agregan algunos calculos a las ventas
+                            for venta in ventas:
+                                if venta['vta_u'] != 0:
+                                    total_vta_u += venta['vta_u']
+                                    total_costo += venta['costo']
+                                    venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
+                                    costo_unitario = float(venta['costo'] / venta['vta_u'])
+                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.item.precio)), 4)
+
+                                else:
+                                    venta['precio_real'] = 0
+                                    venta['dcto'] = 0                                
+                                venta['vta_u'] = round(float(venta['vta_u']),0)
+                                venta['vta_n'] = round(float(venta['vta_n']),0)
+                                venta['ctb_n'] = round(float(venta['ctb_n']),0)
+                                venta['costo'] = round(float(venta['costo']),0)
+                                if venta['ctb_n'] != 0:
+                                    venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']),4)
+                                else:
+                                    venta['margen'] = 0
+                                if plan_obj.temporada.comprobar_periodo(venta['periodo']):
+                                    venta['tipo'] = 0
+                            # Se guarda la venta en el diccionario proyeccion
+                            proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
+                        else:
+                            # Si no existe venta, se llena el gap con una venta vacia
+                            venta_gap = {
+                                    'anio':periodo['tiempo__anio'],
+                                    'tipo':1,
+                                    'vta_n':Decimal('0.000'),
+                                    'ctb_n':Decimal('0.000'),
+                                    'costo':Decimal('0.000'),
+                                    'vta_u':Decimal('0.000'),
+                                    'temporada':temporada['id'],
+                                    'periodo':periodo['nombre'],
+                                    'margen':Decimal('0.000'),
+                                    'precio_real':Decimal('0.000'),
+                                    'dcto':Decimal('0.000')
+                                }
+                            if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
+                                venta_gap['tipo'] = 0
+                            proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
+                # Se previenen errores provocados por dividir por cero
+                if total_vta_u > 0:
+                    costo_unitario = round(float(total_costo / total_vta_u),0)
+                itemplan_json = {}
+                itemplan_json['id_item'] = itemplan_obj.item.id
+                itemplan_json['id_itemplan'] = itemplan_obj.id
+                itemplan_json['nombre'] = itemplan_obj.nombre
+                itemplan_json['precio'] = itemplan_obj.item.precio
+                itemplan_json['costo_unitario'] = costo_unitario
+
+                resumen['itemplan'] = itemplan_json
+                resumen['temporadas'] = list(temporadas)
+                resumen['temporada_vigente'] = temporada_vigente
+                resumen['periodos'] = list(periodos)
+                resumen['ventas'] = proyeccion
+                data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+
+            else:
+                data = {}
+            return HttpResponse(data, mimetype='application/json')
+        #return HttpResponseRedirect(reverse('planes:plan_list'))

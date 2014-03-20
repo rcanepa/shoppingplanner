@@ -2,15 +2,17 @@
     <ul>
         <li><a href="{% url 'home' %}">INICIO</a></li>
         {% if admin %}
-		<li><a href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
+		  <li><a href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
 		{% endif %}
         <li class="pure-menu-selected"><a href="{% url 'planes:plan_list' %}">PLANIFICAR TEMPORADA</a></li>
         {% if plan.id %}
-        <li><a href="{% url 'planes:plan_tree_detail' plan.id %}">| ARBOL DE PLANIFICACI&Oacute;N |</a></li>
-        <li><a href="{% url 'planes:plan_proyecciones_detail' plan.id %}">| PROYECTAR VENTAS |</a></li>
-        <li><a href="{% url 'planes:plan_planificacion_detail' plan.id %}">| PLANIFICAR VENTAS |</a></li>
-		<li><a href="{% url 'planes:resumen_plan_detail' plan.id %}">| RESUMEN PLANIFICACI&Oacute;N |</a></li>
-        <li><a href="#">| COMPRAS SALDOS Y AVANCES |</a></li>
-        {% endif %}
+            <li><a id="plan_tree_detail" href="{% url 'planes:plan_tree_detail' plan.id %}">| ARBOL DE PLANIFICACI&Oacute;N |</a></li>
+            {% if plan.estado != 0 %}
+                <li><a id="plan_proyecciones_detail" href="{% url 'planes:plan_proyecciones_detail' plan.id %}">| PROYECTAR VENTAS |</a></li>
+                <li><a id="plan_planificacion_detail" href="{% url 'planes:plan_planificacion_detail' plan.id %}">| PLANIFICAR VENTAS |</a></li>
+                <li><a id="resumen_plan_detail" href="{% url 'planes:resumen_plan_detail' plan.id %}">| RESUMEN PLANIFICACI&Oacute;N |</a></li>
+                <li><a id="plan_saldosavances_detail" href="{% url 'planes:plan_saldosavances_detail' plan.id %}">| SALDOS Y AVANCES |</a></li>
+            {% endif %}
+        {% endif %} 
     </ul>
 </div>
