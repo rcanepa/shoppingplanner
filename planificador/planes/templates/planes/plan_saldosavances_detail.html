@@ -100,7 +100,7 @@
                 <div style="float:left; width:100%;">
                 </div>
                 <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
-                    <input id="input_json_data" type="hidden" name="proyeccion" value="" />
+                    <input id="input_json_data" type="hidden" name="planificacion" value="" />
                 </div>
             </form>
             <div id="dialog-box" title="Planificación" style="text-align:center;">
@@ -238,7 +238,7 @@ $(function() {
 
         // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
         // los datos que se guardaron de la ultima planificacion
-        var id_item_comparativo = -1;
+        /*var id_item_comparativo = -1;
 
         $("[id^=combo_cat_comp_]").each(function(index){
             if ( $(this).val() != -1 ){
@@ -246,7 +246,7 @@ $(function() {
             }
         });
         if ( id_item_comparativo != -1 )
-            buscarTablaComparacionAJAX_par(id_item_comparativo);
+            buscarTablaComparacionAJAX_par(id_item_comparativo);*/
     };
 
     /*
@@ -267,7 +267,7 @@ $(function() {
 
         $.ajax({
             data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
-            url: '/planes/plan/savestage2/',
+            url: '/planes/plan/guardar-saldos-avances/',
             type: 'post',
             
         }).done(saveAJAXDone);
@@ -371,8 +371,8 @@ $(function() {
                 
             }
         });
-        /*if ( $("#panel-acciones").hasClass("pure-menu-disabled") )
-            $("#panel-acciones").removeClass("pure-menu-disabled");*/
+        if ( $("#panel-acciones").hasClass("pure-menu-disabled") )
+            $("#panel-acciones").removeClass("pure-menu-disabled");
     }
 
     /*
@@ -405,7 +405,7 @@ $(function() {
 
     $( "#dialog-box" ).dialog({
         autoOpen: false,
-        //height: 300,
+        height: 180,
         width: 220,
         modal: true,
         buttons: {
@@ -422,7 +422,6 @@ $(function() {
                 var texto = "";
                 parametros = td.attr( "id" ).split("_");
                 valor = $( "#inputval" ).val().replace('%','').replace(',','.');
-                console.log(valor);
 
                 // Se revisa si el cambio corresponde a unidades o a un % de descuento
                 if ( parametros[0] == "unidades" ) {
@@ -488,6 +487,7 @@ $(function() {
         else
             $("#dialog_help_msg").text("Ingresar porcentaje (0%-100%):");
         $( "#dialog-box" ).dialog( "open" );
+        $( "#dialog-box input[type=text]" ).select();
     }
     
     function tablaDctoUni(data){
@@ -527,7 +527,7 @@ $(function() {
             html += "<td title=\"Unidades vendidas.\" style=\"width:16%;\">Unidades</td>";
             $.each(ventas, function(periodo, venta) {
                 if(venta.tipo != 0)
-                    html += "<td id=\"unidades_" + venta.periodo + "_" + temporada + "\" class=\"par unidades editable estado" + venta.tipo + "\">" + numeral(venta.vta_u).format('0,0') + "</td>";
+                    html += "<td id=\"unidades_" + venta.periodo + "_" + temporada + "\" class=\"par unidades editable plan\">" + numeral(venta.vta_u).format('0,0') + "</td>";
                 else
                     html += "<td class=\"par unidades\">" + numeral(venta.vta_u).format('0,0') + "</td>";
 
@@ -539,7 +539,7 @@ $(function() {
             html += "<td title=\"Descuento sobre el precio blanco.\" style=\"width:16%;\">Descuento %</td>";
             $.each(ventas, function(periodo, venta) {
                 if(venta.tipo != 0)
-                    html += "<td id=\"descuentos_" + venta.periodo + "_" + temporada + "\" class=\"par descuentos editable estado" + venta.tipo + "\">" + numeral(venta.dcto).format('0.00%') + "</td>";
+                    html += "<td id=\"descuentos_" + venta.periodo + "_" + temporada + "\" class=\"par descuentos editable plan\">" + numeral(venta.dcto).format('0.00%') + "</td>";
                 else
                     html += "<td class=\"par descuentos\">" + numeral(venta.dcto).format('0.00%') + "</td>";
             });
@@ -834,7 +834,7 @@ $(function() {
         buscarTablaComparacionAJAX_par(id_item);
     });
     $("[id^=combo_cat_proy_]").change(buscarCategoriaPlanificacion);
-    $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
+    //$("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
 
 });
 

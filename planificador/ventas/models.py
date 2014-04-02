@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from categorias.models import Item
 from calendarios.models import Tiempo, Periodo
 from organizaciones.models import Organizacion
 from django.core.urlresolvers import reverse
@@ -8,7 +7,7 @@ from datetime import datetime, date, time
 
 
 class Venta(models.Model):
-	item = models.ForeignKey(Item)
+	item = models.ForeignKey('categorias.Item')
 	tiempo = models.ForeignKey(Tiempo)
 	vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
 	ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
@@ -22,7 +21,7 @@ class Venta(models.Model):
 
 
 class Ventaperiodo(models.Model):
-	item = models.ForeignKey(Item)
+	item = models.ForeignKey('categorias.Item')
 	periodo = models.CharField(max_length=20)
 	anio = models.PositiveSmallIntegerField(verbose_name="año")
 	"""

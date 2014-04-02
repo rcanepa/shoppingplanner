@@ -851,6 +851,7 @@ $(function() {
         else
             $("#dialog_help_msg").text("Ingresar costo unitario:");
         $( "#dialog-box" ).dialog( "open" );
+        $( "#dialog-box input[type=text]" ).select();
     }
     
     function tablaDctoUni(data){
@@ -1553,7 +1554,7 @@ $(function() {
             html += "<td title=\"Unidades vendidas.\" style=\"width:16%;\">Unidades</td>";
             $.each(ventas, function(periodo, venta) {
                 if(venta.tipo != 0)
-                    html += "<td id=\"unidades_" + venta.periodo + "_" + temporada + "\" class=\"par unidades editable estado" + venta.tipo + "\">" + numeral(venta.vta_u).format('0,0') + "</td>";
+                    html += "<td id=\"unidades_" + venta.periodo + "_" + temporada + "\" class=\"par unidades editable plan\">" + numeral(venta.vta_u).format('0,0') + "</td>";
                 else
                     html += "<td class=\"par unidades\">" + numeral(venta.vta_u).format('0,0') + "</td>";
 
@@ -1565,7 +1566,7 @@ $(function() {
             html += "<td title=\"Descuento sobre el precio blanco.\" style=\"width:16%;\">Descuento %</td>";
             $.each(ventas, function(periodo, venta) {
                 if(venta.tipo != 0)
-                    html += "<td id=\"descuentos_" + venta.periodo + "_" + temporada + "\" class=\"par descuentos editable estado" + venta.tipo + "\">" + numeral(venta.dcto).format('0.00%') + "</td>";
+                    html += "<td id=\"descuentos_" + venta.periodo + "_" + temporada + "\" class=\"par descuentos editable plan\">" + numeral(venta.dcto).format('0.00%') + "</td>";
                 else
                     html += "<td class=\"par descuentos\">" + numeral(venta.dcto).format('0.00%') + "</td>";
             });
@@ -1672,6 +1673,7 @@ $(function() {
         else
             $("#dialog_proy_help_msg").text("Ingresar porcentaje (0%-100%):");
         $( "#dialog-box-proyeccion" ).dialog( "open" );
+        $( "#dialog-box-proyeccion input[type=text]" ).select();
     }
 
     /*

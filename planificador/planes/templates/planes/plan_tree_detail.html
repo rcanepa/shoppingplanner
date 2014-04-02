@@ -42,7 +42,7 @@
 {% block content %}
 <h3>Arbol de Planificaci&oacute;n</h3>
 <div style="width:100%; float:left">
-    {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"></span>
+    {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"><p>Items Totales: {{ nodos_visibles }} | Items a Planificar: {{ nodos_planificables }}</p></span>
     
 </div>
 <div style="width:62%; float:left">
@@ -76,24 +76,11 @@
     <p class="validateTips">Todos los campos son requeridos.</p>
     <form id="crear_item_form">
         {% csrf_token %}
-        <!--fieldset>
-            <label for="nombre">Nombre</label>
-            <input type="text" name="nombre" id="nombre" class="text ui-widget-content ui-corner-all">
-            <label for="temporada">Temporada</label>
-            <select id="combo_temporada_dialog" class="buscador" name="temporada">
-                    <option value="-1" selected="selected"></option>
-                    {% for temporada in temporadas %}
-                        <option value="{{ temporada.id }}">{{ temporada.nombre }}</option>
-                    {% endfor %}
-                </select>
-            <label for="precio">Precio</label>
-            <input type="text" name="precio" id="precio" value="" class="text ui-widget-content ui-corner-all">
-            <input type="hidden" name="grupo_items" id="grupo_items">
-        </fieldset-->
         <fieldset>
             <label for="nombre">Nombre</label>
             <input type="text" name="nombre" id="nombre" class="text ui-widget-content ui-corner-all">
             <input type="hidden" name="grupo_items" id="grupo_items">
+            <input type="hidden" name="plan_id" id="plan_id" value="{{plan.id}}">
         </fieldset>
     </form>
 </div>
@@ -114,6 +101,14 @@ $(function() {
     var contenedor_plantree = {}; // namespace para variables globales
     contenedor_plantree.tips = $( ".validateTips" );
 
+    // Para que al hacer click en la tecla ENTER, los formularios de los dialogs sean enviados
+    $('body').on('keypress', '.ui-dialog', function(event) { 
+        if (event.keyCode === $.ui.keyCode.ENTER) { 
+            $('.ui-dialog-buttonpane button:first', $(this)).click();
+            return false;
+        }
+    });
+    
     // Controla la aparicion y desaparicion de la imagen animada que indica que hay un proceso
     // en ejecucion
     $( document ).ajaxStart(function() {
@@ -191,9 +186,9 @@ $(function() {
                         url: '/categorias/grupoitem/create/',
                         type: 'post',
                         success: function(data){
-                            //console.log(data);
-                            var nodo_padre = tree.getNodeByKey(data.item_padre_id);
-                            nodo_padre.lazyLoad(true);
+                            // Se busca y recarga el nodo padre para actualizar los cambios en el arbol
+                            var nodo_padre = tree.getNodeByKey(String(data.item_padre_id));
+                            nodo_padre.load(true);
                             // Se despliega un mensaje informando lo ocurrido
                             $("#barra_notificaciones")
                                 .html(data.msg)
@@ -256,7 +251,11 @@ $(function() {
     $("#itemstree").fancytree({
         selectMode: 2,
         checkbox: true,
-        lazyload: function(e, data){
+        source: {
+            url: "{% url 'planes:plan_buscar_estructura_arbol' %}",
+            data: {id_plan: parseInt({{plan.id}})}
+        },
+        lazyLoad: function(e, data){
         // return a source in 'data.result'
             data.result = {
             url: "{% url 'categorias:item_nodesearch' %}",
@@ -422,7 +421,6 @@ $(function() {
         });
     }
 
-    definirVisibles();
     $("#btnAgrupar").click(crearGrupoitem);
 });
 

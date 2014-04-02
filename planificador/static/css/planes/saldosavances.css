@@ -71,20 +71,6 @@
 	color: #666699;	
 }
 
-.datagrid td.par.estado1
-{
-	width: 7%;
-	background: #FFFFB7;
-	color: #666699;
-}
-
-.datagrid td.par.estado3
-{
-	width: 7%;
-	background: #FFFFB7;
-	color: #666699;
-}
-
 .datagrid tbody tr.totales
 {
 	border-top: 2px solid #6678b1;

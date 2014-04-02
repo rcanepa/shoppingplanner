@@ -3,14 +3,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum, Max, Min, Avg
-
-from datetime import datetime
-
+from django.utils import simplejson
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
-
+from datetime import datetime
 
 class Temporada(models.Model):
     nombre = models.CharField(max_length=50)
@@ -137,6 +135,59 @@ class Plan(models.Model):
             'anio')
         return estadisticas
 
+    def obtener_arbol(self, user):
+        # Se obtiene la lista de items sobre los cuales el usuario es resposanble (las distintas raices que pueda tener su arbol)
+        items_responsable = Item.objects.filter(usuario_responsable=user)
+        # Se busca el itemplan asociado a cada raiz
+        itemplan_raices = Itemplan.objects.filter(plan=self, item__in=items_responsable)
+        # Si existen itemplan asociados al plan, entonces el arbol ha sido definido y debe ser cargado inicialmente
+        if bool(itemplan_raices):
+            arbol_json = "[";
+            for itemplan in itemplan_raices:
+                for branch, obj in itemplan.as_tree():
+                    if obj:
+                        if obj.item.categoria.planificable:
+                            extraClasses = "\"extraClasses\":\"planificable\","
+                        else:
+                            extraClasses = ""
+                        if branch:
+                            if obj.item.precio != 0:
+                                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
+                            else:
+                                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
+                        else:
+                            if obj.item.precio != 0:
+                                if bool(obj.item.get_children()):
+                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\" }"
+                                else:
+                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"key\":\"" + str(obj.item.id) + "\" }"
+                            else:
+                                if bool(obj.item.get_children()):
+                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\" }"
+                                else:
+                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"key\":\"" + str(obj.item.id) + "\" }"
+                    else:
+                        if branch:
+                            arbol_json = arbol_json[:-1]
+                            arbol_json += "]},"
+                        else:
+                            arbol_json += ","
+
+            arbol_json = arbol_json[:-1] # Se quita una ultima coma que esta demas
+            arbol_json += "]"
+        # En caso de que no existan itemplan asociados al plan, entonces el arbol no ha sido definido y solo se debe cargar el primer nodo
+        else:
+            arbol_json = "[";
+            for obj in items_responsable:
+                if obj.categoria.planificable:
+                    extraClasses = "\"extraClasses\":\"planificable\","
+                else:
+                    extraClasses = ""
+                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.id) + "\" },"
+            arbol_json = arbol_json[:-1]
+            arbol_json += "]"
+        return arbol_json
+        
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)
 
@@ -157,18 +208,39 @@ class Itemplan(models.Model):
     item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan, related_name='item_planificados')
 
+    def get_children(self):
+        """
+        Devuelve la lista de itemplan hijos del itemplan. Se utiliza para recorrer en forma inversa
+        la relacion padre-hijo (item_padre).
+        """
+        return self.items_hijos.all()
+
     def as_tree(self):
         """
         Obtiene recursivamente la lista de hijos en forma de arbol
         """
-        children = list(self.items_hijos.all())
-        print bool(children)
+        children = list(self.get_children())
         branch = bool(children)
         yield branch, self
         for child in children:
             for next in child.as_tree():
                 yield next
         yield branch, None
+        
+
+    def obtener_unidades_temporada_vigente(self):
+        """
+        """
+        item_obj = self.item
+        venta = Ventaperiodo.objects.filter(
+            item=self.item,
+            anio=self.plan.anio,
+            periodo__in=self.plan.temporada.periodo.all(),
+            tipo=2).values(
+            'item__nombre').annotate(
+            vta_u=Sum('vta_u'),
+            costo=Sum('costo'))
+        return venta
 
     def __unicode__(self):
         return self.item.nombre

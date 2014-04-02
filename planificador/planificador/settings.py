@@ -64,7 +64,8 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'static/')
+#STATIC_ROOT = os.path.join(PROJECT_DIR, 'static/')
+STATIC_ROOT = os.path.join(TEMP_PATH, 'static')
 #STATIC_ROOT = ''
 
 # URL prefix for static files.
@@ -75,7 +76,7 @@ STATIC_URL = '/static/'
 #STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'static'),)
 STATICFILES_DIRS = (
     #('assets', '/home/rcanepa/Development/planificador/mplanning/static'),
-    ('assets', os.path.join(PROJECT_DIR, 'static')),
+    os.path.join(PROJECT_DIR, 'static'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -179,7 +180,7 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': True,
         },
     }

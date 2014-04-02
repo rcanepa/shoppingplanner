@@ -11,19 +11,26 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Q, Sum, Avg, Max, Min
+from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import View, TemplateView, ListView, DetailView
 from braces.views import LoginRequiredMixin, GroupRequiredMixin
+from xlsxwriter.workbook import Workbook
 from .models import Plan, Itemplan, Temporada
 from ventas.models import Venta, Ventaperiodo, Controlventa
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Categoria, Item
 from forms import PlanForm, TemporadaForm
-from planificador.views import UserInfoMixin
+from planificador.views import UserInfoMixin, CSVResponseMixin
 import json
 import pprint
+
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 
 class TemporadaListView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -134,22 +141,29 @@ class PlanTreeDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(PlanTreeDetailView, self).get_context_data(**kwargs)
-        if context['plan'].estado == 0:
-            # El arbol no ha sido generado, por lo tanto, se presenta la estructura completa cerrada
-            context['items'] = Item.objects.filter(usuario_responsable=self.request.user)
-            context['temporadas'] = Temporada.objects.all()
-        else:
-            """
-            El arbol se debe generar abierto segun la planificacion
-            El problema radica en como asignar el itemplan padre correctamente ya que los IDs de Item
-            no son los mismos que los IDS de itemplan
-            """
-            context['items'] = Item.objects.filter(usuario_responsable=self.request.user)
-            context['temporadas'] = Temporada.objects.all()
+        # Se incorporan datos estadisticos a la vista
+        context['nodos_visibles'] = Itemplan.objects.filter(plan=context['plan'].id).count()
+        context['nodos_planificables'] = Itemplan.objects.filter(plan=context['plan'].id, planificable=True).count()
         return context
 
 
-class GuardarArbolView(UserInfoMixin, View):
+class BuscarEstructuraArbolView(LoginRequiredMixin, View):
+    """
+    """
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            data = {}
+            id_plan = request.GET['id_plan']
+            # Manejar error en caso de que no se encuentre el plan
+            try:
+                plan_obj = Plan.objects.get(pk=id_plan)
+            except ObjectDoesNotExist:
+                return HttpResponse(json.dumps(data), mimetype='application/json')
+            data = plan_obj.obtener_arbol(self.request.user)
+            return HttpResponse(data, mimetype='application/json')
+
+
+class GuardarArbolView(LoginRequiredMixin, View):
     '''
     Vista que revise como parametros el plan y un arreglo de ID con todos los
     items que deben ser planificados. 
@@ -172,7 +186,25 @@ class GuardarArbolView(UserInfoMixin, View):
                     itemplan_obj.planificable = True
             plan_obj.estado = 1
             plan_obj.save()
+            
+            # Se guardar los itemplan que componen el arbol de planificacion
             Itemplan.objects.bulk_create(itemplan_obj_arr)
+
+            # A continuacion se deben actualizar el campo item_padre, el cual tiene el ID del itemplan padre de
+            # cada uno de los itemplan del arbol. Es un proceso posterior, ya que se requiere que cada itemplan
+            # tenga ID, es decir, haya sido almacenado anteriormente en la base de datos
+            
+            # Se genera nuevamente la lista con los itemplan creados a nivel de BD, es decir, ahora tienen ID
+            itemplan_obj_arr = Itemplan.objects.filter(plan=plan_obj)
+            for itemplan_obj in itemplan_obj_arr:
+                item_padre = itemplan_obj.item.item_padre
+                try:
+                    itemplan_padre = Itemplan.objects.get(plan=plan_obj,item=item_padre)
+                except ObjectDoesNotExist:
+                    itemplan_padre = None
+                itemplan_obj.item_padre = itemplan_padre
+                # Se guarda la asignacion del itemplan padre
+                itemplan_obj.save()
 
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
@@ -1439,7 +1471,7 @@ class SaldosAvancesView(LoginRequiredMixin, UserInfoMixin, DetailView):
         return context
 
 
-class BuscarVentaSaldosAvancesView(View):
+class BuscarSaldosAvancesView(LoginRequiredMixin, View):
     '''
     Recibe un itemplan y un plan, y busca toda la informacion comercial de los 3 meses anteriores y posteriores
     a la temporada que se esta planificando
@@ -1493,7 +1525,7 @@ class BuscarVentaSaldosAvancesView(View):
                 temporadas = Temporada.objects.all().values('nombre','id'
                     ).order_by('-planificable','nombre').distinct()
                 
-                # Lista de los X periodos a considerar en la proyeccion
+                # Lista de los X periodos a considerar en la planificacion de saldos y avances
                 periodos = Periodo.objects.filter(
                     Q(tiempo__anio=limite_sup['anio'],nombre__lte=limite_sup['periodo__nombre']) | 
                     Q(tiempo__anio=limite_inf['anio'],nombre__gte=limite_inf['periodo__nombre'])
@@ -1568,14 +1600,16 @@ class BuscarVentaSaldosAvancesView(View):
                                 venta_gap['tipo'] = 0
                             proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
                 # Se previenen errores provocados por dividir por cero
-                if total_vta_u > 0:
-                    costo_unitario = round(float(total_costo / total_vta_u),0)
+                #if total_vta_u > 0:
+                    #costo_unitario = round(float(total_costo / total_vta_u),0)
                 itemplan_json = {}
                 itemplan_json['id_item'] = itemplan_obj.item.id
                 itemplan_json['id_itemplan'] = itemplan_obj.id
                 itemplan_json['nombre'] = itemplan_obj.nombre
                 itemplan_json['precio'] = itemplan_obj.item.precio
-                itemplan_json['costo_unitario'] = costo_unitario
+                #itemplan_json['costo_unitario'] = costo_unitario
+                itemplan_json['costo_unitario'] = itemplan_obj.item.calcularCostoUnitario()
+                print itemplan_obj.item.calcularCostoUnitario()
 
                 resumen['itemplan'] = itemplan_json
                 resumen['temporadas'] = list(temporadas)
@@ -1588,3 +1622,107 @@ class BuscarVentaSaldosAvancesView(View):
                 data = {}
             return HttpResponse(data, mimetype='application/json')
         #return HttpResponseRedirect(reverse('planes:plan_list'))
+
+
+class GuardarSaldosAvancesView(LoginRequiredMixin, View):
+    """
+    Guarda la planificacion de avances y saldos asociada al item recibido como pararametro.
+    """
+    def get(self, request, *args, **kwargs):
+        return HttpResponseRedirect(reverse('planes:plan_list'))
+
+    def post(self, request, *args, **kwargs):
+        if request.POST:
+            data = json.loads(request.POST['planificacion'])
+            plan_obj = Plan.objects.get(pk=data['plan'])
+            itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
+            
+            # Se revisa si la categoria del item que esta siendo planificado tiene hijos (si pertenece a una categoria hoja o no), 
+            # en caso de tener hijos, se imputa la planificacion al primero de ellos
+            if itemplan_obj.item.categoria.get_children():
+                item_planificado = itemplan_obj.item.get_children()[0]
+            else:
+                item_planificado = itemplan_obj.item
+
+            # Se itera por cada temporada, periodo del objeto de la planificación
+            for temporada, periodos in data['ventas'].iteritems():
+                temporada_obj = Temporada.objects.get(nombre=temporada)
+                # Se itera por cada venta de cada periodo
+                for periodo, venta in periodos.iteritems():
+                    # Se seleccionan las ventas que no son reales (planificadas o por planificar)
+                    if venta['tipo'] == 3:
+                        defaults = {
+                            'tipo': 2, # Tipo = 2 -> Planificada
+                            'vta_n': venta['vta_n'],
+                            'ctb_n': venta['ctb_n'],
+                            'costo': venta['costo'],
+                            'vta_u': venta['vta_u'],
+                            'stk_u': Decimal('0.000'),
+                            'stk_v': Decimal('0.000'),
+                            'margen': venta['margen']
+                        }
+                        obj, created = Ventaperiodo.objects.get_or_create(
+                            item=item_planificado,
+                            anio=venta['anio'],
+                            periodo=venta['periodo'],
+                            temporada=temporada_obj, 
+                            defaults=defaults)
+                        if created == False:
+                            obj.vta_n = venta['vta_n']
+                            obj.vta_u = venta['vta_u']
+                            obj.ctb_n = venta['ctb_n']
+                            obj.dcto = float(venta['dcto']) 
+                            obj.margen = float(venta['margen'])
+                            obj.costo = float(venta['costo'])
+                            if venta['vta_n'] != 0:
+                                # Tipo = 2 -> Planificado
+                                obj.tipo = 2
+                            obj.save()
+
+            # Estado = 0 -> Pendiente
+            # Estado = 1 -> Proyectado
+            # Estado = 2 -> Planificado
+            itemplan_obj.estado = 2
+            itemplan_obj.save()
+        data = {'msg':"Planificación guardada."}
+        return HttpResponse(json.dumps(data), mimetype='application/json')
+
+
+def ExportarExcelView(request, pk=None):
+    """
+    """
+
+    plan_obj = get_object_or_404(Plan, pk=pk)
+    nombre_archivo = 'planificacion_' + plan_obj.temporada.nombre + '_' + str(plan_obj.anio) + '.xlsx'
+    
+    # create a workbook in memory
+    output = StringIO.StringIO()
+
+    book = Workbook(output)
+    sheet = book.add_worksheet('Planificacion')      
+
+    # Escribir la cabecera del archivo
+    cabecera = ['Item', 'Unidades Temporada Vigente', 'Unidades Avance', 'Unidades Saldo', 'Unidades Totales', 'Costo Unitario', 'Costo Total']
+    for ccol, ccol_data in enumerate(cabecera):
+        sheet.write(0, ccol, ccol_data) 
+
+    itemplan_arr = plan_obj.item_planificados.filter(planificable=True)
+
+    for fila, itemplan in enumerate(itemplan_arr):
+        sheet.write(fila+1, 0, itemplan.id)
+        sheet.write(fila+1, 1, itemplan.nombre)
+        # unidades temporada vigente
+        # unidades temporada avances
+        # unidades temporada saldos
+        # unidades temporada totales
+        # costo unitario
+        # costo total
+
+    book.close()
+
+    # construct response
+    output.seek(0)
+    response = HttpResponse(output.read(), mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response['Content-Disposition'] = "attachment; filename=" + nombre_archivo
+
+    return response

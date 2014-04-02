@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from datetime import datetime, date, time
 from organizaciones.models import Organizacion
+from ventas.models import Ventaperiodo
 
 
 """
@@ -190,6 +191,22 @@ class Item(models.Model):
     def get_precio_promedio(self):
         return self.precio
 
+
+    def calcularCostoUnitario(self):
+        """
+            Devuelve el costo unitario de un item en base a la ultima venta real registrada
+        """
+        venta = Ventaperiodo.objects.filter(
+                            item=self,
+                            tipo=0
+                            ).exclude(vta_u=0
+                            ).values('item','vta_u','costo'
+                            ).order_by('-anio','-periodo')
+        if venta:
+            return round(float(venta[0]['costo'] / venta[0]['vta_u']),0)
+        else:
+            return 0 
+        
 
 """
 Modelo Grupoitem

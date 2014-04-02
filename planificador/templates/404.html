@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block username %}
+Bienvenido {{ full_name }} !
+{% endblock %}
+
+{% block content %}
+
+<h2>P&aacute;gina no encontrada.</h2>
+
+<p>Lo sentimos, la p&aacute;gina solicitada no ha sido encontrada, por favor int&eacute;ntelo nuevamente.</p>
+
+<button onclick="window.history.back();">Volver</button>
+
+{% endblock %}

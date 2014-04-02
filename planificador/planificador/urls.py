@@ -1,21 +1,14 @@
 from django.conf.urls import patterns, include, url
-from planificador import views
+from django.views.generic.base import TemplateView
+from planificador import views, settings
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'planificador.views.home', name='home'),
-    # url(r'^planificador/', include('planificador.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-    
+        
     url(r'^accounts/login/$', 'planificador.views.login'),
     url(r'^accounts/auth/$', 'planificador.views.auth_view'),
     url(r'^accounts/logout/$', 'planificador.views.logout', name='user_logout'),
@@ -33,3 +26,11 @@ urlpatterns = patterns('',
     url(r'^calendarios/',  include('calendarios.urls', namespace="calendarios")),
     url(r'^ventas/',  include('ventas.urls', namespace="ventas")),
 )
+
+# Configuracion para templates genericos de codigos de error
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^500/$', TemplateView.as_view(template_name="404.html")),
+        (r'^404/$', TemplateView.as_view(template_name="404.html")),
+        (r'^403/$', TemplateView.as_view(template_name="404.html")),
+    )

@@ -19,6 +19,7 @@ urlpatterns = patterns('',
     # Vistas relacionadas a la seleccion del arbol de planificacion
     url(r'^plan/arbol-planificacion/(?P<pk>\d+)/$', views.PlanTreeDetailView.as_view(), name='plan_tree_detail'),
     url(r'^plan/savestage1/$', views.GuardarArbolView.as_view()),
+    url(r'^plan/buscar-estructura-arbol/$', views.BuscarEstructuraArbolView.as_view(), name='plan_buscar_estructura_arbol'),
 
     # Vistas relacionadas a las proyecciones
     url(r'^plan/proyeccion/(?P<pk>\d+)/$', views.ProyeccionesView.as_view(), name='plan_proyecciones_detail'),
@@ -29,9 +30,6 @@ urlpatterns = patterns('',
     url(r'^plan/categoriacompsearchlist/$', views.BuscarCategoriaListCompProyeccionView.as_view()),
     url(r'^plan/proystats/$', views.BuscarStatsProyeccionView.as_view()),
     
-    # Para testing
-    #url(r'^plan/test_ventas/$', views.BuscarStatsProyeccionView.as_view()),
-
     # Vistas relacionadas a la planificacion
     url(r'^plan/planificacion/(?P<pk>\d+)/$', views.PlanificacionView.as_view(), name='plan_planificacion_detail'),
     url(r'^plan/savestage3/$', views.GuardarPlanificacionView.as_view()),
@@ -45,5 +43,8 @@ urlpatterns = patterns('',
 
     # Vistas relacionadas a la planificacion de saldos y avances
     url(r'^plan/saldos-avances/(?P<pk>\d+)/$', views.SaldosAvancesView.as_view(), name='plan_saldosavances_detail'),
-    url(r'^plan/buscar-saldos-avances/$', views.BuscarVentaSaldosAvancesView.as_view()),
+    url(r'^plan/buscar-saldos-avances/$', views.BuscarSaldosAvancesView.as_view()),
+    url(r'^plan/guardar-saldos-avances/$', views.GuardarSaldosAvancesView.as_view()),
+
+    url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarExcelView', name='plan_exportar_excel_detail'),
 )

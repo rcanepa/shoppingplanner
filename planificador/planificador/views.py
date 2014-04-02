@@ -7,10 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.views.generic import View, TemplateView, ListView, DetailView
 from django.utils.decorators import method_decorator
+from django.utils.text import slugify
 from django.core.urlresolvers import reverse
 from userprofile.forms import RegistrationForm
 from django.contrib.auth.models import User
 from userprofile.models import UserProfile
+import csv
 import json
 
 
@@ -47,6 +49,33 @@ class JSONResponseMixin(object):
         # objects -- such as Django model instances or querysets
         # -- can be serialized as JSON.
         return json.dumps(context)
+
+
+class CSVResponseMixin(object):
+    """
+    A generic mixin that constructs a CSV response from the context data if
+    the CSV export option was provided in the request.
+    """
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Creates a CSV response if requested, otherwise returns the default
+        template response.
+        """
+        # Sniff if we need to return a CSV export
+        #if 'csv' in self.request.GET.get('export', ''):
+        response = HttpResponse(content_type='text/csv')
+        #response['Content-Disposition'] = 'attachment; filename="%s.csv"' % slugify(context['title'])
+        response['Content-Disposition'] = 'attachment; filename="planificacion.csv"'
+
+        writer = csv.writer(response)
+        # Write the data from the context somehow
+        for item in context['items']:
+            writer.writerow(item)
+
+        return response
+        # Business as usual otherwise
+        #else:
+        #    return super(CSVResponseMixin, self).render_to_response(context, **response_kwargs)
 
 
 def login(request):

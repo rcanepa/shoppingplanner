@@ -12,7 +12,7 @@ from django.views.generic import (View, CreateView, UpdateView,
 from braces.views import LoginRequiredMixin, GroupRequiredMixin
 from .models import Categoria, Item, Grupoitem
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
-from planes.models import Temporada
+from planes.models import Plan, Temporada, Itemplan
 from planificador.views import UserInfoMixin
 from ventas.models import Venta, Ventaperiodo
 
@@ -222,13 +222,25 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
     '''
 
     def post(self, request, *args, **kwargs):
+        """
+        Flujo del proceso:
+            1.- Se marcan los items agrupados como NO vigentes (vigencia=False)
+            2.- Se crea y almacena el nuevo item utilizando las caracteristicas de los items agrupados
+            3.- Se crean los registros grupoitem que mantienen la relacion entre los items agrupados y el nuevo item 
+            4.- Se crean los registros de ventaperiodo asociados al nuevo item. Basicamente se copia la informacion de ventaperiodo
+                de los items agrupados y se imputan al nuevo item. No se borra informacion de ventaperiodo de los items agrupados
+            5.- Se eliminan todos los itemplan que puedan existir asociados a los items agrupados y se crea uno nuevo para el nuevo item (agrupado)
+        """
         if request.POST:
             solicitud = request.POST
-            # Se busca la lista de objetos items que seran agrupados
+            # Se busca el plan asociado a la modificacion
+            plan_obj = Plan.objects.get(pk=solicitud['plan_id'])
+
+            # Se busca la lista de objetos items que seran agrupados y se marcan como NO vigentes
             grupo_items = Item.objects.filter(pk__in=[int(x) for x in solicitud['grupo_items'].split(',')])
-            # Se modifica su vigencia para que tome el valor False
+            # Se actualiza la vigencia de los items agrupados a False
             for item in grupo_items:
-                item.vigencia = False
+                item.vigencia=False
                 item.save()
             # Se crea el nuevo item
             nuevo_item = Item(nombre=solicitud['nombre'].upper(), 
@@ -238,7 +250,6 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                 temporada=grupo_items[0].temporada)
             # Se guarda a la BD el nuevo item
             nuevo_item.save()
-            print nuevo_item.id
             # Se verifica que el nuevo item haya sido creado (que exista su ID)
             if bool(nuevo_item.id):
                 # Se crean los registros de Grupoitem para mantener la historia de la agrupacion
@@ -255,6 +266,16 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                     venta.item = nuevo_item
                     venta_items_list.append(venta)
                 Ventaperiodo.objects.bulk_create(venta_items_list)
+                
+                # A continuacion se gestiona la informacion del modelo itemplan. En definitiva, en caso de existir                 
+                # Se verifica si existen itemplan asociados a los items que fueron agrupados. En caso positivo, estos deben ser eliminados
+                """itemplan_eliminar = Itemplan.objects.filter(item__in=grupo_items, plan=plan_obj)
+                if bool(itemplan_eliminar):
+                    itemplan_eliminar.delete()
+                    itemplan_padre = Itemplan.objects.filter(plan=plan_obj,item=nuevo_item.item_padre)
+                    itemplan_nuevo_agrupado = Itemplan(nombre=nuevo_item.nombre, plan=plan_obj, item=nuevo_item, item_padre=itemplan_padre, planificable=True)
+                    itemplan_nuevo_agrupado.save()"""
+
             data = {}
             data['msg'] = "El grupo ha sido creado exitosamente.";
             data['item_padre_id'] = nuevo_item.item_padre.id
