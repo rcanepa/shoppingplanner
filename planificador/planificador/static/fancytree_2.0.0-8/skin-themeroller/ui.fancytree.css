@@ -1,22 +1,5 @@
 /*
- * Fancytree Win8 styles
-
-Borders have NO radius and NO gradients are used!
-
-both:
-   unselected background: white
-   hover bar (unselected, inactive): #E5F3FB (border: #70C0E7) 'very light blue'
-   active node: #CBE8F6 (border: #26A0DA)  'light blue'
-   active node with hover: wie active node
-
-Tree view:
-   active node, tree inactive: #F7F7F7 (border: #DEDEDE) 'light gray, selected, but tree not active'
-
-List view:
-   selected bar: --> active bar
-   focus  bar: transparent(white) + border 1px solid #3399FF  ()
-
-   table left/right border: #EDEDED 'light gray'
+ * Fancytree for use with ext-themeroller extension.
  */
 .ui-helper-hidden {
 	display: none;
@@ -24,15 +7,17 @@ List view:
 
 .fancytree-container
 {
-	font-family: tahoma, arial, helvetica;
-	font-size: 10pt; /* font size should not be too big */
 	white-space: nowrap;
 	padding: 3px;
 	margin: 0; /* issue 201 */
+	overflow: auto;
+/*	height: 100%; /* issue 263 */
+/*
+	font-family: tahoma, arial, helvetica;
+	font-size: 10pt;
 	background-color: white;
 	border: 1px dotted gray;
-	overflow: auto;
-	height: 100%; /* issue 263 */
+*/
 }
 
 ul.fancytree-container ul
@@ -70,13 +55,12 @@ ul.fancytree-no-connector > li
 }
 
 /* Style, when control is disabled */
+/*
 .ui-fancytree-disabled ul.fancytree-container
 {
 	opacity: 0.5;
-/*	filter: alpha(opacity=50); /* Yields a css warning */
-	background-color: silver;
 }
-
+*/
 
 span.fancytree-node
 {
@@ -100,9 +84,7 @@ span.fancytree-drag-helper-img,
 {
 	width: 16px;
 	height: 16px;
-/*	display: -moz-inline-box; /* @ FF 1+2 removed for issue 221*/
-/*	-moz-box-align: start; /* issue 221 */
-	display: inline-block; /* Required to make a span sizeable */
+	display: inline-block; /* Required to make a span sizable */
 	vertical-align: top;
 	background-repeat: no-repeat;
 	background-position: left;
@@ -310,59 +292,17 @@ span.fancytree-title
 {
 	display: inline-block;
 }
-/* Remove blue color and underline from title links */
-a.fancytree-title
-{
-	text-decoration: none;
-}
-
 .fancytree-title
 {
 	display: inline-block; /* Better alignment, when title contains <br> */
-/*	vertical-align: top;*/
 	padding-left: 3px;
 	padding-right: 3px; /* Otherwise italic font will be outside bounds */
-	/*	line-height: 16px; /* should be the same as img height, in case 16 px */
-	color: black; /* inherit doesn't work on IE */
+/*	color: black; /* inherit doesn't work on IE */
 	vertical-align: top;
 	margin: 0px;
 	margin-left: 3px;
-/*  outline: 0; /* @ Firefox, prevent dotted border after click */
-	/* Set transparent border to prevent jumping when active node gets a border
-	   (we can do this, because this theme doesn't use vertical lines)
-	   */
-/*	border: 1px solid white; /* Note: 'transparent' would not work in IE6 */
 	cursor: pointer;
 }
-span.fancytree-node:hover
-{
-	background-color: #E5F3FB;
-	border-color: #70C0E7;
-}
-.fancytree-container.fancytree-focused span.fancytree-node.fancytree-focused
-{
-	border-color: #3399FF;
-/*	outline: 1px solid #3399FF; */
-}
-span.fancytree-node.fancytree-active,
-span.fancytree-node.fancytree-selected
-{ /* active/selcted nodes inside inactive tree */
-	background-color: #F7F7F7;
-	border-color: #DEDEDE;
-}
-.fancytree-container.fancytree-focused span.fancytree-node.fancytree-active,
-.fancytree-container.fancytree-focused span.fancytree-node.fancytree-selected,
-span.fancytree-node.fancytree-active:hover,
-span.fancytree-node.fancytree-selected:hover
-{
-	background-color: #CBE8F6;
-	border-color: #26A0DA;
-}
-span.fancytree-node.fancytree-selected
-{
-	font-style: italic;
-}
-
 
 /*******************************************************************************
  * 'table' extension
@@ -382,29 +322,6 @@ table.fancytree-ext-table tbody tr td {
 */
 table.fancytree-ext-table {
 	border-collapse: collapse;
-}
-table.fancytree-ext-table tbody tr:hover {
-	background-color: #E5F3FB;
-	outline: 1px solid #70C0E7;
-}
-table.fancytree-ext-table.fancytree-container.fancytree-focused span.fancytree-node.fancytree-focused
-{
-	outline: 1px solid #3399FF;
-}
-table.fancytree-ext-table.fancytree-focused tbody tr.fancytree-focused {
-	outline: 1px solid #26A0DA;
-}
-table.fancytree-ext-table.fancytree-focused tbody tr.fancytree-active,
-table.fancytree-ext-table.fancytree-focused tbody tr.fancytree-selected
-{
-	background-color: #CBE8F6;
-	outline: 1px solid #26A0DA;
-}
-table.fancytree-ext-table tbody tr.fancytree-active,
-table.fancytree-ext-table tbody tr.fancytree-selected
-{
-	background-color: #F7F7F7;
-	outline: 1px solid #DEDEDE;
 }
 
 /*******************************************************************************
@@ -455,10 +372,10 @@ table.fancytree-ext-columnview tbody tr td {
 table.fancytree-ext-columnview span.fancytree-node {
 	position: relative; /* allow positioning of embedded spans*/
 }
+/*
 table.fancytree-ext-columnview span.fancytree-node.fancytree-expanded {
 	background-color: #CBE8F6;
 }
-/*
 table.fancytree-ext-columnview span.fancytree-node.fancytree-active {
 	background-color: royalblue;
 }
@@ -472,15 +389,15 @@ table.fancytree-ext-columnview span.fancytree-cv-right {
 /*******************************************************************************
  * 'filter' extension
  */
-.fancytree-ext-filter span.fancytree-node .fancytree-title {
+.fancytree-ext-filter .fancytree-node .fancytree-title {
 	color: silver;
 	font-weight: lighter;
 }
-.fancytree-ext-filter span.fancytree-node.fancytree-submatch .fancytree-title {
+.fancytree-ext-filter .fancytree-node.fancytree-submatch .fancytree-title {
 	color: black;
 	font-weight: normal;
 }
-.fancytree-ext-filter span.fancytree-node.fancytree-match .fancytree-title {
+.fancytree-ext-filter .fancytree-node.fancytree-match .fancytree-title {
 	color: black;
 	font-weight: bold;
 }
