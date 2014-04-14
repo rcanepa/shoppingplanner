@@ -21,6 +21,10 @@ class Venta(models.Model):
 
 
 class Ventaperiodo(models.Model):
+	"""
+	Este modelo almacena la venta real, proyectada y planificada. Esta resumida por periodos de tiempo. La venta
+	no real (proyectada -> tipo 1, o planificada -> tipo 2) siempre debe estar asociada a una planificacion.
+	"""
 	item = models.ForeignKey('categorias.Item')
 	periodo = models.CharField(max_length=20)
 	anio = models.PositiveSmallIntegerField(verbose_name="año")
@@ -32,6 +36,7 @@ class Ventaperiodo(models.Model):
 	"""
 	tipo = models.PositiveSmallIntegerField(default=0)
 	temporada = models.ForeignKey('planes.Temporada')
+	plan = models.ForeignKey('planes.Plan', null=True)
 	vta_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="venta neta", default=0, blank=True, null=True)
 	ctb_n = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="contribución neta", default=0, blank=True, null=True)
 	costo = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
@@ -45,6 +50,10 @@ class Ventaperiodo(models.Model):
 
 
 class Controlventa(models.Model):
+	"""
+	Se utiliza para determinar la fecha limite de la venta real que fue cargada. Las proyecciones se podran hacer
+	desde esta fecha en adelante, para evitar que los usuarios sobreescriban la venta real.
+	"""
 	anio = models.PositiveSmallIntegerField(verbose_name="año")
 	periodo = models.ForeignKey(Periodo)
 	organizacion = models.ForeignKey(Organizacion)

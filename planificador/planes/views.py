@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 from decimal import Decimal
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse
@@ -292,7 +292,6 @@ class GuardarProyeccionView(UserInfoMixin, View):
                     # Se seleccionan las ventas que no son reales (proyectadas o por proyectar)
                     if venta['tipo'] == 3:
                         defaults = {
-                            'tipo': 1, # Tipo = 1 -> Proyectada
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
                             'costo': venta['costo'],
@@ -302,10 +301,12 @@ class GuardarProyeccionView(UserInfoMixin, View):
                             'margen': venta['margen']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
+                            plan=plan_obj,
                             item=item_proyectado,
                             anio=venta['anio'],
                             periodo=venta['periodo'],
-                            temporada=temporada_obj, 
+                            temporada=temporada_obj,
+                            tipo=1, # Tipo = 1 -> Proyectada
                             defaults=defaults)
                         if created == False:
                             obj.vta_n = venta['vta_n']
@@ -318,7 +319,6 @@ class GuardarProyeccionView(UserInfoMixin, View):
                                 # Tipo = 1 -> Proyectada
                                 obj.tipo = 1
                             obj.save()
-
             # Estado = 0 -> Pendiente
             # Estado = 1 -> Proyectado
             itemplan_obj.estado = 1
@@ -1135,20 +1135,21 @@ class GuardarPlanificacionView(View):
                     # Se seleccionan las ventas que no son reales (proyectadas o por proyectar)
                     if venta['tipo'] == 3:
                         defaults = {
-                            'tipo': 2, # Tipo = 2 -> Planificada
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
-                            'costo': venta['costo'],
+                            'costo': float(venta['costo_u'] * venta['vta_u']),
                             'vta_u': venta['vta_u'],
                             'stk_u': Decimal('0.000'),
                             'stk_v': Decimal('0.000'),
                             'margen': venta['margen']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
+                            plan=plan_obj,
                             item=item_proyectado,
                             anio=venta['anio'],
                             periodo=venta['periodo'],
                             temporada=temporada_obj, 
+                            tipo=2, # Tipo = 2 -> Planificada
                             defaults=defaults)
                         if created == False:
                             obj.vta_n = venta['vta_n']
@@ -1156,7 +1157,7 @@ class GuardarPlanificacionView(View):
                             obj.ctb_n = venta['ctb_n']
                             obj.dcto = float(venta['dcto']) 
                             obj.margen = float(venta['margen'])
-                            obj.costo = float(venta['costo'])
+                            obj.costo = float(venta['costo_u'] * venta['vta_u'])
                             if venta['vta_n'] != 0:
                                 # Tipo = 2 -> Planificada
                                 obj.tipo = 2
@@ -1609,7 +1610,6 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
                 itemplan_json['precio'] = itemplan_obj.item.precio
                 #itemplan_json['costo_unitario'] = costo_unitario
                 itemplan_json['costo_unitario'] = itemplan_obj.item.calcularCostoUnitario()
-                print itemplan_obj.item.calcularCostoUnitario()
 
                 resumen['itemplan'] = itemplan_json
                 resumen['temporadas'] = list(temporadas)
@@ -1652,7 +1652,6 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
                     # Se seleccionan las ventas que no son reales (planificadas o por planificar)
                     if venta['tipo'] == 3:
                         defaults = {
-                            'tipo': 2, # Tipo = 2 -> Planificada
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
                             'costo': venta['costo'],
@@ -1662,10 +1661,12 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
                             'margen': venta['margen']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
+                            plan=plan_obj,
                             item=item_planificado,
                             anio=venta['anio'],
                             periodo=venta['periodo'],
-                            temporada=temporada_obj, 
+                            temporada=temporada_obj,
+                            tipo=2, # Tipo = 2 -> Planificada
                             defaults=defaults)
                         if created == False:
                             obj.vta_n = venta['vta_n']
@@ -1706,18 +1707,17 @@ def ExportarExcelView(request, pk=None):
     for ccol, ccol_data in enumerate(cabecera):
         sheet.write(0, ccol, ccol_data) 
 
-    itemplan_arr = plan_obj.item_planificados.filter(planificable=True)
+    d_plan = plan_obj.resumen_plan_item()
 
-    for fila, itemplan in enumerate(itemplan_arr):
-        sheet.write(fila+1, 0, itemplan.id)
-        sheet.write(fila+1, 1, itemplan.nombre)
-        # unidades temporada vigente
-        # unidades temporada avances
-        # unidades temporada saldos
-        # unidades temporada totales
-        # costo unitario
-        # costo total
-
+    for fila, tupla in enumerate(d_plan.iteritems()):
+        id, item = tupla
+        sheet.write(fila+1, 0, item['nombre'])
+        sheet.write(fila+1, 1, item['vta_u_vigente'])
+        sheet.write(fila+1, 2, item['vta_u_avance'])
+        sheet.write(fila+1, 3, item['vta_u_saldo'])
+        sheet.write(fila+1, 4, item['vta_u_total'])
+        sheet.write(fila+1, 5, item['costo_total'] / item['vta_u_total'])
+        sheet.write(fila+1, 6, item['costo_total'])
     book.close()
 
     # construct response

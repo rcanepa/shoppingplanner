@@ -653,7 +653,6 @@ $(function() {
             'itemplan': itemplan,
             'ventas': planificacion.ventas
         });
-        
         $("#input_json_data").val(json_data);
         $.ajax({
             data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
@@ -748,7 +747,6 @@ $(function() {
             url: '/planes/plan/itemplanventatemp/',
             type: 'get',
             success: function(data){
-                console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -781,7 +779,6 @@ $(function() {
             url: '/planes/plan/itemplanventatempcomp/',
             type: 'get',
             success: function(data){
-                //console.log(data);
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                 // que se estaba buscando
                 if( data.ventas != null ){
@@ -813,7 +810,6 @@ $(function() {
                 url: '/planes/plan/itemplanventasearch/',
                 type: 'get',
                 success: function(data){
-                    console.log(data);
                     // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
                     // que se estaba buscando
                     if( data.ventas != null ){
@@ -1761,7 +1757,6 @@ $(function() {
                 type: 'get',
                 dataType:'json',
                 success: function(data){
-                    console.log(data);
                     $("#dashboard").show();
 
                     var data_unidades = data.estadisticas.unidades;

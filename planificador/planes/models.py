@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict, OrderedDict
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -187,7 +188,39 @@ class Plan(models.Model):
             arbol_json = arbol_json[:-1]
             arbol_json += "]"
         return arbol_json
+
         
+    def resumen_plan_item(self):
+        """
+        Devuelve un diccionario con todos los item de la planificacion, unidades de avance, saldo y temporada vigente, ademas del costo
+        total asociado
+        """        
+        periodo_inf = self.temporada.periodo.all().order_by('nombre')[:1].get()
+        periodo_sup = self.temporada.periodo.all().order_by('-nombre')[:1].get()
+
+        # Se obtiene toda la venta asociada a la planificacion
+        venta_planificada = Ventaperiodo.objects.filter(plan=self,tipo=2).prefetch_related('item').order_by('item','anio','periodo')
+
+        d_totales_venta = defaultdict()
+        d_item = defaultdict(int)
+
+        for venta in venta_planificada:
+            
+            d_item['nombre'] = venta.item.nombre
+            d_item['vta_u_total'] += venta.vta_u
+            d_item['costo_total'] += venta.costo
+            if venta.anio == self.anio and (venta.periodo <= periodo_sup.nombre and venta.periodo >= periodo_inf):
+                d_item['vta_u_vigente'] += venta.vta_u
+            elif (venta.anio == self.anio and venta.periodo > periodo_sup.nombre) or (venta.anio > self.anio and venta.periodo < periodo_inf ):
+                d_item['vta_u_saldo'] += venta.vta_u
+            else:
+                d_item['vta_u_avance'] += venta.vta_u
+            d_totales_venta[venta.item.id] = d_item
+
+        # Devuelve un diccionario con todos los itemplan de la planificacion, unidades y costos asociados
+        return d_totales_venta
+
+
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)
 
@@ -235,7 +268,7 @@ class Itemplan(models.Model):
         venta = Ventaperiodo.objects.filter(
             item=self.item,
             anio=self.plan.anio,
-            periodo__in=self.plan.temporada.periodo.all(),
+            periodo__in=self.plan.temporada.periodo.all().values('nombre'),
             tipo=2).values(
             'item__nombre').annotate(
             vta_u=Sum('vta_u'),

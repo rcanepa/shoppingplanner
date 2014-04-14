@@ -298,6 +298,7 @@ $(function() {
         $("#itemstree").fancytree("getRootNode").visit(function(node){
             node.setExpanded(true);
         });
+        setConfirmUnload(true);
         return false;
     });
 
