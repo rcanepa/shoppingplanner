@@ -94,7 +94,7 @@ class Item(models.Model):
         Devuelve la lista de items hijos vigente del item. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre) filtrando los items no vigentes.
         """
-        return self.items_hijos.all().filter(vigencia=True).order_by('nombre','precio')
+        return self.items_hijos.all().filter(vigencia=True).prefetch_related('categoria').order_by('nombre','precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})
@@ -128,12 +128,11 @@ class Item(models.Model):
 
     def get_hijos(self):
         """
-        Obtiene recursivamente la lista de hijos en forma de arbol
+        Obtiene recursivamente la lista de hijos en forma de arbol. 
+        Devuelve unicamente objetos que pertenecen a la ultima categoria (hoja).
+        !!NO DEVUELVE OBJECTOS DE CATEGORIAS INTERMEDIAS!!
         """
         children = list(self.get_children())
-        #branch = bool(children)
-        # Se revisa si el item pertenece a la categoria sin hijos (articulos),
-        # en ese caso, se devuelve el nodo
         if bool(self.categoria.get_children()) == False:
             yield self
         for child in children:
@@ -185,12 +184,8 @@ class Item(models.Model):
             hijo = hijo.item_padre
         return nivel
 
-    get_nivel.short_description = 'Nivel'
-    get_nivel.admin_order_field = 'id'
-
     def get_precio_promedio(self):
         return self.precio
-
 
     def calcularCostoUnitario(self):
         """
@@ -206,7 +201,9 @@ class Item(models.Model):
             return round(float(venta[0]['costo'] / venta[0]['vta_u']),0)
         else:
             return 0 
-        
+    
+    get_nivel.short_description = 'Nivel'
+    get_nivel.admin_order_field = 'id'
 
 """
 Modelo Grupoitem

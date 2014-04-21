@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block username %}
-	Bienvenido {{ full_name }} !
+	{{ full_name }}
 {% endblock %}
 
 {% block sidebar %}
@@ -90,6 +90,9 @@
 
 {% block js %}
 {% load static %}
+<!-- Fancytree -->
+<link href="{% static "fancytree_2.0.0-8/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
+<script src="{% static "fancytree_2.0.0-8/jquery.fancytree.js" %}" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="{% static "css/planes/arbol.css" %}">
 
 <script>
@@ -190,7 +193,7 @@ $(function() {
                             var nodo_padre = tree.getNodeByKey(String(data.item_padre_id));
                             nodo_padre.load(true);
                             // Se despliega un mensaje informando lo ocurrido
-                            $("#barra_notificaciones")
+                            $("#caja-mensajes")
                                 .html(data.msg)
                                 .addClass("msg_success")
                                 .delay(5000)
@@ -411,15 +414,17 @@ $(function() {
     });
     
     function mostrarMensaje(msg, tipo){
-        $("#barra_notificaciones")
-        .html(msg)
-        .addClass(tipo)
-        .delay(4000)
-        .queue(function(next){ 
-            $(this).removeClass(tipo);
-            $(this).html("");
+        $("#caja-mensajes")
+            .show()
+            .html(msg)
+            .addClass(tipo)
+            .delay(8000)
+            .queue(function(next){ 
+                $(this).hide();
+                $(this).removeClass(tipo);
+                $(this).html("");
                 next(); 
-        });
+            });
     }
 
     $("#btnAgrupar").click(crearGrupoitem);

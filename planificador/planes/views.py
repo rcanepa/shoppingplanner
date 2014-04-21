@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
 from decimal import Decimal
+from django import db
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import auth
@@ -10,7 +11,7 @@ from django.core.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy, reverse
-from django.db.models import Q, Sum, Avg, Max, Min
+from django.db.models import Q, F, Sum, Avg, Max, Min
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.utils.decorators import method_decorator
@@ -26,11 +27,7 @@ from forms import PlanForm, TemporadaForm
 from planificador.views import UserInfoMixin, CSVResponseMixin
 import json
 import pprint
-
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import cStringIO as StringIO
 
 
 class TemporadaListView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -174,11 +171,14 @@ class GuardarArbolView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         if request.POST:
             data = json.loads(request.POST['plan'])
+            # Reset queries
+            db.reset_queries()
             # Si el arbol existe, debe ser eliminado
-            if Itemplan.objects.filter(plan=data['plan']):
+            if bool(Itemplan.objects.filter(plan=data['plan'])):
                 Itemplan.objects.filter(plan=data['plan']).delete()
             plan_obj = Plan.objects.get(pk=data['plan'])
-            items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
+            #items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
+            items_obj_arr = Item.objects.filter(pk__in=data['items'])
             itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None) for x in items_obj_arr]
             # Se marcan los itemplan que pueden ser planificados
             for itemplan_obj in itemplan_obj_arr:
@@ -189,23 +189,33 @@ class GuardarArbolView(LoginRequiredMixin, View):
             
             # Se guardar los itemplan que componen el arbol de planificacion
             Itemplan.objects.bulk_create(itemplan_obj_arr)
+            print "QUERIES: " + str(len(db.connection.queries))
+
+            # Reset queries
+            db.reset_queries()
+
 
             # A continuacion se deben actualizar el campo item_padre, el cual tiene el ID del itemplan padre de
             # cada uno de los itemplan del arbol. Es un proceso posterior, ya que se requiere que cada itemplan
             # tenga ID, es decir, haya sido almacenado anteriormente en la base de datos
             
             # Se genera nuevamente la lista con los itemplan creados a nivel de BD, es decir, ahora tienen ID
-            itemplan_obj_arr = Itemplan.objects.filter(plan=plan_obj)
+            #Itemplan.objects.filter(plan=plan_obj).update(item_padre=F('item__item_padre__item_proyectados'))
+            itemplan_obj_arr = Itemplan.objects.filter(plan=plan_obj).prefetch_related('item__item_padre')
             for itemplan_obj in itemplan_obj_arr:
-                item_padre = itemplan_obj.item.item_padre
+                #item_padre = itemplan_obj.item.item_padre
+                #print itemplan_obj.item.item_padre.item_proyectados.filter(plan=plan_obj)
                 try:
-                    itemplan_padre = Itemplan.objects.get(plan=plan_obj,item=item_padre)
+                    #itemplan_padre = Itemplan.objects.get(plan=plan_obj,item=item_padre)
+                    itemplan_padre = itemplan_obj.item.item_padre.item_proyectados.get(plan=plan_obj)
                 except ObjectDoesNotExist:
                     itemplan_padre = None
                 itemplan_obj.item_padre = itemplan_padre
                 # Se guarda la asignacion del itemplan padre
                 itemplan_obj.save()
-
+            print "QUERIES: " + str(len(db.connection.queries))
+            # Reset queries
+            db.reset_queries()
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
 
@@ -275,7 +285,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
         if request.POST:
             data = json.loads(request.POST['proyeccion'])
             plan_obj = Plan.objects.get(pk=data['plan'])
-            itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
+            itemplan_obj = Itemplan.objects.get(pk=data['itemplan'],plan=plan_obj)
             
             # Se revisa si la categoria del item que esta siendo proyectado tiene hijos (si pertenece a una categoria hoja o no), 
             # en caso de tener hijos, se imputa la proyeccion al primero de ellos
@@ -338,10 +348,14 @@ class BuscarCategoriaListProyeccionView(View):
             items = []
             id_item = json.loads(request.GET['id_item'])
             id_plan = request.GET['id_plan']
+            # Se busca el objeto de plan
+            plan_obj = Plan.objects.get(pk=id_plan)
             # Se busca el objeto de item asociado al parametro id_item
-            item = Item.objects.get(pk=id_item)
+            item_seleccionado = Item.objects.get(pk=id_item)
+            # Se busca el objecto de itemplan asociado al item escogido
+            itemplan_seleccionado = Itemplan.objects.get(plan=plan_obj,item=item_seleccionado)
             # Se buscan todos los hijos del item pasado por parametro
-            items_temp = item.get_children()
+            items_temp = item_seleccionado.get_children()
 
             if bool(items_temp):
                 # Si la categoria del hijo no es planificable, entonces se debe generar otro combobox
@@ -351,13 +365,11 @@ class BuscarCategoriaListProyeccionView(View):
                     for item_validar in items_temp:
                         # Solo se devuelven los items que pueden ser vistos por el usuario
                         #if self.request.user.get_profile().validar_visibles(item_validar):
-                        if bool(Itemplan.objects.filter(item=item_validar,plan__id=id_plan)):
+                        if bool(Itemplan.objects.filter(item=item_validar,plan=plan_obj)):
                                 items.append({'id':item_validar.id,'nombre':item_validar.nombre,'id_cat':item_validar.categoria.id})
                 else:
-                    # Se obtienen todos los items de la planificacion
-                    queryset = Itemplan.objects.filter(plan=id_plan, planificable=True).order_by('item__categoria','nombre','item__precio')
-                    # Se itera por todos los itemplan que son hijos del item que fue recibido como parametro
-                    for itemplan in [itemplan for itemplan in queryset if itemplan.item.es_padre(item)]: #populate list
+                    # Se itera sobre la lista de hijos planificables del item seleccionado en el combobox
+                    for itemplan in itemplan_seleccionado.get_hijos_planificables():
                         items.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio, 'categoria_nombre': itemplan.item.categoria.nombre})
                 data['items'] = items
                 data['categoria'] = {'id_categoria':items_temp[0].categoria.id, 'planificable':items_temp[0].categoria.planificable}
@@ -375,22 +387,23 @@ class BuscarCategoriaListCompProyeccionView(View):
             items = []
             id_item = json.loads(request.GET['id_item'])
             id_plan = request.GET['id_plan']
+            # Se busca el objeto de plan
+            plan_obj = Plan.objects.get(pk=id_plan)
             # Se busca el objeto de item asociado al parametro id_item
-            item = Item.objects.get(pk=id_item)
+            item_seleccionado = Item.objects.get(pk=id_item)
             # Se buscan todos los hijos del item pasado por parametro
-            items_temp = item.get_children()
+            items_temp = item_seleccionado.get_children()
             # Se valida que el item seleccionado tenga hijos
             if bool(items_temp):
                 for item_validar in items_temp:
                     # Solo se devuelven los items que pueden ser vistos por el usuario
-                    #if self.request.user.get_profile().validar_visibles(item_validar):
-                    if bool(Itemplan.objects.filter(item=item_validar,plan__id=id_plan)):
-                        items.append({
-                            'id':item_validar.id,
-                            'nombre':item_validar.nombre,
-                            'precio':item_validar.precio,
-                            'id_cat':item_validar.categoria.id
-                            })
+                    #if bool(Itemplan.objects.filter(item=item_validar,plan=plan_obj)):
+                    items.append({
+                        'id':item_validar.id,
+                        'nombre':item_validar.nombre,
+                        'precio':item_validar.precio,
+                        'id_cat':item_validar.categoria.id
+                        })
                 data['items'] = items
                 data['categoria'] = {'id_categoria':items_temp[0].categoria.id, 'planificable':items_temp[0].categoria.planificable}
             else:
@@ -612,8 +625,6 @@ class BuscarVentaItemplanCompProyeccionView(View):
             # Se busca el periodo inferior y superior de la temporada a proyectar
             limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
             limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
-
-            print limite_inf, limite_sup
 
             # Se buscan las temporadas de los items a proyectar.
             # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
@@ -1691,6 +1702,7 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
 
 def ExportarExcelView(request, pk=None):
     """
+    Devuelve un objeto response tipo xls con un resumen de las compras asociadas a la planificacion.
     """
 
     plan_obj = get_object_or_404(Plan, pk=pk)
@@ -1700,24 +1712,43 @@ def ExportarExcelView(request, pk=None):
     output = StringIO.StringIO()
 
     book = Workbook(output)
-    sheet = book.add_worksheet('Planificacion')      
+    sheet = book.add_worksheet('Planificacion')
+    
+    # Formato moneda
+    fmoney = book.add_format({'num_format': '$#,##0'})
+    # Formato numerico
+    fnumeros = book.add_format({'num_format': '#,##0'})
+    # Formato negrita
+    fbold = book.add_format({'bold': True})
+
+    # Ajustar el tamaño de la columna A (nombre de items)
+    sheet.set_column(0, 0, 40)
 
     # Escribir la cabecera del archivo
     cabecera = ['Item', 'Unidades Temporada Vigente', 'Unidades Avance', 'Unidades Saldo', 'Unidades Totales', 'Costo Unitario', 'Costo Total']
     for ccol, ccol_data in enumerate(cabecera):
-        sheet.write(0, ccol, ccol_data) 
+        sheet.write(0, ccol, ccol_data, fbold) 
 
     d_plan = plan_obj.resumen_plan_item()
-
+    numero_filas = len(d_plan.keys())
+    # Se itera sobre el diccionario de items y se crean las filas del archivo
     for fila, tupla in enumerate(d_plan.iteritems()):
         id, item = tupla
         sheet.write(fila+1, 0, item['nombre'])
-        sheet.write(fila+1, 1, item['vta_u_vigente'])
-        sheet.write(fila+1, 2, item['vta_u_avance'])
-        sheet.write(fila+1, 3, item['vta_u_saldo'])
-        sheet.write(fila+1, 4, item['vta_u_total'])
-        sheet.write(fila+1, 5, item['costo_total'] / item['vta_u_total'])
-        sheet.write(fila+1, 6, item['costo_total'])
+        sheet.write(fila+1, 1, item['vta_u_vigente'], fnumeros)
+        sheet.write(fila+1, 2, item['vta_u_avance'], fnumeros)
+        sheet.write(fila+1, 3, item['vta_u_saldo'], fnumeros)
+        sheet.write(fila+1, 4, item['vta_u_total'], fnumeros)
+        sheet.write(fila+1, 5, item['costo_total'] / item['vta_u_total'], fmoney)
+        sheet.write(fila+1, 6, item['costo_total'], fmoney)
+    # Se construye la fila de totales
+    sheet.write(numero_filas+1, 0, 'Total', fbold)
+    sheet.write(numero_filas+1, 1, '=SUM(B2:B'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 2, '=SUM(C2:C'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 3, '=SUM(D2:D'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 4, '=SUM(E2:E'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 5, '=AVG(F2:F'+str(numero_filas+1)+')', fmoney)
+    sheet.write(numero_filas+1, 6, '=SUM(G2:G'+str(numero_filas+1)+')', fmoney)
     book.close()
 
     # construct response

@@ -41,9 +41,7 @@ h3
 	clear:both;
 	float:left;
 	width:100%;
-}
-#header {
-	border-bottom:1px solid #000;
+	/*border-bottom:1px solid #000;*/
 }
 
 .top-menu {	
@@ -68,7 +66,7 @@ h3
 	/*background:#eee;*/
 	color: #777;
 	background:white;
-	border-top:1px solid #000;
+	/*border-top:1px solid #000;*/
 	margin:0;
 	padding-top: 5px;
 	padding-bottom:5px;
@@ -78,10 +76,6 @@ h3
 #layoutdims .layoutdims-internal-div{
 	padding: 0px 20px;
 	float:left;
-}
-
-#barra_notificaciones {
-	text-align: center;
 }
 
 /* column container */
@@ -103,7 +97,7 @@ h3
 	position:relative;
 	left:200px;
 	background:#fff;
-	border-left: 1px solid #000;
+	/*border-left: 1px solid #000;*/
 }
 .leftmenu .col1wrap {
 	float:right;
@@ -134,7 +128,6 @@ h3
 	clear:both;
 	float:left;
 	width:100%;
-	border-top:1px solid #000;
 	background:#eee;
 }
 #footer p {
@@ -184,16 +177,6 @@ div .middle_label {
 div .right_label {
 	float:left;
 	width:55%;
-}
-
-.msg_info, .msg_success, .msg_warning, .msg_error {
-	border: 1px solid;
-	/*margin: 10px 0px;
-	padding:5px 10px;*/
-	background-repeat: no-repeat;
-	background-position: 10px center;-moz-border-radius:.5em;
-	-webkit-border-radius:.5em;
-	border-radius:.5em;
 }
 
 .caja_bordes {
@@ -316,4 +299,25 @@ ol ol
 	url('../images/loading.gif') 
 	50% 50% 
 	no-repeat;
+}
+
+#caja-mensajes
+{
+	width: 700px;
+	height: 35px;
+	background-color: #DFF2BF;
+	text-align: center;
+	vertical-align: middle;
+	-webkit-border-bottom-right-radius: 20px;
+	-webkit-border-bottom-left-radius: 20px;
+	-moz-border-radius-bottomright: 20px;
+	-moz-border-radius-bottomleft: 20px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
+	padding: 5px 3px 0px 3px;
+	position: fixed;
+  	top: 0px;
+  	left: 50%;
+  	margin-left: -350px;
+  	z-index: 100;
 }

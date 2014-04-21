@@ -53,30 +53,6 @@
 	text-align: left;
 }
 
-.datagrid td.label
-{
-	
-}
-
-.datagrid th.label
-{
-	
-}
-
-.datagrid th.impar
-{
-	
-	background: #eee;
-	color: #669;
-}
-
-.datagrid th.plan
-{
-	
-	background: #FFFFB7;
-	color: #666699;	
-}
-
 .datagrid td.par
 {
 	
@@ -87,15 +63,14 @@
 .datagrid td.impar
 {
 	
-	background: #eee;
+	background: #f5f5ed;
 	color: #669;
 }
 
 .datagrid td.plan
 {
-	
-	background: #FFFFB7;
-	color: #666699;	
+	background: #E1DCD3;
+	color: #ef4929;
 }
 
 .datagrid tbody tr.totales

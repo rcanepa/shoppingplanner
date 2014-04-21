@@ -1,7 +1,7 @@
 .datagrid
 {
 	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
-	font-size: 12px;
+	font-size: 11px;
 	background: #fff;
 	border-collapse: collapse;
 	text-align: left;
@@ -11,7 +11,7 @@
 .datagrid th
 {
 	font-weight: normal;
-	font-size: 14px;
+	font-size: 12px;
 	padding: 5px 5px;
 	color: #039;
 	border-bottom: 2px solid #6678b1;
@@ -36,6 +36,7 @@
 	text-align: left;
 }
 
+/*
 .datagrid th.impar
 {
 	width: 7%;
@@ -49,7 +50,7 @@
 	background: #FFFFB7;
 	color: #666699;	
 }
-
+*/
 .datagrid td.par
 {
 	width: 7%;
@@ -67,8 +68,8 @@
 .datagrid td.plan
 {
 	width: 7%;
-	background: #FFFFB7;
-	color: #666699;	
+	background: #E1DCD3;
+	color: #ef4929;	
 }
 
 .datagrid tbody tr.totales

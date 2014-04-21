@@ -90,7 +90,7 @@ class Plan(models.Model):
         ant_anio = self.anio - 3
         if item == None:
             # Arreglo de items con todos los items de la planificacion
-            item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all() if itemplan.item.categoria.planificable == True]
+            item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all().prefetch_related('item__categoria') if itemplan.item.categoria.planificable == True]
         else:
             # Arreglo de items con todos los items hijos del item entregado como parametro
             item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable == True]
@@ -140,7 +140,7 @@ class Plan(models.Model):
         # Se obtiene la lista de items sobre los cuales el usuario es resposanble (las distintas raices que pueda tener su arbol)
         items_responsable = Item.objects.filter(usuario_responsable=user)
         # Se busca el itemplan asociado a cada raiz
-        itemplan_raices = Itemplan.objects.filter(plan=self, item__in=items_responsable)
+        itemplan_raices = Itemplan.objects.filter(plan=self, item__in=items_responsable).select_related('item__categoria')
         # Si existen itemplan asociados al plan, entonces el arbol ha sido definido y debe ser cargado inicialmente
         if bool(itemplan_raices):
             arbol_json = "[";
@@ -192,14 +192,14 @@ class Plan(models.Model):
         
     def resumen_plan_item(self):
         """
-        Devuelve un diccionario con todos los item de la planificacion, unidades de avance, saldo y temporada vigente, ademas del costo
+        Devuelve un diccionario con todos los items de la planificacion, unidades de avance, saldo y temporada vigente, ademas del costo
         total asociado
         """        
         periodo_inf = self.temporada.periodo.all().order_by('nombre')[:1].get()
         periodo_sup = self.temporada.periodo.all().order_by('-nombre')[:1].get()
 
         # Se obtiene toda la venta asociada a la planificacion
-        venta_planificada = Ventaperiodo.objects.filter(plan=self,tipo=2).prefetch_related('item').order_by('item','anio','periodo')
+        venta_planificada = Ventaperiodo.objects.filter(plan=self,tipo=2).select_related('item').order_by('item','anio','periodo')
 
         d_totales_venta = defaultdict()
         d_item = defaultdict(int)
@@ -246,7 +246,7 @@ class Itemplan(models.Model):
         Devuelve la lista de itemplan hijos del itemplan. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre).
         """
-        return self.items_hijos.all()
+        return self.items_hijos.all().prefetch_related('item__categoria')
 
     def as_tree(self):
         """
@@ -260,20 +260,18 @@ class Itemplan(models.Model):
                 yield next
         yield branch, None
         
-
-    def obtener_unidades_temporada_vigente(self):
+    def get_hijos_planificables(self):
         """
+        Obtiene recursivamente la lista de hijos en forma de arbol que pueden ser planificables segun su categoria, es decir,
+        pertenecen a una categoria planificable (planificable == True) y que fueron escogidos en el arbol para ser planificados, es
+        decir, self.planificable == True.
         """
-        item_obj = self.item
-        venta = Ventaperiodo.objects.filter(
-            item=self.item,
-            anio=self.plan.anio,
-            periodo__in=self.plan.temporada.periodo.all().values('nombre'),
-            tipo=2).values(
-            'item__nombre').annotate(
-            vta_u=Sum('vta_u'),
-            costo=Sum('costo'))
-        return venta
+        children = list(self.get_children())
+        if self.item.categoria.planificable == True and self.planificable == True:
+            yield self
+        for child in children:
+            for next in child.get_hijos_planificables():
+                yield next
 
     def __unicode__(self):
         return self.item.nombre

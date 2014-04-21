@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block username %}
-	Bienvenido {{ full_name }} !
+	{{ full_name }}
 {% endblock %}
 
 {% block sidebar %}
@@ -30,5 +30,18 @@
 
     {% endfor %}
 </ol>
+
+{% endblock %}
+
+{% block js %}
+
+
+<script>
+
+$(function() {
+    $( "#plan_list" ).addClass( "opcion-seleccionada" );
+});
+
+</script>
 
 {% endblock %}

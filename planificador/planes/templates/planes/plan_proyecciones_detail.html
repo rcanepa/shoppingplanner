@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block username %}
-	Bienvenido {{ full_name }} !
+	{{ full_name }}
 {% endblock %}
 
 {% block sidebar %}
@@ -244,11 +244,13 @@ $(function() {
         Ajax done callback para el evento que guarda una proyeccion
     */
     var saveAJAXDone = function(data){
-        $("#barra_notificaciones")
+        $("#caja-mensajes")
+            .show()
             .html(data.msg)
             .addClass("msg_success")
-            .delay(5000)
+            .delay(8000)
             .queue( function(next){ 
+                $(this).hide();
                 $(this).removeClass("msg_success");
                 $(this).html("");
                     next(); 

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block username %}
-	Bienvenido {{ full_name }} !
+	{{ full_name }}
 {% endblock %}
 
 {% block sidebar %}
@@ -612,11 +612,13 @@ $(function() {
         Ajax done callback para el evento que guarda una proyeccion
     */
     var saveAJAXDone = function(data){
-        $("#barra_notificaciones")
+        $("#caja-mensajes")
+            .show()
             .html(data.msg)
             .addClass("msg_success")
-            .delay(3000)
+            .delay(8000)
             .queue( function(next){ 
+                $(this).hide();
                 $(this).removeClass("msg_success");
                 $(this).html("");
                     next(); 
@@ -959,14 +961,10 @@ $(function() {
             html_div_etiquetas += "<tr>";
             html_div_etiquetas += "<td title=\"Precio real de venta.\" class=\"label\">Precio Real</td>";
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (data.temporada_vigente['anio']) )
-                    html += "<td class=\"plan\">" + numeral(venta.precio_real).format('0,0') + "</td>";
-                else{
-                    if ( (venta.anio % 2) == 0 )
-                        html += "<td class=\"par\">" + numeral(venta.precio_real).format('0,0') + "</td>";
-                    else
-                        html += "<td class=\"impar\">" + numeral(venta.precio_real).format('0,0') + "</td>";    
-                }
+                if ( (venta.anio % 2) == 0 )
+                    html += "<td class=\"par\">" + numeral(venta.precio_real).format('0,0') + "</td>";
+                else
+                    html += "<td class=\"impar\">" + numeral(venta.precio_real).format('0,0') + "</td>";    
             });
             html += "</tr>";
             html_div_etiquetas += "</tr>";
@@ -976,14 +974,10 @@ $(function() {
             html_div_etiquetas += "<tr>";
             html_div_etiquetas += "<td title=\"Costo unitario.\" class=\"label\">Costo Uni.</td>";
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (data.temporada_vigente['anio']) )
-                    html += "<td id=\"costos_" + venta.anio + "" + venta.periodo + "_" + temporada + "\" class=\"costos plan\">" + numeral(venta.costo_u).format('0,0') + "</td>";
-                else{
-                    if ( (venta.anio % 2) == 0 )
-                        html += "<td class=\"par\">" + numeral(venta.costo_u).format('0,0') + "</td>";
-                    else
-                        html += "<td class=\"impar\">" + numeral(venta.costo_u).format('0,0') + "</td>";
-                }
+                if ( (venta.anio % 2) == 0 )
+                    html += "<td class=\"par\">" + numeral(venta.costo_u).format('0,0') + "</td>";
+                else
+                    html += "<td class=\"impar\">" + numeral(venta.costo_u).format('0,0') + "</td>";
                     
             });
             html += "</tr>";
@@ -994,14 +988,10 @@ $(function() {
             html_div_etiquetas += "<tr>";
             html_div_etiquetas += "<td title=\"Venta en pesos.\" class=\"label\">Venta</td>";
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (data.temporada_vigente['anio']) )
-                    html += "<td class=\"plan\">" + numeral(venta.vta_n).format('0,0') + "</td>";
-                else{
-                    if ( (venta.anio % 2) == 0 )
-                        html += "<td class=\"par\">" + numeral(venta.vta_n).format('0,0') + "</td>";
-                    else
-                        html += "<td class=\"impar\">" + numeral(venta.vta_n).format('0,0') + "</td>";    
-                }
+                if ( (venta.anio % 2) == 0 )
+                    html += "<td class=\"par\">" + numeral(venta.vta_n).format('0,0') + "</td>";
+                else
+                    html += "<td class=\"impar\">" + numeral(venta.vta_n).format('0,0') + "</td>";    
             });
             html += "</tr>";
             html_div_etiquetas += "</tr>";
@@ -1011,14 +1001,10 @@ $(function() {
             html_div_etiquetas += "<tr>";
             html_div_etiquetas += "<td title=\"Contribucion en pesos.\" class=\"label\">Contribuci&oacute;n</td>";
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (data.temporada_vigente['anio']) )
-                    html += "<td class=\"plan\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
-                else{
-                    if ( (venta.anio % 2) == 0 )
-                        html += "<td class=\"par\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
-                    else
-                        html += "<td class=\"impar\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
-                }
+                if ( (venta.anio % 2) == 0 )
+                    html += "<td class=\"par\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
+                else
+                    html += "<td class=\"impar\">" + numeral(venta.ctb_n).format('0,0') + "</td>";
             });
             html += "</tr>";
             html_div_etiquetas += "</tr>";
@@ -1028,14 +1014,10 @@ $(function() {
             html_div_etiquetas += "<tr>";
             html_div_etiquetas += "<td title=\"Margen porcentual.\" class=\"label\">Margen %</td>";
             $.each(ventas, function(periodo, venta) {
-                if( venta.anio == (data.temporada_vigente['anio']) )
-                    html += "<td class=\"plan\">" + numeral(venta.margen).format('0.00%') + "</td>";
-                else{
-                    if ( (venta.anio % 2) == 0 )
-                        html += "<td class=\"par\">" + numeral(venta.margen).format('0.00%') + "</td>";
-                    else
-                        html += "<td class=\"impar\">" + numeral(venta.margen).format('0.00%') + "</td>";
-                }
+                if ( (venta.anio % 2) == 0 )
+                    html += "<td class=\"par\">" + numeral(venta.margen).format('0.00%') + "</td>";
+                else
+                    html += "<td class=\"impar\">" + numeral(venta.margen).format('0.00%') + "</td>";
             });
             html += "</tr>";
             html_div_etiquetas += "</tr>";
@@ -1067,25 +1049,17 @@ $(function() {
             });
             if (total_vta_n != 0)
                 total_margen = total_ctb_n / total_vta_n;
-            if ( data.periodos[x].temporada ){
-                html_tot_unidades += "<td class=\"plan\">" + numeral(total_unidades).format('0,0') + "</td>";
-                html_tot_vta_n += "<td class=\"plan\">" + numeral(total_vta_n).format('0,0') + "</td>";
-                html_tot_ctb_n += "<td class=\"plan\">" + numeral(total_ctb_n).format('0,0') + "</td>";
-                html_tot_margen += "<td class=\"plan\">" + numeral(total_margen).format('0.00%') + "</td>";
+            if ( (data.periodos[x].tiempo__anio % 2) == 0 ){
+                html_tot_unidades += "<td class=\"par\">" + numeral(total_unidades).format('0,0') + "</td>";
+                html_tot_vta_n += "<td class=\"par\">" + numeral(total_vta_n).format('0,0') + "</td>";
+                html_tot_ctb_n += "<td class=\"par\">" + numeral(total_ctb_n).format('0,0') + "</td>";
+                html_tot_margen += "<td class=\"par\">" + numeral(total_margen).format('0.00%') + "</td>";
             }
             else{
-                if ( (data.periodos[x].tiempo__anio % 2) == 0 ){
-                    html_tot_unidades += "<td class=\"par\">" + numeral(total_unidades).format('0,0') + "</td>";
-                    html_tot_vta_n += "<td class=\"par\">" + numeral(total_vta_n).format('0,0') + "</td>";
-                    html_tot_ctb_n += "<td class=\"par\">" + numeral(total_ctb_n).format('0,0') + "</td>";
-                    html_tot_margen += "<td class=\"par\">" + numeral(total_margen).format('0.00%') + "</td>";
-                }
-                else{
-                    html_tot_unidades += "<td class=\"impar\">" + numeral(total_unidades).format('0,0') + "</td>";
-                    html_tot_vta_n += "<td class=\"impar\">" + numeral(total_vta_n).format('0,0') + "</td>";
-                    html_tot_ctb_n += "<td class=\"impar\">" + numeral(total_ctb_n).format('0,0') + "</td>";
-                    html_tot_margen += "<td class=\"impar\">" + numeral(total_margen).format('0.00%') + "</td>";
-                }
+                html_tot_unidades += "<td class=\"impar\">" + numeral(total_unidades).format('0,0') + "</td>";
+                html_tot_vta_n += "<td class=\"impar\">" + numeral(total_vta_n).format('0,0') + "</td>";
+                html_tot_ctb_n += "<td class=\"impar\">" + numeral(total_ctb_n).format('0,0') + "</td>";
+                html_tot_margen += "<td class=\"impar\">" + numeral(total_margen).format('0.00%') + "</td>";
             }
         }
         
@@ -1902,7 +1876,7 @@ $(function() {
     }
 
     var respuestaMsgAjax = function(data){
-        $("#barra_notificaciones")
+        $("#caja-mensajes")
             .html(data.msg)
             .addClass("msg_success")
             .delay(5000)
