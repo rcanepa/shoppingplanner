@@ -55,6 +55,11 @@
 {% endblock %}
 
 {% block js %}
+{% load static %}
+<!-- Fancytree -->
+<link href="{% static "fancytree_2.0.0-8/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
+<script src="{% static "fancytree_2.0.0-8/jquery.fancytree.js" %}" type="text/javascript"></script>
+
 <script>
 
 $(function() {
