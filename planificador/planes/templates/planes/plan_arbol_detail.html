@@ -22,7 +22,7 @@
     </div>
     <p></p>
     <!-- Menu general -->
-    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
+    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/guardar-arbol/">
         {% csrf_token %}
         <input id="input_json_data" type="hidden" name="plan" value="" />
     </form>
@@ -66,10 +66,10 @@
             <li><a id="btnCancelar">Cancelar Selecci&oacute;n</a></li>
         </ul>
     </div>        
-    <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/savestage1/">
+    <!--form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/guardar-arbol/">
         {% csrf_token %}
         <input id="input_json_data" type="hidden" name="plan" value="" />
-    </form>
+    </form-->
 </div>
 <!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
 <div id="dialog-form" title="Crear nuevo Item" style="display:none;">
@@ -99,8 +99,37 @@
 
 $(function() {
 
+    // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
+    // cambios que no han sido guardados
+    $(window).bind("beforeunload",function(event) {
+        if(arbol_obj.getModificada()) 
+            return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
+    });
+
     $( "#plan_tree_detail" ).addClass( "opcion-seleccionada" );
     
+    arbol_obj = function(){    
+        /*
+        Almacena el estado de la proyeccion:
+            - false = no ha sido modificada
+            - true = ha sido modificada y los cambios no han sido guardados
+        */
+        var modificada = false;
+        
+        function setModificada(estado){
+            modificada = estado;
+        }
+
+        function getModificada(){
+            return modificada;
+        }
+
+        return{
+            setModificada:setModificada,
+            getModificada:getModificada
+        }
+    }();
+
     var contenedor_plantree = {}; // namespace para variables globales
     contenedor_plantree.tips = $( ".validateTips" );
 
@@ -269,9 +298,11 @@ $(function() {
             //console.log(data);
         },
         expand: function(event, data){
+            arbol_obj.setModificada(true);
             definirVisibles();
         },
         collapse: function(event, data){
+            arbol_obj.setModificada(true);
             definirVisibles();
         },
         beforeSelect: function(e, data) {
@@ -385,11 +416,18 @@ $(function() {
     */
     $("#btnSave").click(function(){
         var nodos_lista = [];
+        var nodos_lista_padres = [];
         var nodos_planificables_lista = [];
         var plan = parseInt({{plan.id}});
         /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
         $("#itemstree").fancytree("getTree").visit(function(node){
             if (node.isVisible()){
+                var nodo = {};
+                nodo.id = parseInt(node.key);
+                nodo.padre_id = parseInt(node.parent.key);
+                nodo.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
+                nodo.padre_uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
+                nodos_lista_padres.push(nodo);
                 nodos_lista.push(parseInt(node.key));
                 if ( (node.extraClasses == "planificable") ){
                     if (node.hasChildren()){
@@ -406,10 +444,12 @@ $(function() {
         json_data = JSON.stringify({
             plan: plan,
             items: nodos_lista,
-            items_planificables: nodos_planificables_lista
+            items_planificables: nodos_planificables_lista,
+            items_padres: nodos_lista_padres
         });
         //console.log(json_data);
         $("#input_json_data").val(json_data);
+        arbol_obj.setModificada(false);
         $("#save_form").submit();
     });
     

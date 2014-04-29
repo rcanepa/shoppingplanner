@@ -1,23 +1,23 @@
-from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
-from django.http import HttpResponse
+
 from django.contrib import auth
-from django.core.context_processors import csrf
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.context_processors import csrf
+from django.core.urlresolvers import reverse
+from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.views.generic import View, TemplateView, ListView, DetailView
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.utils.text import slugify
-from django.core.urlresolvers import reverse
+from django.views.generic import View, TemplateView, ListView, DetailView
 from userprofile.forms import RegistrationForm
-from django.contrib.auth.models import User
 from userprofile.models import UserProfile
+from braces.views import LoginRequiredMixin
 import csv
 import json
 
 
 # Mixins
-
 class UserInfoMixin(object):
     """Obtiene informacion general del usuario visitante"""
     def get_context_data(self, *args, **kwargs):
@@ -26,56 +26,6 @@ class UserInfoMixin(object):
         #Revisa si el usuario pertenece al grupo Administrador, devuelve True o False
         context['admin'] = bool(self.request.user.groups.filter(name="Administrador"))
         return context
-
-
-class JSONResponseMixin(object):
-    """
-    A mixin that can be used to render a JSON response.
-    """
-    def render_to_json_response(self, context, **response_kwargs):
-        """
-        Returns a JSON response, transforming 'context' to make the payload.
-        """
-        return HttpResponse(
-            self.convert_context_to_json(context),
-            content_type='application/json',
-            **response_kwargs
-        )
-
-    def convert_context_to_json(self, context):
-        "Convert the context dictionary into a JSON object"
-        # Note: This is *EXTREMELY* naive; in reality, you'll need
-        # to do much more complex handling to ensure that arbitrary
-        # objects -- such as Django model instances or querysets
-        # -- can be serialized as JSON.
-        return json.dumps(context)
-
-
-class CSVResponseMixin(object):
-    """
-    A generic mixin that constructs a CSV response from the context data if
-    the CSV export option was provided in the request.
-    """
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Creates a CSV response if requested, otherwise returns the default
-        template response.
-        """
-        # Sniff if we need to return a CSV export
-        #if 'csv' in self.request.GET.get('export', ''):
-        response = HttpResponse(content_type='text/csv')
-        #response['Content-Disposition'] = 'attachment; filename="%s.csv"' % slugify(context['title'])
-        response['Content-Disposition'] = 'attachment; filename="planificacion.csv"'
-
-        writer = csv.writer(response)
-        # Write the data from the context somehow
-        for item in context['items']:
-            writer.writerow(item)
-
-        return response
-        # Business as usual otherwise
-        #else:
-        #    return super(CSVResponseMixin, self).render_to_response(context, **response_kwargs)
 
 
 def login(request):
@@ -96,13 +46,9 @@ def auth_view(request):
         return HttpResponseRedirect('/accounts/invalid')
 
 
-class LoggedInView(UserInfoMixin, TemplateView):
+class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     """Vista para usuarios que ingresan al sistema. Los lleva al home."""
     template_name = "loggedin.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(LoggedInView, self).dispatch(*args, **kwargs)
 
 
 class InvalidLogin(TemplateView):
@@ -116,7 +62,7 @@ def logout(request):
     return render_to_response('logout.html')
 
 
-class RegisterUserView(UserInfoMixin, View):
+class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):
     """Vista para el registro de nuevos usuarios"""
     form_class = RegistrationForm
     template_name = 'register.html'
@@ -143,28 +89,16 @@ class RegisterUserView(UserInfoMixin, View):
         else:
             return render_to_response('register.html', {'form': form}, context_instance=RequestContext(request))
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(RegisterUserView, self).dispatch(*args, **kwargs)
 
-
-class RegisterSuccessView(UserInfoMixin, TemplateView):
+class RegisterSuccessView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     """Vista utilizada """
     template_name = "register_success.html"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(RegisterSuccessView, self).dispatch(*args, **kwargs)
 
-
-class UserListView(UserInfoMixin, ListView):
+class UserListView(LoginRequiredMixin, UserInfoMixin, ListView):
     """Lista los usuarios de la organizacion"""
     model = User
     template_name = "user_list.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(UserListView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(UserListView, self).get_context_data(**kwargs)
@@ -172,12 +106,8 @@ class UserListView(UserInfoMixin, ListView):
         return context
 
 
-class UserDetailView(UserInfoMixin, DetailView):
+class UserDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     """Vista para la ficha de un usuario"""
     model = User
     template_name = "user_detail.html"
     context_object_name = "usuario"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(UserDetailView, self).dispatch(*args, **kwargs)

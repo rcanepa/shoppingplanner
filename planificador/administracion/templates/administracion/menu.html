@@ -1,10 +1,6 @@
 <div class="pure-menu pure-menu-open pure-menu-horizontal">
     <ul>
-        <li><a href="{% url 'home' %}">Inicio</a></li>
-        <li><a href="{% url 'planes:plan_list' %}">Planificar Temporada</a></li>
-        <li class="pure-menu-disabled"><a href="#">Lista Compra</a></li>
-		<li class="pure-menu-disabled"><a href="#">An&aacute;lisis KPIs</a></li>
-		<li class="pure-menu-selected"><a href="{% url 'administracion:index' %}">Administraci&oacute;n</a></li>
-		<li class="pure-menu-disabled"><a href="#">Ayuda</a></li>
+        <li><a href="{% url 'home' %}">INICIO</a></li>
+		<li class="pure-menu-selected"><a id="administracion_index" href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
     </ul>
 </div>

@@ -1,19 +1,31 @@
-/* <!-- */
-/* General styles */
+/*
+	COLORES DEL TEMA (http://www.cloudberrycreative.com/)
+
+	ROJO: #ef4929;
+	CAFE LETRAS: #9B9181A;
+	GRIS CLARO (FONDO): #f5f5ed;
+	CAFE OSCURO (FONDO): #554E44;
+
+*/
 body
 {
 	margin:0;
 	padding:0;
 	border:0;			/* This removes the border around the viewport in old versions of IE */
 	width:100%;
-	background:#fff;
+	color:#9b9181;
+	background:#f5f5ed;
 	min-width:600px;    /* Minimum width of layout - remove line if not required */
 	/* The min-width property does not work in old versions of Internet Explorer */
 	font-size:70%;
+	font-family:sans-serif;
 }
 a
 {
-	color:#369;
+	color:#ef4929;
+}
+a:hover{
+	color:#9b9181;
 }
 
 p
@@ -21,19 +33,9 @@ p
 	margin:.4em 0 .8em 0;
 	padding:0;
 }
-img
-{
-	margin:10px 0 5px;
-}
 
-h3
-{
-	display: block;
-	padding: .3em 0;
-	margin-bottom: .3em;
-	font-size: 125%;
-	color: #333;
-	border-bottom: 1px solid #e5e5e5;
+h4{
+	color: #ef4929;
 }
 
 /* Header styles */
@@ -41,9 +43,13 @@ h3
 	clear:both;
 	float:left;
 	width:100%;
-	/*border-bottom:1px solid #000;*/
+	border-bottom:2px solid #ef4929;
 }
 
+#header li a{
+	color:#9b9181;
+}
+/* Opciones para el menu horizontal superior de la app */
 .top-menu {	
 	padding-bottom:2px;
 }
@@ -53,29 +59,9 @@ h3
 	padding-right: 10px;
 }
 
-.opcion-seleccionada {
-	font-weight: bolder;
-	background-color: #eee;
-}
-
-/* 'widths' sub menu */
-#layoutdims {
-	width: 100%;
-	float: left;
-	clear:both;
-	/*background:#eee;*/
-	color: #777;
-	background:white;
-	/*border-top:1px solid #000;*/
-	margin:0;
-	padding-top: 5px;
-	padding-bottom:5px;
-	text-align:left;
-}
-
-#layoutdims .layoutdims-internal-div{
-	padding: 0px 20px;
-	float:left;
+#header li a.opcion-seleccionada{
+	color: #ef4929;
+	background-color: #f5f5ed;
 }
 
 /* column container */
@@ -88,16 +74,12 @@ h3
 }
 /* 2 column left menu settings */
 .leftmenu {
-	/*background:#FFD8B7;*/
-	background:#eee;
 }
 .leftmenu .colright {
 	float:left;
 	width:200%;
 	position:relative;
 	left:200px;
-	background:#fff;
-	/*border-left: 1px solid #000;*/
 }
 .leftmenu .col1wrap {
 	float:right;
@@ -114,7 +96,7 @@ h3
 	overflow:hidden;
 }
 .leftmenu .col1 a:hover{
-	background: #eee;
+	
 }
 .leftmenu .col2 {
 	padding: 15px 0px;
@@ -128,12 +110,11 @@ h3
 	clear:both;
 	float:left;
 	width:100%;
-	background:#eee;
+	border-top:2px solid #ef4929;
 }
 #footer p {
 	padding:10px;
 	margin:0;
-	background: white;
 	color:#777;
 }
 /* --> */
@@ -149,12 +130,10 @@ h3
 
 div.floating-left-menu {
 	position:fixed;
-	/*top: 10px;
-	left: 10px;*/
 	z-index:100;
 }
 
-/* Para los select de los buscadores */
+/* Para los select de los buscadores de items para proyeccion/planificacion */
 .buscador
 {
 	width: 100%;
@@ -184,7 +163,6 @@ div .right_label {
 	border: 1px solid #b7b7b7;
 	margin: 10px 0px;
 	padding:5px 10px;
-
 }
 .caja_bordes .caja-header{
 	color: #565d64;
@@ -195,11 +173,11 @@ div .right_label {
 	border-bottom-style: solid;
 	border-bottom-color: #dfdfdf;
 	display: block;
-
 	line-height: 1.5em;
 	padding: 5px 20px;
 }
 
+/* Para las cajas de mensajes: info, warning, success y error */
 .msg_info {
 	color: #00529B;
 	background-color: #BDE5F8;
@@ -215,6 +193,31 @@ div .right_label {
 .msg_error {
 	color: #D8000C;
 	background-color: #FFBABA;
+}
+
+/* Configuracion general de la caja de mensajes */
+#caja-mensajes
+{
+	border: 0px 2px 2px 2px;
+  	border-color: #ef4929;
+	font-size: 11px;
+	width: 700px;
+	height: 35px;
+	background-color: #DFF2BF;
+	text-align: center;
+	vertical-align: middle;
+	-webkit-border-bottom-right-radius: 20px;
+	-webkit-border-bottom-left-radius: 20px;
+	-moz-border-radius-bottomright: 20px;
+	-moz-border-radius-bottomleft: 20px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
+	padding: 5px 3px 0px 3px;
+	position: fixed;
+  	top: 0px;
+  	left: 50%;
+  	margin-left: -350px;
+  	z-index: 100;
 }
 
 /* Para listas de objetos (item list, categorias list, etc.) */
@@ -299,25 +302,4 @@ ol ol
 	url('../images/loading.gif') 
 	50% 50% 
 	no-repeat;
-}
-
-#caja-mensajes
-{
-	width: 700px;
-	height: 35px;
-	background-color: #DFF2BF;
-	text-align: center;
-	vertical-align: middle;
-	-webkit-border-bottom-right-radius: 20px;
-	-webkit-border-bottom-left-radius: 20px;
-	-moz-border-radius-bottomright: 20px;
-	-moz-border-radius-bottomleft: 20px;
-	border-bottom-right-radius: 20px;
-	border-bottom-left-radius: 20px;
-	padding: 5px 3px 0px 3px;
-	position: fixed;
-  	top: 0px;
-  	left: 50%;
-  	margin-left: -350px;
-  	z-index: 100;
 }

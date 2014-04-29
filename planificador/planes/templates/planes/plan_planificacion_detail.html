@@ -204,6 +204,13 @@
 
 $(function() {
 
+    // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
+    // cambios que no han sido guardados
+    $(window).bind("beforeunload",function(event) {
+        if(obj_planificacion.getModificada()) 
+            return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
+    });
+
     $( "#plan_planificacion_detail" ).addClass( "opcion-seleccionada" );
 
     obj_planificacion = function(){
@@ -212,6 +219,12 @@ $(function() {
         var id_item_comp = null;
         var id_plan = parseInt({{plan.id}});
         var data_proyeccion = null;
+        /*
+        Almacena el estado de la proyeccion:
+            - false = no ha sido modificada
+            - true = ha sido modificada y los cambios no han sido guardados
+        */
+        var modificada = false;
         
         function setItem(id){
             id_item = id;
@@ -248,6 +261,14 @@ $(function() {
         function getDataProyeccion(){
             return data_proyeccion;
         }
+
+        function setModificada(estado){
+            modificada = estado;
+        }
+
+        function getModificada(){
+            return modificada;
+        }
         
         return{
             setItem:setItem,
@@ -258,7 +279,9 @@ $(function() {
             getItemComp:getItemComp,
             getPlan:getPlan,
             setDataProyeccion:setDataProyeccion,
-            getDataProyeccion:getDataProyeccion
+            getDataProyeccion:getDataProyeccion,
+            setModificada:setModificada,
+            getModificada:getModificada
         }
 
     }();
@@ -315,6 +338,8 @@ $(function() {
                            $( "#inputval" ).val("");
                            if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                                 $( "#inputval" ).removeClass( "ui-state-error" );
+                            // Se marca que la planificacion ha sido modificada
+                            obj_planificacion.setModificada(true);
                            $( this ).dialog( "close" );
                         }
                         else {
@@ -337,6 +362,8 @@ $(function() {
                             $( "#inputval" ).val("");
                             if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                                 $( "#inputval" ).removeClass( "ui-state-error" );
+                            // Se marca que la planificacion ha sido modificada
+                            obj_planificacion.setModificada(true);
                             $( this ).dialog( "close" );
                         }
                         else {
@@ -369,7 +396,9 @@ $(function() {
                         $( "#inputval" ).val("");
                         if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                             $( "#inputval" ).removeClass( "ui-state-error" );
-                        actualizarPlanificacion();  
+                        actualizarPlanificacion();
+                        // Se marca que la planificacion ha sido modificada
+                        obj_planificacion.setModificada(true);
                         $( this ).dialog( "close" );
                     }
                     else{
@@ -612,6 +641,8 @@ $(function() {
         Ajax done callback para el evento que guarda una proyeccion
     */
     var saveAJAXDone = function(data){
+        // Se marca que la planificacion no se encuentra modificada (fueron guardados los cambios)
+        obj_planificacion.setModificada(false);
         $("#caja-mensajes")
             .show()
             .html(data.msg)
@@ -746,7 +777,7 @@ $(function() {
         obj_planificacion.setItemplan($(this).val());
         $.ajax({
             data: {'id_itemplan':obj_planificacion.getItemplan(), 'id_plan':obj_planificacion.getPlan()},
-            url: '/planes/plan/itemplanventatemp/',
+            url: '/planes/plan/buscar-datos-planificacion-tv/',
             type: 'get',
             success: function(data){
                 // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item

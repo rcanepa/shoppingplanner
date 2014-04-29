@@ -131,13 +131,26 @@
 
 $(function() {
 
+    // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
+    // cambios que no han sido guardados
+    $(window).bind("beforeunload",function(event) {
+        if(obj_planificacion.getModificada()) 
+            return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
+    });
+
     $( "#plan_saldosavances_detail" ).addClass( "opcion-seleccionada" );
 
     obj_planificacion = function(){
         var id_item = null;
         var id_item_comp = null;
         var id_plan = parseInt({{plan.id}});
-        
+        /*
+        Almacena el estado de la proyeccion:
+            - false = no ha sido modificada
+            - true = ha sido modificada y los cambios no han sido guardados
+        */
+        var modificada = false;
+
         function setItem(id){
             id_item = id;
         }
@@ -150,10 +163,20 @@ $(function() {
             return id_plan;
         }
         
+        function setModificada(estado){
+            modificada = estado;
+        }
+
+        function getModificada(){
+            return modificada;
+        }
+        
         return{
             setItem:setItem,
             getItem:getItem,
-            getPlan:getPlan
+            getPlan:getPlan,
+            setModificada:setModificada,
+            getModificada:getModificada
         }
 
     }();
@@ -222,6 +245,8 @@ $(function() {
         Ajax done callback para el evento que guarda una proyeccion
     */
     var saveAJAXDone = function(data){
+        // Se marca que la planificacion ha sido guardada (ya no hay modificaciones)
+        obj_planificacion.setModificada(false);
         $("#caja-mensajes")
             .show()
             .html(data.msg)
@@ -434,6 +459,8 @@ $(function() {
                        $( "#inputval" ).val("");
                        if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                             $( "#inputval" ).removeClass( "ui-state-error" );
+                        // Se marca que la planificacion ha sido modificada
+                        obj_planificacion.setModificada(true);
                        $( this ).dialog( "close" );
                     }
                     else {
@@ -456,6 +483,8 @@ $(function() {
                         $( "#inputval" ).val("");
                         if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                         $( "#inputval" ).removeClass( "ui-state-error" );
+                        // Se marca que la planificacion ha sido modificada
+                        obj_planificacion.setModificada(true);
                         $( this ).dialog( "close" );
                     }
                     else {

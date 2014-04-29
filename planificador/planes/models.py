@@ -10,6 +10,20 @@ from categorias.models import Item
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 from datetime import datetime
+from uuidfield import UUIDField
+from uuid import uuid4
+
+
+"""
+ESTA FUNCION DEBE SER ELIMINADA. DEPENDERA DE COMO SE IMPLEMENTE LA RELACION PADRE HIJO ENTRE
+OBJECTOS ITEMPLAN
+"""
+def generateUUID():
+    """
+        Para la generacion de valores por defecto del campo itemplan_uuid de la clase Itemplan.
+    """
+    return str(uuid4())
+
 
 class Temporada(models.Model):
     nombre = models.CharField(max_length=50)
@@ -237,7 +251,9 @@ class Itemplan(models.Model):
     nombre = models.CharField(max_length=70)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
     planificable = models.BooleanField(default=False)
+    #itemplan_uuid = UUIDField(auto=False, unique=True, default=generateUUID)
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
+    #itemplan_padre_uuid = models.ForeignKey('self', to_field='itemplan_uuid', blank=True, null=True)
     item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan, related_name='item_planificados')
 

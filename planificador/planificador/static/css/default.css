@@ -1,9 +1,10 @@
 /*
-	COLORES DEL TEMA
+	COLORES DEL TEMA (http://www.cloudberrycreative.com/)
 
 	ROJO: #ef4929;
 	CAFE LETRAS: #9B9181A;
 	GRIS CLARO (FONDO): #f5f5ed;
+	CAFE OSCURO (FONDO): #554E44;
 
 */
 body
@@ -33,12 +34,8 @@ p
 	padding:0;
 }
 
-h3
-{
-	display: block;
-	padding: .3em 0;
-	font-size: 125%;
-	border-bottom: 1px solid #9b9181;
+h4{
+	color: #ef4929;
 }
 
 /* Header styles */
@@ -62,9 +59,9 @@ h3
 	padding-right: 10px;
 }
 
-.opcion-seleccionada {
-	font-weight: bolder;
-	background-color: #eee;
+#header li a.opcion-seleccionada{
+	color: #ef4929;
+	background-color: #f5f5ed;
 }
 
 /* column container */
@@ -201,6 +198,9 @@ div .right_label {
 /* Configuracion general de la caja de mensajes */
 #caja-mensajes
 {
+	border: 0px 2px 2px 2px;
+  	border-color: #ef4929;
+	font-size: 11px;
 	width: 700px;
 	height: 35px;
 	background-color: #DFF2BF;

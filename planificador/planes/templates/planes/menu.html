@@ -6,13 +6,8 @@
 		{% endif %}
         <li class="pure-menu-selected"><a id="plan_list" href="{% url 'planes:plan_list' %}">PLANIFICAR TEMPORADA</a></li>
         {% if plan.id %}
-            <li><a id="plan_tree_detail" href="{% url 'planes:plan_tree_detail' plan.id %}">| ARBOL DE PLANIFICACI&Oacute;N |</a></li>
-            {% if plan.estado != 0 %}
-                <li><a id="plan_proyecciones_detail" href="{% url 'planes:plan_proyecciones_detail' plan.id %}">| PROYECTAR VENTAS |</a></li>
-                <li><a id="plan_planificacion_detail" href="{% url 'planes:plan_planificacion_detail' plan.id %}">| PLANIFICAR VENTAS |</a></li>
-                <li><a id="resumen_plan_detail" href="{% url 'planes:resumen_plan_detail' plan.id %}">| RESUMEN PLANIFICACI&Oacute;N |</a></li>
-                <li><a id="plan_saldosavances_detail" href="{% url 'planes:plan_saldosavances_detail' plan.id %}">| SALDOS Y AVANCES |</a></li>
-            {% endif %}
+        <li><a id="plan_tree_detail" href="{% url 'planes:plan_tree_detail' plan.id %}">| ARBOL DE PLANIFICACI&Oacute;N |</a></li>
+        <li><a id="plan_trabajo_detail" href="{% url 'planes:plan_trabajo_detail' plan.id %}">| TRABAJAR PLANIFICACI&Oacute;N |</a></li>
         {% endif %} 
     </ul>
 </div>

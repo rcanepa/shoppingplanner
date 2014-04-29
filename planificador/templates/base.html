@@ -28,14 +28,16 @@
 		{% block topbar %}
 			<div class="pure-menu pure-menu-open pure-menu-horizontal">
 			    <ul>
-			        <li class="pure-menu-selected"><a href="{% url 'home' %}">INICIO</a></li>
+			        <li class="pure-menu-selected"><a id="home_page" href="{% url 'home' %}">INICIO</a></li>
+			        {% if not admin %}
 			        <li><a href="{% url 'planes:plan_list' %}">PLANIFICAR TEMPORADA</a></li>
+			        {% endif %}
 					{% if admin %}
 					<li><a href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
 					{% endif %}
 			    </ul>
 			</div>
-		{% endblock %}	
+		{% endblock %}
 		</div>
 	</div>
 	<div class="colmask leftmenu">
@@ -77,5 +79,13 @@
 	</div>
 {% block js %}
 {% endblock %}
+<script>
+
+$(function() {
+
+    $( "#home_page" ).addClass( "opcion-seleccionada" );
+});
+
+</script>
 </body>
 </html>
