@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from datetime import datetime, date, time
+from datetime import datetime
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 
@@ -10,6 +10,7 @@ from ventas.models import Ventaperiodo
 Modelo Categoria
 """
 
+
 class Categoria(models.Model):
     nombre = models.CharField(max_length=70)
     vigencia = models.BooleanField(default=True)
@@ -17,7 +18,7 @@ class Categoria(models.Model):
     categoria_padre = models.ForeignKey('self', blank=True, null=True, related_name='categorias_hijos')
     organizacion = models.ForeignKey(Organizacion)
     planificable = models.BooleanField(default=False)
-    
+
     def __unicode__(self):
         return self.nombre
 
@@ -50,13 +51,13 @@ class Categoria(models.Model):
             for next in child.as_tree():
                 yield next
         yield branch, None
-    
+
     def get_nivel(self, nivel=1):
         """
         Devuelve el nivel en la estructural de arbol a la que pertenece
         """
         hijo = self.categoria_padre
-        while hijo != None:
+        while hijo is not None:
             nivel += 1
             hijo = hijo.categoria_padre
         return nivel
@@ -68,10 +69,12 @@ class Categoria(models.Model):
 Modelo Item
 """
 
+
 class VigenteManager(models.Manager):
     """docstring for VigenteManager"models.Manager"""
     def get_queryset(self):
         return super(VigenteManager, self).get_queryset().filter(vigencia=True)
+
 
 class Item(models.Model):
     id_real = models.IntegerField(blank=True, null=True)
@@ -82,7 +85,7 @@ class Item(models.Model):
     categoria = models.ForeignKey('Categoria')
     temporada = models.ForeignKey('planes.Temporada', blank=True, null=True, related_name='items_temporada')
     precio = models.PositiveIntegerField(default=0)
-    
+
     objects = models.Manager()
     vigente = VigenteManager()
 
@@ -94,7 +97,7 @@ class Item(models.Model):
         Devuelve la lista de items hijos vigente del item. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre) filtrando los items no vigentes.
         """
-        return self.items_hijos.all().filter(vigencia=True).prefetch_related('categoria').order_by('nombre','precio')
+        return self.items_hijos.all().filter(vigencia=True).prefetch_related('categoria').order_by('nombre', 'precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})
@@ -113,7 +116,7 @@ class Item(models.Model):
 
     def as_tree_min(self):
         """
-        Obtiene recursivamente la lista de hijos en forma de arbol 
+        Obtiene recursivamente la lista de hijos en forma de arbol.
         """
         children = list(self.get_children())
         branch = bool(children)
@@ -128,12 +131,12 @@ class Item(models.Model):
 
     def get_hijos(self):
         """
-        Obtiene recursivamente la lista de hijos en forma de arbol. 
+        Obtiene recursivamente la lista de hijos en forma de arbol.
         Devuelve unicamente objetos que pertenecen a la ultima categoria (hoja).
         !!NO DEVUELVE OBJECTOS DE CATEGORIAS INTERMEDIAS!!
         """
         children = list(self.get_children())
-        if bool(self.categoria.get_children()) == False:
+        if bool(self.categoria.get_children()) is False:
             yield self
         for child in children:
             for next in child.get_hijos():
@@ -145,7 +148,7 @@ class Item(models.Model):
         nivel el cual permite especificar hasta que profundidad del arbol se buscaran hijos.
         Parametro: nivel de profundidad
         """
-        children = list(self.get_children())        
+        children = list(self.get_children())
         yield self
         for child in children:
             if child.get_nivel() <= nivel:
@@ -176,10 +179,9 @@ class Item(models.Model):
         else:
             return False
 
-
     def get_nivel(self, nivel=1):
         hijo = self.item_padre
-        while hijo != None:
+        while hijo is not None:
             nivel += 1
             hijo = hijo.item_padre
         return nivel
@@ -192,22 +194,20 @@ class Item(models.Model):
             Devuelve el costo unitario de un item en base a la ultima venta real registrada
         """
         venta = Ventaperiodo.objects.filter(
-                            item=self,
-                            tipo=0
-                            ).exclude(vta_u=0
-                            ).values('item','vta_u','costo'
-                            ).order_by('-anio','-periodo')
+            item=self, tipo=0).exclude(vta_u=0).values('item', 'vta_u', 'costo').order_by('-anio', '-periodo')
         if venta:
-            return round(float(venta[0]['costo'] / venta[0]['vta_u']),0)
+            return round(float(venta[0]['costo'] / venta[0]['vta_u']), 0)
         else:
-            return 0 
-    
+            return 0
+
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
 
 """
 Modelo Grupoitem
 """
+
+
 class Grupoitem(models.Model):
     """
     Esta clase guarda el registro de agrupaciones de items creadas por usuarios.

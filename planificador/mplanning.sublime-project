@@ -9,6 +9,6 @@
 	"settings": 
 	{
     	"auto_complete_triggers": [{"selector": "source.python", "characters": "."}],
-    	"python_interpreter_path": "/usr/bin/python"
+    	"python_interpreter_path": "/home/rcanepa/.virtualenvs/plan/bin/python"
 	}
 }

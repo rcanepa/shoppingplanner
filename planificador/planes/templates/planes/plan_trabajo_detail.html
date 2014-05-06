@@ -92,25 +92,15 @@
 <div id="accordion">
     <h3>Item</h3>
     <div>
+    <!-- div para la vista de proyeccion -->
         <div id="tab_item_proyeccion">
             <div style="width:100%; float:left">
-                <form id="form_proyeccion" class="pure-form">
-                    {% csrf_token %}
-                    <div id="tab_proyeccion" style="float:left; width:100%;">
-                    </div>
-                    <div style="float:left; width:100%;">
-                    </div>
-                    <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
-                        <input id="json_data_proyeccion" type="hidden" name="proyeccion" value="" />
-                    </div>
-                </form>
-                <div id="dialog-box" title="Proyección" style="text-align:center;">
-                    <p id="dialog_help_msg"></p>
-                    <input id="inputval" type="text" style="width:8em">
+                <div id="tab_proyeccion" style="float:left; width:100%;" class="tabla_datos_actividad">
                 </div>
             </div>
         </div>
 
+    <!-- div para la vista de planificacion de temporada vigente -->
         <div id="tab_item_planificacion_tv" style="display:none;">
             <div style="float:left; width:100%;">
                 <div style="float:left; width:7%;">Precio Blanco:</div>
@@ -119,71 +109,134 @@
                 <div id="itemcosto_unitario" class="editable" style="float:left; width:20%;"></div>
             </div>
             <div style="width:100%; float:left">
-                <form id="form_planificacion-tv" class="pure-form">
-                    {% csrf_token %}
-                    <div style="width:100%; float:left;">
-                        <div id="tab_planificacion_etiquetas" style="width:10%; float:left;">
-                        </div>
-                        <div id="tab_planificacion_datos" style="width:90%; float:left;">
-                        </div>
+                <div style="width:100%; float:left;">
+                    <div id="tab_planificacion_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad">
                     </div>
-                    <div style="width:100%; float:left; padding-top:10px; padding-bottom:10px;">
-                        <input id="json_data_planificacion_tv" type="hidden" name="planificacion" value="" />
+                    <div id="tab_planificacion_datos" style="width:90%; float:left;" class="tabla_datos_actividad">
                     </div>
-                </form>
+                </div>
             </div>
         </div>
+
+    <!-- div para la vista de planificacion de avances y saldos -->
+        <div id="tab_item_planificacion_as" style="display:none;">
+            <div style="width:100%; float:left">
+                <div id="tab_planificacion_as" style="float:left; width:100%;" class="tabla_datos_actividad">
+                </div>
+            </div>
+        </div>
+
+    <!-- div para la vista de resumen -->
+        <div id="tab_item_resumen" class="pure-g" style="display:none;">
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Venta</h3></div>
+                <div><canvas id="venta-chart" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
+                <div><canvas id="contribucion-chart" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Unidades</h3></div>
+                <div><canvas id="unidades-chart" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Precio Blanco</h3></div>
+                <div><canvas id="precio-chart" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+        </div>
+
     </div>
     <h3>Comparativo</h3>
     <div>
+    <!-- div para la vista de proyeccion comparativa -->
         <div id="tab_item_proyeccion_comp">
             <div id="item_proyeccion_comp"></div>
             <div style="width:100%; float:left">
-                <div id="tab_comparativo" style="float:left; width:100%;">
+                <div id="tab_comparativo" style="float:left; width:100%;" class="tabla_datos_actividad_comp">
                 </div>
             </div>
         </div>
+
+    <!-- div para la vista de planificacion de temporada vigente comparativa -->
         <div id="tab_item_planificacion_tv_comp" style="display:none;">
             <div id="item_planificacion_tv_comp"></div>
             <div style="width:100%; float:left;">
-                <div id="tab_comparativo_etiquetas" style="width:10%; float:left;">
+                <div id="tab_comparativo_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad_comp">
                 </div>
-                <div id="tab_comparativo_datos" style="width:90%; float:left;">
+                <div id="tab_comparativo_datos" style="width:90%; float:left;" class="tabla_datos_actividad_comp">
                 </div>
             </div>
-        </div>    
+        </div>
+
+    <!-- div para la vista de planificacion de avances y saldos comparativa -->
+        <div id="tab_item_planificacion_as_comp">
+            <div id="item_planificacion_as_comp"></div>
+            <div style="width:100%; float:left">
+                <div id="tab_planificacion_as_comp" style="float:left; width:100%;" class="tabla_datos_actividad_comp">
+                </div>
+            </div>
+        </div> 
+
+    <!-- div para la vista de resumen -->
+        <div id="tab_item_resumen_comp" class="pure-g" style="display:none;">
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Venta</h3></div>
+                <div><canvas id="venta-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
+                <div><canvas id="contribucion-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Unidades</h3></div>
+                <div><canvas id="unidades-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+
+            <div class="pure-u-1-2">
+                <div class="titulo_chart"><h3>Precio Blanco</h3></div>
+                <div><canvas id="precio-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+            </div>
+        </div>
+
     </div>
 </div>
 <div id="dvLoading" style="display:none;"></div>
-
+<div style="display:none;">
+    <form id="form_datos">
+        {% csrf_token %}
+        <input id="json_datos_tarea" type="hidden" name="datos_tarea" value="" />
+    </form>
+</div>
+<div id="dialog-box" title="Proyección" style="text-align:center;">
+    <p id="dialog_help_msg"></p>
+    <input id="inputval" type="text" style="width:8em">
+</div>
 {% endif%}
 
 {% endblock %}
 
 {% block js %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static "css/planes/proyeccion.css" %}">
-<script src="{% static "planes/js/plan_trabajo_detail_proyeccion.js" %}" type="text/javascript"></script>
-<script src="{% static "planes/js/plan_trabajo_detail_planificacion_tv.js" %}" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{% static "planes/css/trabajo.css" %}">
 <script>
 
 $(function() {
-
-    /*
-
-    PARA CONTROLAR EL BOTON GUARDAR DE LA APLICACION
-
-    if ( $("#panel-acciones").hasClass("pure-menu-disabled") )
-        $("#panel-acciones").removeClass("pure-menu-disabled");
-    */
 
     /*
     Objeto que mantiene informacion y principales estados del trabajo que el usuario
     se encuentra realizando en la pagina.
     */
     obj_trabajo = function(){
-        // ID del item sobre el cual esta trabajando
-        var id_item = null;
+        /* ID del item sobre el cual esta trabajando */
+        var id_item = -1;
+        /* ID del item sobre el cual esta comparando */
+        var id_item_comp = -1;
         /*
         Almacena la tarea que se esta realizando sobre la planificacion:
             - 1 Proyeccion (valor por defecto)
@@ -201,16 +254,16 @@ $(function() {
         */
         var modificada = false;
 
-        var proyeccion = null;
-        var proyeccion_comp = null;
-
-        var planificacion = null;
-        var planificacion_comp = null;
+        var datos = null;
+        var datos_comp = null;
 
         var celda_editada = null;
         
         function setItem(id){id_item = id;}
         function getItem(){return id_item;}
+
+        function setItemComp(id){id_item_comp = id;}
+        function getItemComp(){return id_item_comp;}
         
         function getPlan(){return id_plan;}
 
@@ -220,39 +273,44 @@ $(function() {
         function setActividad(codigo){actividad = codigo;}
         function getActividad(){return actividad;}
 
-        function getProyeccion(){return proyeccion;}
-        function setProyeccion(datos){proyeccion = datos;}
+        function getDatos(){return datos;}
+        function setDatos(x){datos = x;}
 
-        function getProyeccionComp(){return proyeccion_comp;}
-        function setProyeccionComp(datos){proyeccion_comp = datos;}
-
-        function getPlanificacion(){return planificacion;}
-        function setPlanificacion(datos){planificacion = datos;}
-
-        function getPlanificacionComp(){return planificacion_comp;}
-        function setPlanificacionComp(datos){planificacion_comp = datos;}
+        function getDatosComp(){return datos_comp;}
+        function setDatosComp(x){datos_comp = x;}
 
         function getCeldaEditada(){return celda_editada;}
         function setCeldaEditada(elemento){celda_editada = elemento;}
 
+        function limpiarItem(){
+            datos = null;
+            id_item = -1;
+            modificada = false;
+        }
+
+        function limpiarItemComparativo(){
+            datos_comp = null;
+            id_item_comp = -1;
+        }
+
         return{
             setItem:setItem,
             getItem:getItem,
+            setItemComp:setItemComp,
+            getItemComp:getItemComp,
             getPlan:getPlan,
             setModificada:setModificada,
             getModificada:getModificada,
             setActividad:setActividad,
             getActividad:getActividad,
-            getProyeccion:getProyeccion,
-            setProyeccion:setProyeccion,
-            getProyeccionComp:getProyeccionComp,
-            setProyeccionComp:setProyeccionComp,
-            getPlanificacion:getPlanificacion,
-            setPlanificacion:setPlanificacion,
-            getPlanificacionComp:getPlanificacionComp,
-            setPlanificacionComp:setPlanificacionComp,
+            getDatos:getDatos,
+            setDatos:setDatos,
+            getDatosComp:getDatosComp,
+            setDatosComp:setDatosComp,
             getCeldaEditada:getCeldaEditada,
-            setCeldaEditada:setCeldaEditada
+            setCeldaEditada:setCeldaEditada,
+            limpiarItem:limpiarItem,
+            limpiarItemComparativo:limpiarItemComparativo
         }
     }();
 
@@ -263,8 +321,20 @@ $(function() {
             return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
     });
 
+    // Mantener sincronizado el movimiento del scroll inferior con el superior
+    $("#tab_item_planificacion_tv").on("scroll", function () {
+        $("#tab_item_planificacion_tv_comp").scrollLeft($(this).scrollLeft());
+    });
+
+    // Mantener sincronizado el movimiento del scroll superior con el inferior
+    $("#tab_item_planificacion_tv_comp").on("scroll", function () {
+        $("#tab_item_planificacion_tv").scrollLeft($(this).scrollLeft());
+    });
+
     // Primera actividad a la que se ingresa al trabajar una planificacion (proyectar ventas)
-    $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
+    $( "#enlace-proyeccion" ).addClass( "subopcion-seleccionada" );
+
+    $( "#plan_trabajo_detail" ).addClass( "opcion-seleccionada" );
 
     /*
     Actualiza el atributo actividad del objeto obj_trabajo. Con esto se especifica el tipo de actividad
@@ -278,38 +348,140 @@ $(function() {
         switch ($(this).attr('id')){
             case 'enlace-proyeccion':
                 obj_trabajo.setActividad(1);
-                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
-                $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
+                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
+                $( "#enlace-proyeccion" ).addClass( "subopcion-seleccionada" );
                 $( "#tab_item_proyeccion" ).show();
                 $( "#tab_item_proyeccion_comp" ).show();
                 $( "#tab_item_planificacion_tv" ).hide();
                 $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
                 break;
             case 'enlace-planificacion-tv':
                 obj_trabajo.setActividad(2);
-                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
-                $( "#enlace-planificacion-tv" ).addClass( "opcion-seleccionada" );
+                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
+                $( "#enlace-planificacion-tv" ).addClass( "subopcion-seleccionada" );
                 $( "#tab_item_proyeccion" ).hide();
                 $( "#tab_item_proyeccion_comp" ).hide();
                 $( "#tab_item_planificacion_tv" ).show();
                 $( "#tab_item_planificacion_tv_comp" ).show();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
                 break;
             case 'enlace-planificacion-as':
                 obj_trabajo.setActividad(3);
-                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
-                $( "#enlace-planificacion-as" ).addClass( "opcion-seleccionada" );
+                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
+                $( "#enlace-planificacion-as" ).addClass( "subopcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).hide();
+                $( "#tab_item_proyeccion_comp" ).hide();
+                $( "#tab_item_planificacion_tv" ).hide();
+                $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).show();
+                $( "#tab_item_planificacion_as_comp" ).show();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
                 break;
             case 'enlace-resumen':
                 obj_trabajo.setActividad(4);
-                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
-                $( "#enlace-resumen" ).addClass( "opcion-seleccionada" );
+                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
+                $( "#enlace-resumen" ).addClass( "subopcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).hide();
+                $( "#tab_item_proyeccion_comp" ).hide();
+                $( "#tab_item_planificacion_tv" ).hide();
+                $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).show();
+                $( "#tab_item_resumen_comp" ).show();
                 break;
             default:
                 alert("No se ha escogido ninguna actividad!");
                 obj_trabajo.setActividad(0);
                 break;
         }
+        if ( obj_trabajo.getItem() != -1 )
+            $( "#combo_resultado" ).trigger( "change" );
+        if ( obj_trabajo.getItemComp() != -1 )
+            busquedaAJAXdatosComp(obj_trabajo.getItemComp());
     });
+
+    /*
+        Guarda la proyeccion sobre la cual se esta trabajando.
+    */
+    $("#btnSave").click(function(event){
+        event.preventDefault();
+        if ( verificarGuardar() ){
+            var plan = obj_trabajo.getPlan();
+            var itemplan = obj_trabajo.getItem();
+            var ventas = obj_trabajo.getDatos();
+            var url = null;
+            
+            json_data = JSON.stringify({
+                'plan': plan, 
+                'itemplan': itemplan,
+                'ventas': ventas.ventas
+            });
+
+            /* Se determina el tipo de tarea que esta realizando el usuario para
+            definir la url correspondiente a la vista que guardara los datos */
+            switch(obj_trabajo.getActividad()){
+                case 1:
+                    url = '/planes/plan/guardar-proyeccion/';
+                    break;
+                case 2:
+                    url = '/planes/plan/guardar-planificacion-tv/';
+                    break;
+                case 3:
+                    url = '/planes/plan/guardar-planificacion-as/';
+                    break;
+                case 4:
+                    url = null;
+                    break;
+                default:
+                    url = null;
+                    break;
+            }
+            
+            $("#json_datos_tarea").val(json_data);
+
+            if ( url != null ){
+                $.ajax({
+                    data: $("#form_datos").serialize(), // Se envia el form serializado para que contenga el token CSRF
+                    url: url,
+                    type: 'post',
+                    
+                }).done(saveAJAXDone);
+            }
+        }
+    });
+
+    /*
+        Ajax done callback para el evento que guarda una proyeccion
+    */
+    var saveAJAXDone = function(data){
+        obj_trabajo.setModificada(false);
+        desactivarGuardar();
+        $("#caja-mensajes")
+            .show()
+            .html(data.msg)
+            .addClass("msg_success")
+            .delay(3000)
+            .queue( function(next){ 
+                $(this).hide();
+                $(this).removeClass("msg_success");
+                $(this).html("");
+                    next(); 
+            });
+
+        $("#combo_resultado").trigger("change");
+        
+        if ( obj_trabajo.getItemComp() != -1 )
+            busquedaAJAXdatosComp(obj_trabajo.getItemComp());
+    };
 
     /* Cada vez que un usuario hace click sobre un input, el contenido 
     aparece seleccionado */
@@ -374,154 +546,6 @@ $(function() {
         }
     });
     
-    /*
-    Se preocupa de cargar los elementos SELECT para la seleccion del item a trabajar.
-    */
-    function buscarCategoria(){
-        var id_this = $(this).attr("id");
-        var id_item = $(this).val();
-        var id_plan = obj_trabajo.getPlan();
-        if(id_item != -1){
-            $.ajax({
-                data: {'id_item':id_item, 'id_plan':id_plan},
-                url: '/planes/plan/buscar-lista-items/',
-                type: 'get',
-                success: function(data){
-                    // Se revisa si la consulta AJAX devolvio un resultado procesable (lista de objetos item o itemplan)
-                    html = '';
-                    html += "<option value=\"-1\"></option>"
-                    for (var x=0; x<data.items.length; x++){
-                        // Se revisa si el tipo de resultado es una lista de itemplan (combo de resultado) o items (combo de busqueda o comparacion)
-                        if ( typeof data.items[x].precio === "undefined" )
-                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
-                        else
-                            html += '<option value="' 
-                            + data.items[x].id + '">' 
-                            + data.items[x].estado + ' | ' 
-                            //+ data.items[x].categoria_nombre + ' | ' 
-                            + data.items[x].nombre + ' | ' 
-                            + numeral(data.items[x].precio).format('0,0') + '</option>';
-                    }
-                    // Se revisa si la categoria es planificable (por lo tanto carga el resultado en el combo de items)
-                    if (!data.categoria.planificable)
-                        $("#combo_cat_proy_" + data.categoria.id_categoria).html(html);
-                    else
-                        $("#combo_resultado").html(html);       
-                }
-            });
-        }
-        else{
-        }
-    }
-
-    /*
-    Se preocupa de cargar los elementos SELECT para la seleccion del item a comparar.
-    */
-    function buscarCategoriaComparacion(){
-        var id_this = $(this).attr("id");
-        var id_this_arry = id_this.split("_");
-        var id_item = $("#combo_cat_comp_" + id_this_arry[3]).val();
-        var id_plan = obj_trabajo.getPlan();
-        if(id_item != -1){
-            $.ajax({
-                data: {'id_item':id_item, 'id_plan':id_plan},
-                url: '/planes/plan/buscar-lista-items-comparacion/',
-                type: 'get',
-                success: function(data){
-                    if ( data.items != null ){
-                        html = '';
-                        html += "<option value=\"-1\"></option>"
-                        for (var x=0; x<data.items.length; x++){
-                            if ( data.items[x].precio != 0 )
-                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + ' | ' + numeral(data.items[x].precio).format('0,0') + '</option>';
-                            else
-                                html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
-                        }
-                        $("#combo_cat_comp_" + data.categoria.id_categoria).html(html);
-                    }
-                    else{
-                    }
-                }
-            });
-        }
-    }
-
-    /*
-        Controla los cambios hechos sobre el combobox de itemplan.
-        Gatilla una busqueda sobre la informacion comercial del itemplan
-        seleccionado.
-    */
-    function busquedaAJAXdatos(){
-        /* Se determina el tipo de tarea que esta realizando el usuario para
-        buscar la informacion necesaria (proyeccion, planificacion o resumen) */
-        obj_trabajo.setItem($(this).val());
-        if (obj_trabajo.getItem() != -1){
-            switch(obj_trabajo.getActividad()){
-                case 1:
-                    console.log("BUSQUEDA PROYECCION");
-                    data = {'id_itemplan':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan()};
-                    url = '/planes/plan/buscar-datos-proyeccion/';
-                    busqueda = busquedaProyeccion;
-                    break;
-                case 2:
-                    console.log("BUSQUEDA PLANIFICACION TV");
-                    data = {'id_itemplan':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan()};
-                    url = '/planes/plan/buscar-datos-planificacion-tv/';
-                    busqueda = busquedaPlanificacionTV;
-                    break;
-                case 3:
-                    console.log("BUSQUEDA PLANIFICACION AS");
-                    break;
-                case 4:
-                    console.log("BUSQUEDA RESUMEN");
-                    break;
-            }
-            
-            var request = $.ajax({
-                data: data,
-                url: url,
-                type: 'get'
-            });
-
-            request.done(busqueda);
-        }        
-    }
-
-    /*
-        Controla los cambios hechos sobre el combobox de itemplan de comparacion.
-        Gatilla una busqueda sobre la informacion comercial del itemplan
-        seleccionado.
-    */
-    function busquedaAJAXdatosComp(id_item){
-        /* Se determina el tipo de tarea que esta realizando el usuario para
-        buscar la informacion necesaria (proyeccion, planificacion o resumen) */
-        switch(obj_trabajo.getActividad()){
-            case 1:
-                console.log("BUSQUEDA PROYECCION COMP");
-                data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan()};
-                url = '/planes/plan/buscar-datos-proyeccion-comp/';
-                busqueda = busquedaProyeccionComp;
-                break;
-            case 2:
-                console.log("BUSQUEDA PLANIFICACION TV COMP");
-                break;
-            case 3:
-                console.log("BUSQUEDA PLANIFICACION AS COMP");
-                break;
-            case 4:
-                console.log("BUSQUEDA RESUMEN COMP");
-                break;
-        }
-
-        var request = $.ajax({
-            data: data,
-            url: url,
-            type: 'get'
-        });
-
-        request.done(busqueda);
-    }
-
     $( "#dialog-box" ).dialog({
         autoOpen: false,
         width: 220,
@@ -546,13 +570,26 @@ $(function() {
                     // Se valida que el valor ingresado sea un numero entero
                     if(intRegex.test(valor)) {
                        obj_trabajo.getCeldaEditada().text(valor);
-                       actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                       switch(obj_trabajo.getActividad()){
+                            case 1:
+                                actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            case 2:
+                                actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            case 3:
+                                actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            default:
+                                return false;
+                       }
                        $( "#inputval" ).val("");
                        if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                             $( "#inputval" ).removeClass( "ui-state-error" );
                         // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
                         // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
                         obj_trabajo.setModificada(true);
+                        activarGuardar();
                        $( this ).dialog( "close" );
                     }
                     else {
@@ -571,13 +608,26 @@ $(function() {
                 else {
                     if(floatRegex.test(valor)) {
                         obj_trabajo.getCeldaEditada().text(valor + "%");
-                        actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                        switch(obj_trabajo.getActividad()){
+                            case 1:
+                                actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            case 2:
+                                actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            case 3:
+                                actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
+                                break;
+                            default:
+                                return false;
+                        }
                         $( "#inputval" ).val("");
                         if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
                         $( "#inputval" ).removeClass( "ui-state-error" );
                         // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
                         // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
                         obj_trabajo.setModificada(true);
+                        activarGuardar();
                         $( this ).dialog( "close" );
                     }
                     else {
@@ -597,66 +647,6 @@ $(function() {
             }
         }
     });
-
-    /*
-        Ajax done callback para el evento que guarda una proyeccion
-    */
-    var saveAJAXDone = function(data){
-        obj_trabajo.setModificada(false);
-        $("#caja-mensajes")
-            .show()
-            .html(data.msg)
-            .addClass("msg_success")
-            .delay(4000)
-            .queue( function(next){ 
-                $(this).hide();
-                $(this).removeClass("msg_success");
-                $(this).html("");
-                    next(); 
-            });
-
-        // Se recarga el cuadro de proyeccion con la opcion escogida
-        $("#combo_resultado").trigger("change");
-        crearTablaProyeccion(obj_trabajo.getProyeccion());
-
-        // Si en algun momento se escogio un item comparativo, entonces se recarga la tabla para que contenga
-        // los datos que se guardaron de la ultima planificacion
-        var id_item_comparativo = -1;
-
-        $("[id^=combo_cat_comp_]").each(function(index){
-            if ( $(this).val() != -1 ){
-                id_item_comparativo = $(this).val();
-            }
-        });
-        if ( id_item_comparativo != -1 )
-            busquedaAJAXdatosComp(id_item_comparativo);
-    };
-
-    /*
-        Guarda la proyeccion sobre la cual se esta trabajando.
-    */
-    /*$("#btnSave").click(function(event){
-        event.preventDefault();
-        var plan = obj_trabajo.getPlan();
-        var itemplan = obj_trabajo.getItem();
-        var ventas = obj_trabajo.getProyeccion();
-        
-        json_data = JSON.stringify({
-            'plan': plan, 
-            'itemplan': itemplan,
-            'ventas': ventas.ventas
-        });
-        
-        $("#json_data_proyeccion").val(json_data);
-
-        $.ajax({
-            data: $("#form_proyeccion").serialize(), // Se envia el form serializado para que contenga el token CSRF
-            url: '/planes/plan/guardar-proyeccion/',
-            type: 'post',
-            
-        }).done(saveAJAXDone);
-        
-    });*/
 
     $("#combo_resultado").change(busquedaAJAXdatos);
     $("[id^=button_cat_comp_]").click(function(){
@@ -678,5 +668,17 @@ $(function() {
 });
 
 </script>
-
+<script src="{% static "planes/js/plan_trabajo_detail_general.js" %}" type="text/javascript"></script>
+<script src="{% static "planes/js/plan_trabajo_detail_proyeccion.js" %}" type="text/javascript"></script>
+<script src="{% static "planes/js/plan_trabajo_detail_planificacion_tv.js" %}" type="text/javascript"></script>
+<script src="{% static "planes/js/plan_trabajo_detail_planificacion_as.js" %}" type="text/javascript"></script>
+<script src="{% static "planes/js/plan_trabajo_detail_resumen.js" %}" type="text/javascript"></script>
+<script src="{% static "js/rgraph/RGraph.common.core.js" %}"></script>
+<script src="{% static "js/rgraph/RGraph.common.dynamic.js" %}"></script>   <!-- Just needed for dynamic features (eg tooltips) -->
+<script src="{% static "js/rgraph/RGraph.common.annotate.js" %}"></script>  <!-- Just needed for annotating -->
+<script src="{% static "js/rgraph/RGraph.common.context.js" %}"></script>   <!-- Just needed for context menus -->
+<script src="{% static "js/rgraph/RGraph.common.tooltips.js" %}"></script>  <!-- Just needed for tooltips -->
+<script src="{% static "js/rgraph/RGraph.drawing.rect.js" %}"></script>
+<script src="{% static "js/rgraph/RGraph.bar.js" %}"></script>              <!-- Just needed for Bar charts -->
+<script src="{% static "js/rgraph/RGraph.line.js" %}"></script>             <!-- Just needed for Line charts -->
 {% endblock %}

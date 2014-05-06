@@ -689,7 +689,7 @@ $(function() {
         $("#input_json_data").val(json_data);
         $.ajax({
             data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
-            url: '/planes/plan/savestage3/',
+            url: '/planes/plan/guardar-planificacion-tv/',
             type: 'post'
         }).done(saveAJAXDone);
 

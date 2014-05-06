@@ -1,11 +1,12 @@
 /*
-Recibe la respuesta tipo AJAX que se genera al seleccionar un item a proyectar.
+Recibe la respuesta tipo AJAX que se genera al seleccionar un item a planificar.
 */
-function busquedaProyeccion(data){
-    /* Se revisa que hayan ventas asociadas */
+function busquedaPlanificacionAS(data){
+    // Se revisa que la busqueda haya devuelto ventas. Si no devolvio datos de venta significa que no encontro el item
+    // que se estaba buscando
     if( data.ventas != null ){
         obj_trabajo.setDatos(data);
-        crearTablaProyeccion(obj_trabajo.getDatos());
+        crearTablaPlanificacionAS(data);
     }
     else{
         alert("El item seleccionado no es válido. Por favor verifique que haya escogido correctamente un item y que tenga los permisos necesarios para verlo");
@@ -15,22 +16,19 @@ function busquedaProyeccion(data){
 /*
 Recibe la respuesta tipo AJAX que se genera al seleccionar un item a proyectar.
 */
-function busquedaProyeccionComp(data){
-    /* Se revisa que la busqueda haya devuelto ventas. */
+function busquedaPlanificacionASComp(data){
     if( data.ventas != null ){
-        $("#item_proyeccion_comp").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+        $("#item_planificacion_as_comp").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
         obj_trabajo.setDatosComp(data);
-        crearTablaProyeccionComp(obj_trabajo.getDatosComp());
+        crearTablaPlanificacionASComp(data);
     }
     else{
         alert("El item seleccionado no es válido. Por favor verifique que haya escogido correctamente un item y que tenga los permisos necesarios para verlo");
     }
 }
 
-/*
-Recibe como parametros datos de proyeccion y construye el HTML que genera una tabla de proyeccion
-*/
-function crearTablaProyeccion(data){
+function crearTablaPlanificacionAS(data){
+
     var html_tot_vta_n = "";
     var html_tot_ctb_n = "";
     var html_tot_margen = "";
@@ -60,7 +58,7 @@ function crearTablaProyeccion(data){
         if (data.periodos[x].temporada){
             html += "<th title=\"Periodo de la temporada " 
                 + data.temporada_vigente.nombre + " - " 
-                + (parseInt(data.temporada_vigente.anio) - 1)  
+                + (parseInt(data.temporada_vigente.anio))  
                 + "\" style=\"background-color:#F5F5ED;\">" 
                 + data.periodos[x].nombre + "</th>";
         }
@@ -179,15 +177,11 @@ function crearTablaProyeccion(data){
     html += "</tr>";
     html += "</tbody>";
     html += "</table>";
-    $("#tab_proyeccion").html(html);
+    $("#tab_planificacion_as").html(html);
     $(".editable").click(modificarCelda);
 }
 
-/*
-Recibe como parametros datos de proyeccion y construye el HTML que genera una tabla de proyeccion.
-La informacion de esta tabla no es editable.
-*/
-function crearTablaProyeccionComp(data){
+function crearTablaPlanificacionASComp(data){
 
     var html_tot_vta_n = "";
     var html_tot_ctb_n = "";
@@ -330,18 +324,14 @@ function crearTablaProyeccionComp(data){
     html += "</tr>";
     html += "</tbody>";
     html += "</table>";
-    $("#tab_comparativo").html(html);
+    $("#tab_planificacion_as_comp").html(html);
 }
 
-/*
-Actualiza el atributo datos del objeto obj_trabajo segun las
-modificaciones que haya hecho el usuario en la tabla de proyeccion/planificacionAS.
-*/
-function actualizarProyeccion(metrica, periodo, temporada){
-    proyeccion = obj_trabajo.getDatos();
-    // Si se proyectaron las unidades, se entra al ciclo if
+function actualizarPlanificacionAS(metrica, periodo, temporada){
+    planificacion_as = obj_trabajo.getDatos();
+    // Si se planificaron las unidades, se entra al ciclo if
     if(metrica == 'unidades'){
-        $.each(proyeccion.ventas[temporada], function(periodo_venta, venta) {
+        $.each(planificacion_as.ventas[temporada], function(periodo_venta, venta) {
             if(periodo_venta == periodo.trim()){
                 // Se asigna tipo temporal 3 (proyectada no guardada)
                 venta.tipo = 3;
@@ -349,10 +339,10 @@ function actualizarProyeccion(metrica, periodo, temporada){
                 venta.vta_u = numeral().unformat(obj_trabajo.getCeldaEditada().text());
 
                 // Venta Neta
-                venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * proyeccion.itemplan.precio / 1.19 );
+                venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion_as.itemplan.precio / 1.19 );
                 
                 // Contribucion
-                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * proyeccion['itemplan'].costo_unitario)).toFixed(1);
+                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion_as['itemplan'].costo_unitario)).toFixed(1);
                 
                 // Margen                   
                 if(venta.vta_n != 0)
@@ -363,15 +353,15 @@ function actualizarProyeccion(metrica, periodo, temporada){
                     venta.precio_real = venta.vta_n / venta.vta_u * 1.19;
 
                 // Costo
-                venta.costo = parseFloat(venta.vta_u * proyeccion['itemplan'].costo_unitario).toFixed(1);
+                venta.costo = parseFloat(venta.vta_u * planificacion_as['itemplan'].costo_unitario).toFixed(1);
 
-                crearTablaProyeccion(proyeccion);
+                crearTablaPlanificacionAS(planificacion_as);
             }
         });
     }
-    // Si se proyectaron los descuentos, se entra al ciclo if
+    // Si se planificaron los descuentos, se entra al ciclo if
     else if(metrica == 'descuentos'){
-        $.each(proyeccion.ventas[temporada], function(periodo_venta, venta) {
+        $.each(planificacion_as.ventas[temporada], function(periodo_venta, venta) {
             if(periodo_venta == periodo.trim()){
                 // Se asigna tipo temporal 3 (proyectada no guardada)
                 venta.tipo = 3;
@@ -379,10 +369,10 @@ function actualizarProyeccion(metrica, periodo, temporada){
                 venta.dcto = numeral().unformat(obj_trabajo.getCeldaEditada().text());
                 
                 // Venta Neta
-                venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * proyeccion.itemplan.precio / 1.19 );
+                venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion_as.itemplan.precio / 1.19 );
                 
                 // Contribucion
-                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * proyeccion['itemplan'].costo_unitario)).toFixed(1);
+                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion_as['itemplan'].costo_unitario)).toFixed(1);
                 
                 // Margen                   
                 if(venta.vta_n != 0)
@@ -392,9 +382,10 @@ function actualizarProyeccion(metrica, periodo, temporada){
                 if(venta.vta_n != 0)
                     venta.precio_real = venta.vta_n / venta.vta_u * 1.19;
 
-                crearTablaProyeccion(proyeccion);
+                crearTablaPlanificacionAS(planificacion_as);
+                return false;
             }
         });
     }
-    obj_trabajo.setDatos(proyeccion);
+    obj_trabajo.setDatos(planificacion_as);
 }

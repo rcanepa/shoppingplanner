@@ -4,7 +4,6 @@ from planes import views
 
 urlpatterns = patterns('',
     url(r'^index/$', views.IndexView.as_view(), name='index'),
-
     url(r'^temporada/list/$', views.TemporadaListView.as_view(), name='temporada_list'),
     url(r'^temporada/create/$', views.TemporadaCreateView.as_view(), name='temporada_create'),
     url(r'^temporada/detail/(?P<pk>\d+)/$', views.TemporadaDetailView.as_view(), name='temporada_detail'),
@@ -34,19 +33,20 @@ urlpatterns = patterns('',
     
     # Vistas relacionadas a la planificacion
     url(r'^plan/planificacion/(?P<pk>\d+)/$', views.PlanificacionView.as_view(), name='plan_planificacion_detail'),
-    url(r'^plan/savestage3/$', views.GuardarPlanificacionView.as_view()),
+    url(r'^plan/guardar-planificacion-tv/$', views.GuardarPlanificacionView.as_view()),
     url(r'^plan/buscar-datos-planificacion-tv/$', views.BuscarVentaTemporadaItemplanView.as_view()),
-    url(r'^plan/itemplanventatempcomp/$', views.BuscarVentaTemporadaItemplanCompView.as_view()),
+    url(r'^plan/buscar-datos-planificacion-tv-comp/$', views.BuscarVentaTemporadaItemplanCompView.as_view()),
     url(r'^plan/planstats/$', views.BuscarStatsPlanView.as_view()),
 
     # Vistas relacionadas al resultado de la planificacion
     url(r'^plan/resumen/(?P<pk>\d+)/$', views.ResumenPlanView.as_view(), name='resumen_plan_detail'),
-    url(r'^plan/resumendata/$', views.ResumenDataGraficosView.as_view()),
+    url(r'^plan/buscar-datos-resumen/$', views.ResumenDataGraficosView.as_view()),
 
     # Vistas relacionadas a la planificacion de saldos y avances
     url(r'^plan/saldos-avances/(?P<pk>\d+)/$', views.SaldosAvancesView.as_view(), name='plan_saldosavances_detail'),
-    url(r'^plan/buscar-saldos-avances/$', views.BuscarSaldosAvancesView.as_view()),
-    url(r'^plan/guardar-saldos-avances/$', views.GuardarSaldosAvancesView.as_view()),
+    url(r'^plan/buscar-datos-planificacion-as/$', views.BuscarSaldosAvancesView.as_view()),
+    url(r'^plan/buscar-datos-planificacion-as-comp/$', views.BuscarSaldosAvancesCompView.as_view()),
+    url(r'^plan/guardar-planificacion-as/$', views.GuardarSaldosAvancesView.as_view()),
 
     url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarExcelView', name='plan_exportar_excel_detail'),
 )

@@ -55,13 +55,21 @@ h4{
 }
 
 .top-menu li a {
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
 #header li a.opcion-seleccionada{
+	/*color: #ef4929;*/
+	color: #FFFFFF;
+	/*background-color: #f5f5ed;*/
+	background-color: #554E44;
+}
+
+#header li a.subopcion-seleccionada{
 	color: #ef4929;
 	background-color: #f5f5ed;
+	font-weight: bold;
 }
 
 /* column container */

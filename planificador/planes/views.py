@@ -195,7 +195,7 @@ class GuardarArbolView(LoginRequiredMixin, View):
                     itemplan_obj.planificable = True
             plan_obj.estado = 1
             plan_obj.save()
-            
+
             # Se guardar los itemplan que componen el arbol de planificacion
             Itemplan.objects.bulk_create(itemplan_obj_arr)
             print "QUERIES: " + str(len(db.connection.queries))
@@ -203,11 +203,10 @@ class GuardarArbolView(LoginRequiredMixin, View):
             # Reset queries
             db.reset_queries()
 
-
             # A continuacion se deben actualizar el campo item_padre, el cual tiene el ID del itemplan padre de
             # cada uno de los itemplan del arbol. Es un proceso posterior, ya que se requiere que cada itemplan
             # tenga ID, es decir, haya sido almacenado anteriormente en la base de datos
-            
+
             # Se genera nuevamente la lista con los itemplan creados a nivel de BD, es decir, ahora tienen ID
             #Itemplan.objects.filter(plan=plan_obj).update(item_padre=F('item__item_padre__item_proyectados'))
             itemplan_obj_arr = Itemplan.objects.filter(plan=plan_obj).prefetch_related('item__item_padre')
@@ -347,7 +346,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
 
     def post(self, request, *args, **kwargs):
         if request.POST:
-            data = json.loads(request.POST['proyeccion'])
+            data = json.loads(request.POST['datos_tarea'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'],plan=plan_obj)
             
@@ -788,7 +787,7 @@ class BuscarVentaItemplanCompProyeccionView(View):
                         proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
             # Se previenen errores provocados por dividir por cero
             if total_vta_u > 0:
-                costo_unitario = round(float(total_costo / total_vta_u),0)
+                costo_unitario = round(float(total_costo / total_vta_u), 0)
             item_json = {}
             item_json['id_item'] = item_obj.id
             item_json['id_itemplan'] = item_obj.id
@@ -801,7 +800,7 @@ class BuscarVentaItemplanCompProyeccionView(View):
             resumen['temporada_vigente'] = temporada_vigente
             resumen['periodos'] = list(periodos)
             resumen['ventas'] = proyeccion
-            data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
 
 
@@ -816,7 +815,8 @@ class PlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(PlanificacionView, self).get_context_data(**kwargs)
         if context['plan'].estado == 0:
-            # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
+            # El arbol no ha sido generado, por lo tanto,
+            # no se puede proyectar informacion
             context['msg'] = "Primero debe definir el árbol de planificación."
         else:
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
@@ -1170,7 +1170,7 @@ class GuardarPlanificacionView(View):
 
     def post(self, request, *args, **kwargs):
         if request.POST:
-            data = json.loads(request.POST['planificacion'])
+            data = json.loads(request.POST['datos_tarea'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
             
@@ -1277,8 +1277,9 @@ class SaldosAvancesView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
 class BuscarSaldosAvancesView(LoginRequiredMixin, View):
     '''
-    Recibe un itemplan y un plan, y busca toda la informacion comercial de los 3 meses anteriores y posteriores
-    a la temporada que se esta planificando
+    Recibe un itemplan y un plan, y busca toda la informacion comercial
+    de los 3 meses anteriores y posteriores a la temporada que se esta
+    planificando.
     '''
     def get(self, request, *args, **kwargs):
         if request.GET:
@@ -1286,25 +1287,26 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
             id_plan = request.GET['id_plan']
             id_itemplan = request.GET['id_itemplan']
             try:
-                itemplan_obj = Itemplan.objects.get(plan=id_plan,id=id_itemplan)
+                itemplan_obj = Itemplan.objects.get(
+                    plan=id_plan, id=id_itemplan)
             except ObjectDoesNotExist:
                 resumen['itemplan'] = None
                 resumen['temporadas'] = None
                 resumen['temporada_vigente'] = None
                 resumen['periodos'] = None
                 resumen['ventas'] = None
-                data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+                data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
                 return HttpResponse(data, mimetype='application/json')
 
             plan_obj = Plan.objects.get(pk=id_plan)
             temporada_vigente = {
-                'id':plan_obj.temporada.id,
-                'nombre':plan_obj.temporada.nombre,
-                'anio':plan_obj.anio
+                'id': plan_obj.temporada.id,
+                'nombre': plan_obj.temporada.nombre,
+                'anio': plan_obj.anio
                 }
-            # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
-            # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
-            # a si mismo
+            # Se busca la lista de items del item a proyectar. Si el item
+            # es un nivel agrupado se devuelven todos sus hijos hojas o
+            # con venta, si el item es una hoja, se devuelve a si mismo.
             item = itemplan_obj.item
             lista_hijos = []
             lista_hijos.append(item)
@@ -1372,13 +1374,13 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
 
                                 else:
                                     venta['precio_real'] = 0
-                                    venta['dcto'] = 0                                
-                                venta['vta_u'] = round(float(venta['vta_u']),0)
-                                venta['vta_n'] = round(float(venta['vta_n']),0)
-                                venta['ctb_n'] = round(float(venta['ctb_n']),0)
-                                venta['costo'] = round(float(venta['costo']),0)
+                                    venta['dcto'] = 0
+                                venta['vta_u'] = round(float(venta['vta_u']), 0)
+                                venta['vta_n'] = round(float(venta['vta_n']), 0)
+                                venta['ctb_n'] = round(float(venta['ctb_n']), 0)
+                                venta['costo'] = round(float(venta['costo']), 0)
                                 if venta['ctb_n'] != 0:
-                                    venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']),4)
+                                    venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
                                 else:
                                     venta['margen'] = 0
                                 if plan_obj.temporada.comprobar_periodo(venta['periodo']):
@@ -1388,18 +1390,18 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
                         else:
                             # Si no existe venta, se llena el gap con una venta vacia
                             venta_gap = {
-                                    'anio':periodo['tiempo__anio'],
-                                    'tipo':1,
-                                    'vta_n':Decimal('0.000'),
-                                    'ctb_n':Decimal('0.000'),
-                                    'costo':Decimal('0.000'),
-                                    'vta_u':Decimal('0.000'),
-                                    'temporada':temporada['id'],
-                                    'periodo':periodo['nombre'],
-                                    'margen':Decimal('0.000'),
-                                    'precio_real':Decimal('0.000'),
-                                    'dcto':Decimal('0.000')
-                                }
+                                'anio': periodo['tiempo__anio'],
+                                'tipo': 1,
+                                'vta_n': Decimal('0.000'),
+                                'ctb_n': Decimal('0.000'),
+                                'costo': Decimal('0.000'),
+                                'vta_u': Decimal('0.000'),
+                                'temporada': temporada['id'],
+                                'periodo': periodo['nombre'],
+                                'margen': Decimal('0.000'),
+                                'precio_real': Decimal('0.000'),
+                                'dcto': Decimal('0.000')
+                            }
                             if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
                                 venta_gap['tipo'] = 0
                             proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
@@ -1419,12 +1421,162 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
                 resumen['temporada_vigente'] = temporada_vigente
                 resumen['periodos'] = list(periodos)
                 resumen['ventas'] = proyeccion
-                data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+                data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
 
             else:
                 data = {}
             return HttpResponse(data, mimetype='application/json')
         #return HttpResponseRedirect(reverse('planes:plan_list'))
+
+
+class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
+    '''
+    Recibe un itemplan y un plan, y busca toda la informacion comercial
+    de los 3 meses anteriores y posteriores a la temporada que se esta
+    planificando.
+    '''
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            resumen = {}
+
+            id_plan = request.GET['id_plan']
+            id_item = request.GET['id_item']
+            try:
+                item_obj = Item.objects.get(id=id_item)
+            except ObjectDoesNotExist:
+                resumen['itemplan'] = None
+                resumen['temporadas'] = None
+                resumen['temporada_vigente'] = None
+                resumen['periodos'] = None
+                resumen['ventas'] = None
+                data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
+                return HttpResponse(data, mimetype='application/json')
+
+            plan_obj = Plan.objects.get(pk=id_plan)
+            temporada_vigente = {
+                'id': plan_obj.temporada.id,
+                'nombre': plan_obj.temporada.nombre,
+                'anio': plan_obj.anio
+                }
+
+            # Se busca la lista de items del item a proyectar. Si el item
+            # es un nivel agrupado se devuelven todos sus hijos hojas o
+            # con venta, si el item es una hoja, se devuelve a si mismo.
+            lista_hijos = []
+            lista_hijos.append(item_obj)
+            for hijo in item_obj.get_hijos():
+                lista_hijos.append(hijo)
+
+            proyeccion = OrderedDict()
+            total_vta_u = 0
+            total_costo = 0
+
+            # Se busca el periodo inferior y superior de la
+            # temporada a proyectar
+            limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[0]
+            limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[1]
+
+            # Se buscan las temporadas de los items a proyectar.
+            # Siempre es una si el item es una hoja, pero si es una
+            # agrupacion, puede que considere mas de una temporada.
+            temporadas = Temporada.objects.all().values(
+                'nombre', 'id').order_by(
+                '-planificable', 'nombre').distinct()
+
+            # Lista de los X periodos a considerar en la
+            # planificacion de saldos y avances
+            periodos = Periodo.objects.filter(
+                Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
+                Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
+                ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+
+            # Se marcan los periodos que pertenecen efectivamente
+            # a la temporada en curso. Esto se utiliza en la vista
+            # para "pintar" de un color diferente los periodos de
+            # la temporada que esta siendo planificada
+            for periodo in periodos:
+                if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
+                    periodo['temporada'] = True
+                else:
+                    periodo['temporada'] = False
+
+            # Se llena el diccionario proyeccion, temporada->periodo->venta
+            for temporada in temporadas:
+                proyeccion[temporada['nombre']] = OrderedDict()
+                for periodo in periodos:
+                    ventas = Ventaperiodo.objects.filter(
+                        item__in=lista_hijos,
+                        anio=periodo['tiempo__anio'],
+                        periodo=periodo['nombre'],
+                        temporada__nombre=temporada['nombre']
+                        ).values('anio', 'periodo', 'temporada').annotate(
+                        vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
+                        ctb_n=Sum('ctb_n'), costo=Sum('costo'),
+                        margen=Avg('margen'), tipo=Min('tipo')
+                        ).order_by('anio', 'periodo', 'temporada')
+                    # Se revisa si existe una venta asociada a la temporada
+                    # y periodo en curso
+                    if ventas.exists():
+                        if ventas.count() > 1:
+                            print "MAS DE UNA VENTA!!!!"
+                        # Se agregan algunos calculos a las ventas
+                        for venta in ventas:
+                            if venta['vta_u'] != 0:
+                                total_vta_u += venta['vta_u']
+                                total_costo += venta['costo']
+                                venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
+                                if item_obj.precio != 0:
+                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / item_obj.precio)), 4)
+                                else:
+                                    venta['dcto'] = 0
+
+                            else:
+                                venta['precio_real'] = 0
+                                venta['dcto'] = 0
+                            venta['vta_u'] = round(float(venta['vta_u']), 0)
+                            venta['vta_n'] = round(float(venta['vta_n']), 0)
+                            venta['ctb_n'] = round(float(venta['ctb_n']), 0)
+                            venta['costo'] = round(float(venta['costo']), 0)
+                            if venta['ctb_n'] != 0:
+                                venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
+                            else:
+                                venta['margen'] = 0
+                            if plan_obj.temporada.comprobar_periodo(venta['periodo']):
+                                venta['tipo'] = 0
+                        # Se guarda la venta en el diccionario proyeccion
+                        proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
+                    else:
+                        # Si no existe venta,
+                        # se llena el gap con una venta vacia
+                        venta_gap = {
+                            'anio': periodo['tiempo__anio'],
+                            'tipo': 1,
+                            'vta_n': Decimal('0.000'),
+                            'ctb_n': Decimal('0.000'),
+                            'costo': Decimal('0.000'),
+                            'vta_u': Decimal('0.000'),
+                            'temporada': temporada['id'],
+                            'periodo': periodo['nombre'],
+                            'margen': Decimal('0.000'),
+                            'precio_real': Decimal('0.000'),
+                            'dcto': Decimal('0.000')
+                            }
+                        if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
+                            venta_gap['tipo'] = 0
+                        proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
+            itemplan_json = {}
+            itemplan_json['id_item'] = item_obj.id
+            itemplan_json['id_itemplan'] = item_obj.id
+            itemplan_json['nombre'] = item_obj.nombre
+            itemplan_json['precio'] = item_obj.precio
+            itemplan_json['costo_unitario'] = item_obj.calcularCostoUnitario()
+            resumen['itemplan'] = itemplan_json
+            resumen['temporadas'] = list(temporadas)
+            resumen['temporada_vigente'] = temporada_vigente
+            resumen['periodos'] = list(periodos)
+            resumen['ventas'] = proyeccion
+            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
+            return HttpResponse(data, mimetype='application/json')
 
 
 class GuardarSaldosAvancesView(LoginRequiredMixin, View):
@@ -1436,12 +1588,12 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         if request.POST:
-            data = json.loads(request.POST['planificacion'])
+            data = json.loads(request.POST['datos_tarea'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'])
-            
-            # Se revisa si la categoria del item que esta siendo planificado tiene hijos (si pertenece a una categoria hoja o no), 
-            # en caso de tener hijos, se imputa la planificacion al primero de ellos
+
+            # Se revisa si la categoria del item que esta siendo planificado tiene hijos (si pertenece
+            # a una categoria hoja o no), en caso de tener hijos, se imputa la planificacion al primero de ellos
             if itemplan_obj.item.categoria.get_children():
                 item_planificado = itemplan_obj.item.get_children()[0]
             else:
@@ -1469,13 +1621,13 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
                             anio=venta['anio'],
                             periodo=venta['periodo'],
                             temporada=temporada_obj,
-                            tipo=2, # Tipo = 2 -> Planificada
+                            tipo=2,  # Tipo = 2 -> Planificada
                             defaults=defaults)
-                        if created == False:
+                        if created is False:
                             obj.vta_n = venta['vta_n']
                             obj.vta_u = venta['vta_u']
                             obj.ctb_n = venta['ctb_n']
-                            obj.dcto = float(venta['dcto']) 
+                            obj.dcto = float(venta['dcto'])
                             obj.margen = float(venta['margen'])
                             obj.costo = float(venta['costo'])
                             if venta['vta_n'] != 0:
@@ -1488,7 +1640,7 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
             # Estado = 2 -> Planificado
             itemplan_obj.estado = 2
             itemplan_obj.save()
-        data = {'msg':"Planificación guardada."}
+        data = {'msg': "Planificación guardada."}
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
@@ -1502,18 +1654,17 @@ class ResumenPlanView(LoginRequiredMixin, UserInfoMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(ResumenPlanView, self).get_context_data(**kwargs)
         context['temporadas'] = Temporada.objects.all()
-        
-        # 
+
         items_categoria_raiz = []
 
         # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
         combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
         # Se busca la lista de items sobre los cuales el usuario es responsable
         items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
-        
+
         # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
         #categoria_raiz = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())[0]
-        categoria_raiz = sorted(items_responsable, key= lambda t: t.categoria.get_nivel())[0]
+        categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
 
         # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
         # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
@@ -1525,8 +1676,8 @@ class ResumenPlanView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
         # Se eliminan las categorias que esten por sobre la categoria del item responsable
         combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
-        
-        context['combo_categorias_comp'] = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())
+
+        context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
         context['items_categoria_raiz'] = items_categoria_raiz
         return context
 
@@ -1543,7 +1694,7 @@ class ResumenDataGraficosView(View):
         if request.GET:
             resumen = {}
             data = {}
-            
+
             # Label para todos los graficos (años)
             rows_label = []
 
@@ -1577,13 +1728,18 @@ class ResumenDataGraficosView(View):
             JSONCosto = OrderedDict()
 
             JSON = {}
-            
+
             id_plan = request.GET['id_plan']
             id_temporada = request.GET['id_temporada']
             id_item = request.GET['id_item']
+            tipo_obj_item = request.GET['tipo_obj_item']
+            if tipo_obj_item == 'item':  # Se revisa si el ID corresponde a un Item o a un Itemplan
+                item_obj = Item.objects.get(pk=id_item)
+            else:
+                itemplan_obj = Itemplan.objects.get(pk=id_item)
+                item_obj = itemplan_obj.item
             plan_obj = Plan.objects.get(pk=id_plan)
-            item_obj = Item.objects.get(pk=id_item)
-            
+
             # Se verifica la existencia de la temporada, ya que la opcion temporada = TOTAL no existe
             # a nivel de base de datos.
             try:
@@ -1592,14 +1748,14 @@ class ResumenDataGraficosView(View):
             # Si la temporada no existe, se asume que se trata de la temporada TOTAL, y por lo tanto,
             # se llama al metodo resumen_estadisticas con el parametro TT
             except ObjectDoesNotExist:
-                estadisticas = plan_obj.resumen_estadisticas("TT", item_obj)    
-            
+                estadisticas = plan_obj.resumen_estadisticas("TT", item_obj)
+
             temp_vta_n, temp_vta_u, temp_ctb_n = 0, 0, 0
-            
+
             # Se itera sobre el resultado de la busqueda para generar un objeto con el formato requerido
             # por los graficos
             for x in estadisticas:
-                
+
                 row_venta = []
                 row_crecimiento_venta = []
 
@@ -1630,7 +1786,7 @@ class ResumenDataGraficosView(View):
                     costo_unitario = int(costo / vta_u)
                 else:
                     precio_real, costo_unitario, precio_real_simp, precio_real_cimp, impuesto = 0, 0, 0, 0, 0
-                descuento = precio_prom - precio_real_cimp # precio blanco promedio - precio real
+                descuento = precio_prom - precio_real_cimp  # precio blanco promedio - precio real
 
                 # Se genera el arreglo que contiene las etiquetas de cada categoria (años)
                 rows_label.append(anio)
@@ -1639,7 +1795,7 @@ class ResumenDataGraficosView(View):
                     crecimiento_vta_n = float((vta_n - temp_vta_n)) / temp_vta_n
                     crecimiento_vta_u = float((vta_u - temp_vta_u)) / temp_vta_u
                     crecimiento_ctb_n = float((ctb_n - temp_ctb_n)) / temp_ctb_n
-                    
+
                 else:
                     crecimiento_vta_n, crecimiento_vta_u, crecimiento_ctb_n = 0, 0, 0
 
@@ -1660,7 +1816,6 @@ class ResumenDataGraficosView(View):
                 row_crecimiento_contribucion.append(-1)
                 row_crecimiento_contribucion.append(-10)
 
-                
                 # Se genera el arreglo que contiene los valores de cada categoria (años)
                 row_venta.append(vta_n)
                 row_unidades.append(vta_u)
@@ -1668,14 +1823,14 @@ class ResumenDataGraficosView(View):
                 row_precio_dcto_imp.append(descuento)
                 row_precio_dcto_imp.append(impuesto)
                 row_precio_dcto_imp.append(precio_real_simp)
-                
+
                 # Se agregan los valores al arreglo que contiene todos los valores por año
                 rows_venta.append(row_venta)
                 rows_unidades.append(row_unidades)
                 rows_contribucion.append(row_contribucion)
-                rows_margen.append(round(margen,2))
+                rows_margen.append(round(margen, 2))
                 rows_dcto_precio_imp.append(row_precio_dcto_imp)
-                rows_costo.append(costo_unitario) 
+                rows_costo.append(costo_unitario)
 
                 # Se agrega el crecimiento por año a la lista de crecimientos
                 rows_crecimiento_venta.append(row_crecimiento_venta)
@@ -1683,22 +1838,22 @@ class ResumenDataGraficosView(View):
                 rows_crecimiento_contribucion.append(row_crecimiento_contribucion)
 
                 contribucion_tooltip_msg = (
-                    "<p><b>Año: </b>" + anio 
+                    "<p><b>Año: </b>" + anio
                     + "</p><p><b>Contribución: </b>" + '{:,}'.format(ctb_n)
                     + "</p><p><b>Margen: </b>" + '{:.1%}'.format(margen)
-                    + "</p><p><b>Crecimiento: </b>" + '{:.1%}'.format(crecimiento_ctb_n) 
+                    + "</p><p><b>Crecimiento: </b>" + '{:.1%}'.format(crecimiento_ctb_n)
                     + "</p>")
 
                 margen_tooltip_msg = contribucion_tooltip_msg
 
-                dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio + 
-                    "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_prom)  + 
-                    "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) + 
+                dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio +
+                    "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_prom)  +
+                    "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) +
                     "</p><p><b>Impuesto (19%): </b>" + '{:,}'.format(impuesto) +
-                    "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) + 
-                    "</p><p><b>Costo: </b>" + '{:,}'.format(costo_unitario) + 
+                    "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) +
+                    "</p><p><b>Costo: </b>" + '{:,}'.format(costo_unitario) +
                     "</p>")
-                
+
                 rows_margen_tooltip.append(margen_tooltip_msg)
                 rows_contribucion_tooltip.append(contribucion_tooltip_msg)
                 rows_dcto_precio_imp_tooltip.append(dcto_precio_tooltip_msg)
@@ -1707,15 +1862,14 @@ class ResumenDataGraficosView(View):
                 temp_vta_u = vta_u
                 temp_ctb_n = ctb_n
 
-                
             JSONVenta['cols'] = rows_label
             JSONVenta['rows'] = rows_venta
             JSONVenta['ingraph'] = rows_crecimiento_venta
-            
+
             JSONUnidades['cols'] = rows_label
             JSONUnidades['rows'] = rows_unidades
             JSONUnidades['ingraph'] = rows_crecimiento_unidades
-            
+
             JSONContribucion['cols'] = rows_label
             JSONContribucion['rows'] = rows_contribucion
             JSONContribucion['ingraph'] = rows_crecimiento_contribucion
@@ -1740,7 +1894,7 @@ class ResumenDataGraficosView(View):
 
             resumen['estadisticas'] = JSON
 
-            data = simplejson.dumps(resumen,cls=DjangoJSONEncoder)
+            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
 
 

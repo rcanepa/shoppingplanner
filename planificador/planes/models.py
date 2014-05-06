@@ -1,28 +1,14 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum, Max, Min, Avg
-from django.utils import simplejson
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 from datetime import datetime
-from uuidfield import UUIDField
-from uuid import uuid4
-
-
-"""
-ESTA FUNCION DEBE SER ELIMINADA. DEPENDERA DE COMO SE IMPLEMENTE LA RELACION PADRE HIJO ENTRE
-OBJECTOS ITEMPLAN
-"""
-def generateUUID():
-    """
-        Para la generacion de valores por defecto del campo itemplan_uuid de la clase Itemplan.
-    """
-    return str(uuid4())
 
 
 class Temporada(models.Model):
@@ -34,7 +20,7 @@ class Temporada(models.Model):
 
     def __unicode__(self):
         return self.nombre
-    
+
     def get_absolute_url(self):
         return reverse('planes:temporada_detail', kwargs={'pk': self.pk})
 
@@ -54,9 +40,15 @@ class Temporada(models.Model):
         # Se obtiene el periodo superior
         periodo_sup = periodos[periodos.count()-1]
         # Se obtiene el periodo superior + X periodos
-        periodos_sup_vta = Tiempo.objects.filter(Q(anio=anio-1,periodo__nombre__gt=periodo_sup.nombre) | Q(anio=anio_post,periodo__nombre__lt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Max('semana')).order_by('anio','semana')[2]
+        periodos_sup_vta = Tiempo.objects.filter(
+            Q(anio=anio-1, periodo__nombre__gt=periodo_sup.nombre) |
+            Q(anio=anio_post, periodo__nombre__lt=periodo_inf.nombre)).values('periodo__nombre').annotate(
+            anio=Max('anio'), semana=Max('semana')).order_by('anio', 'semana')[2]
         # Se obtiene el periodo inferior - X periodos
-        periodos_inf_vta = Tiempo.objects.filter(Q(anio=anio-1,periodo__nombre__lt=periodo_inf.nombre) | Q(anio=anio_pre,periodo__nombre__gt=periodo_inf.nombre)).values('periodo__nombre').annotate(anio=Max('anio'),semana=Min('semana')).order_by('-anio','-semana')[2]
+        periodos_inf_vta = Tiempo.objects.filter(
+            Q(anio=anio-1, periodo__nombre__lt=periodo_inf.nombre) |
+            Q(anio=anio_pre, periodo__nombre__gt=periodo_inf.nombre)).values('periodo__nombre').annotate(
+            anio=Max('anio'), semana=Min('semana')).order_by('-anio', '-semana')[2]
         data.append(periodos_inf_vta)
         data.append(periodos_sup_vta)
         return data
@@ -102,62 +94,67 @@ class Plan(models.Model):
         act_anio = self.anio
         # Año actual - 3 (limite inferior)
         ant_anio = self.anio - 3
-        if item == None:
+        if item is None:
             # Arreglo de items con todos los items de la planificacion
-            item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all().prefetch_related('item__categoria') if itemplan.item.categoria.planificable == True]
+            item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all().prefetch_related(
+                'item__categoria') if itemplan.item.categoria.planificable]
         else:
             # Arreglo de items con todos los items hijos del item entregado como parametro
-            item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable == True]
+            item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable]
         # Se define la temporada sobre la cual se calcularan las ventas
-        if temporada == None:
+        if temporada is None:
             temporada = self.temporada
             estadisticas = Ventaperiodo.objects.filter(
-            item__in=item_arr_definitivo,
-            anio__gte=ant_anio,
-            anio__lte=act_anio,
-            temporada=temporada).values(
-            'anio').annotate(
-            vta_n=Sum('vta_n'),
-            vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n'),
-            costo=Sum('costo'),
-            precio_prom=Avg('item__precio')).order_by(
-            'anio')
+                item__in=item_arr_definitivo,
+                anio__gte=ant_anio,
+                anio__lte=act_anio,
+                temporada=temporada).values(
+                'anio').annotate(
+                vta_n=Sum('vta_n'),
+                vta_u=Sum('vta_u'),
+                ctb_n=Sum('ctb_n'),
+                costo=Sum('costo'),
+                precio_prom=Avg('item__precio')).order_by(
+                'anio')
         elif temporada == "TT":
             estadisticas = Ventaperiodo.objects.filter(
-            item__in=item_arr_definitivo,
-            anio__gte=ant_anio,
-            anio__lte=act_anio).values(
-            'anio').annotate(
-            vta_n=Sum('vta_n'),
-            vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n'),
-            costo=Sum('costo'),
-            precio_prom=Avg('item__precio')).order_by(
-            'anio')
+                item__in=item_arr_definitivo,
+                anio__gte=ant_anio,
+                anio__lte=act_anio).values(
+                'anio').annotate(
+                vta_n=Sum('vta_n'),
+                vta_u=Sum('vta_u'),
+                ctb_n=Sum('ctb_n'),
+                costo=Sum('costo'),
+                precio_prom=Avg('item__precio')).order_by(
+                'anio')
         else:
             estadisticas = Ventaperiodo.objects.filter(
-            item__in=item_arr_definitivo,
-            anio__gte=ant_anio,
-            anio__lte=act_anio,
-            temporada=temporada).values(
-            'anio').annotate(
-            vta_n=Sum('vta_n'),
-            vta_u=Sum('vta_u'),
-            ctb_n=Sum('ctb_n'),
-            costo=Sum('costo'),
-            precio_prom=Avg('item__precio')).order_by(
-            'anio')
+                item__in=item_arr_definitivo,
+                anio__gte=ant_anio,
+                anio__lte=act_anio,
+                temporada=temporada).values(
+                'anio').annotate(
+                vta_n=Sum('vta_n'),
+                vta_u=Sum('vta_u'),
+                ctb_n=Sum('ctb_n'),
+                costo=Sum('costo'),
+                precio_prom=Avg('item__precio')).order_by(
+                'anio')
         return estadisticas
 
     def obtener_arbol(self, user):
-        # Se obtiene la lista de items sobre los cuales el usuario es resposanble (las distintas raices que pueda tener su arbol)
+        # Se obtiene la lista de items sobre los cuales el usuario es resposanble
+        # (las distintas raices que pueda tener su arbol)
         items_responsable = Item.objects.filter(usuario_responsable=user)
         # Se busca el itemplan asociado a cada raiz
-        itemplan_raices = Itemplan.objects.filter(plan=self, item__in=items_responsable).select_related('item__categoria')
+        itemplan_raices = Itemplan.objects.filter(
+            plan=self,
+            item__in=items_responsable
+            ).select_related('item__categoria')
         # Si existen itemplan asociados al plan, entonces el arbol ha sido definido y debe ser cargado inicialmente
         if bool(itemplan_raices):
-            arbol_json = "[";
+            arbol_json = "["
             for itemplan in itemplan_raices:
                 for branch, obj in itemplan.as_tree():
                     if obj:
@@ -188,11 +185,12 @@ class Plan(models.Model):
                         else:
                             arbol_json += ","
 
-            arbol_json = arbol_json[:-1] # Se quita una ultima coma que esta demas
+            arbol_json = arbol_json[:-1]  # Se quita una ultima coma que esta demas
             arbol_json += "]"
-        # En caso de que no existan itemplan asociados al plan, entonces el arbol no ha sido definido y solo se debe cargar el primer nodo
+        # En caso de que no existan itemplan asociados al plan, entonces el arbol no ha sido definido
+        # y solo se debe cargar el primer nodo
         else:
-            arbol_json = "[";
+            arbol_json = "["
             for obj in items_responsable:
                 if obj.categoria.planificable:
                     extraClasses = "\"extraClasses\":\"planificable\","
@@ -203,23 +201,23 @@ class Plan(models.Model):
             arbol_json += "]"
         return arbol_json
 
-        
     def resumen_plan_item(self):
         """
-        Devuelve un diccionario con todos los items de la planificacion, unidades de avance, saldo y temporada vigente, ademas del costo
-        total asociado
-        """        
+        Devuelve un diccionario con todos los items de la planificacion, unidades de avance, saldo y temporada vigente,
+        ademas del costo total asociado
+        """
         periodo_inf = self.temporada.periodo.all().order_by('nombre')[:1].get()
         periodo_sup = self.temporada.periodo.all().order_by('-nombre')[:1].get()
 
         # Se obtiene toda la venta asociada a la planificacion
-        venta_planificada = Ventaperiodo.objects.filter(plan=self,tipo=2).select_related('item').order_by('item','anio','periodo')
+        venta_planificada = Ventaperiodo.objects.filter(
+            plan=self, tipo=2).select_related('item').order_by(
+            'item', 'anio', 'periodo')
 
         d_totales_venta = defaultdict()
         d_item = defaultdict(int)
 
         for venta in venta_planificada:
-            
             d_item['nombre'] = venta.item.nombre
             d_item['vta_u_total'] += venta.vta_u
             d_item['costo_total'] += venta.costo
@@ -233,7 +231,6 @@ class Plan(models.Model):
 
         # Devuelve un diccionario con todos los itemplan de la planificacion, unidades y costos asociados
         return d_totales_venta
-
 
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)
@@ -251,18 +248,18 @@ class Itemplan(models.Model):
     nombre = models.CharField(max_length=70)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
     planificable = models.BooleanField(default=False)
-    #itemplan_uuid = UUIDField(auto=False, unique=True, default=generateUUID)
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
-    #itemplan_padre_uuid = models.ForeignKey('self', to_field='itemplan_uuid', blank=True, null=True)
     item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan, related_name='item_planificados')
+    precio = models.PositiveIntegerField(default=0)
+    costo = models.PositiveIntegerField(default=0)
 
     def get_children(self):
         """
         Devuelve la lista de itemplan hijos del itemplan. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre).
         """
-        return self.items_hijos.all().prefetch_related('item__categoria')
+        return self.items_hijos.all().prefetch_related('item__categoria').order_by('nombre')
 
     def as_tree(self):
         """
@@ -275,15 +272,15 @@ class Itemplan(models.Model):
             for next in child.as_tree():
                 yield next
         yield branch, None
-        
+
     def get_hijos_planificables(self):
         """
-        Obtiene recursivamente la lista de hijos en forma de arbol que pueden ser planificables segun su categoria, es decir,
-        pertenecen a una categoria planificable (planificable == True) y que fueron escogidos en el arbol para ser planificados, es
-        decir, self.planificable == True.
+        Obtiene recursivamente la lista de hijos en forma de arbol que pueden ser planificables segun su categoria,
+        es decir, pertenecen a una categoria planificable (planificable == True) y que fueron escogidos en el arbol
+        para ser planificados, es decir, self.planificable == True.
         """
         children = list(self.get_children())
-        if self.item.categoria.planificable == True and self.planificable == True:
+        if self.item.categoria.planificable and self.planificable:
             yield self
         for child in children:
             for next in child.get_hijos_planificables():

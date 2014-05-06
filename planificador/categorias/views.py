@@ -1,28 +1,29 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.context_processors import csrf
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.utils.decorators import method_decorator
-from django.views.generic import (View, CreateView, UpdateView, 
-    ListView, DetailView, DeleteView)
-from braces.views import LoginRequiredMixin, GroupRequiredMixin
+from django.views.generic import CreateView
+from django.views.generic import DeleteView
+from django.views.generic import DetailView
+from django.views.generic import ListView
+from django.views.generic import UpdateView
+from django.views.generic import View
+from braces.views import LoginRequiredMixin
+from braces.views import GroupRequiredMixin
 from .models import Categoria, Item, Grupoitem
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
-from planes.models import Plan, Temporada, Itemplan
+from planes.models import Plan
 from planificador.views import UserInfoMixin
 from ventas.models import Venta, Ventaperiodo
-
-from collections import defaultdict
 import json
 
 """
 Sobreescribir el metodo unicode del modelo User para que muestre
 el nombre completo y no solo el username.
 """
+
+
 def user_unicode_patch(self):
     return '%s %s (%s)' % (self.first_name, self.last_name, self.username)
 
@@ -35,8 +36,7 @@ class CategoriaListView(LoginRequiredMixin, UserInfoMixin, ListView):
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
-        return Categoria.objects.filter(categoria_padre=None,
-            organizacion=self.request.user.get_profile().organizacion)
+        return Categoria.objects.filter(categoria_padre=None, organizacion=self.request.user.get_profile().organizacion)
 
     def get_context_data(self, **kwargs):
         context = super(CategoriaListView, self).get_context_data(**kwargs)
@@ -102,8 +102,7 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
         if request.GET:
             nodos = []
             id_cat = request.GET['key']
-            item_obj = Item.vigente.get(pk=id_cat, 
-                categoria__organizacion=self.request.user.get_profile().organizacion)
+            item_obj = Item.vigente.get(pk=id_cat, categoria__organizacion=self.request.user.get_profile().organizacion)
             items_obj = item_obj.get_children()
             for children in items_obj:
                 nodo = {}
@@ -118,9 +117,8 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
                 if children.categoria.planificable:
                     nodo['extraClasses'] = "planificable"
                 nodos.append(nodo)
-            data = json.dumps(nodos,cls=DjangoJSONEncoder)
+            data = json.dumps(nodos, cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
-        return HttpResponseRedirect(reverse('categorias:item_list'))
 
 
 class ItemListView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -143,8 +141,8 @@ class ItemDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(ItemDetailView, self).get_context_data(**kwargs)
         item = self.get_object()
-        context['ventas'] = Ventaperiodo.objects.values('anio').filter(item=item, tipo=0).annotate(vta_n=Sum('vta_n'), vta_u=Sum('vta_u')).order_by('-anio')
-        ventas = Venta.objects.filter(item=item).order_by('anio','semana')
+        context['ventas'] = Ventaperiodo.objects.values('anio').filter(item=item, tipo=0).annotate(
+            vta_n=Sum('vta_n'), vta_u=Sum('vta_u')).order_by('-anio')
         return context
 
 
@@ -233,20 +231,16 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
         """
         if request.POST:
             solicitud = request.POST
-            # Se busca el plan asociado a la modificacion
-            plan_obj = Plan.objects.get(pk=solicitud['plan_id'])
 
             # Se busca la lista de objetos items que seran agrupados y se marcan como NO vigentes
             grupo_items = Item.objects.filter(pk__in=[int(x) for x in solicitud['grupo_items'].split(',')])
             # Se actualiza la vigencia de los items agrupados a False
             for item in grupo_items:
-                item.vigencia=False
+                item.vigencia = False
                 item.save()
             # Se crea el nuevo item
-            nuevo_item = Item(nombre=solicitud['nombre'].upper(), 
-                precio=int(grupo_items[0].precio), 
-                item_padre=grupo_items[0].item_padre, 
-                categoria=grupo_items[0].categoria, 
+            nuevo_item = Item(nombre=solicitud['nombre'].upper(), precio=int(grupo_items[0].precio), 
+                item_padre=grupo_items[0].item_padre, categoria=grupo_items[0].categoria,
                 temporada=grupo_items[0].temporada)
             # Se guarda a la BD el nuevo item
             nuevo_item.save()
@@ -255,7 +249,7 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                 # Se crean los registros de Grupoitem para mantener la historia de la agrupacion
                 # Se utiliza para hacer un rollback de la situacion
                 grupo_item_list = list()
-                grupo_item_list = [Grupoitem(item_nuevo=nuevo_item,item_agrupado=item) for item in grupo_items]
+                grupo_item_list = [Grupoitem(item_nuevo=nuevo_item, item_agrupado=item) for item in grupo_items]
                 Grupoitem.objects.bulk_create(grupo_item_list)
                 # Se buscan todas las ventas asociadas a los items agrupados
                 venta_items = Ventaperiodo.objects.filter(item__in=grupo_items)
@@ -266,17 +260,8 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                     venta.item = nuevo_item
                     venta_items_list.append(venta)
                 Ventaperiodo.objects.bulk_create(venta_items_list)
-                
-                # A continuacion se gestiona la informacion del modelo itemplan. En definitiva, en caso de existir                 
-                # Se verifica si existen itemplan asociados a los items que fueron agrupados. En caso positivo, estos deben ser eliminados
-                """itemplan_eliminar = Itemplan.objects.filter(item__in=grupo_items, plan=plan_obj)
-                if bool(itemplan_eliminar):
-                    itemplan_eliminar.delete()
-                    itemplan_padre = Itemplan.objects.filter(plan=plan_obj,item=nuevo_item.item_padre)
-                    itemplan_nuevo_agrupado = Itemplan(nombre=nuevo_item.nombre, plan=plan_obj, item=nuevo_item, item_padre=itemplan_padre, planificable=True)
-                    itemplan_nuevo_agrupado.save()"""
 
             data = {}
-            data['msg'] = "El grupo ha sido creado exitosamente.";
+            data['msg'] = "El grupo ha sido creado exitosamente."
             data['item_padre_id'] = nuevo_item.item_padre.id
             return HttpResponse(json.dumps(data), mimetype='application/json')

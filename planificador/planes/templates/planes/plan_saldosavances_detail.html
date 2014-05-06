@@ -294,7 +294,7 @@ $(function() {
 
         $.ajax({
             data: $("#proyform").serialize(), // Se envia el form serializado para que contenga el token CSRF
-            url: '/planes/plan/guardar-saldos-avances/',
+            url: '/planes/plan/guardar-planificacion-as/',
             type: 'post',
             
         }).done(saveAJAXDone);
