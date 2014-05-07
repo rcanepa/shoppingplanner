@@ -8,23 +8,23 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Itemplan.itemplan_uuid'
-        db.add_column(u'planes_itemplan', 'itemplan_uuid',
-                      self.gf('uuidfield.fields.UUIDField')(default='ea3d3e2c-5335-42a8-a935-8a1c22645aab', unique=True, max_length=32),
+        # Adding field 'Itemplan.precio'
+        db.add_column(u'planes_itemplan', 'precio',
+                      self.gf('django.db.models.fields.PositiveIntegerField')(default=0),
                       keep_default=False)
 
-        # Adding field 'Itemplan.itemplan_padre_uuid'
-        db.add_column(u'planes_itemplan', 'itemplan_padre_uuid',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['planes.Itemplan'], to_field='itemplan_uuid', null=True, blank=True),
+        # Adding field 'Itemplan.costo'
+        db.add_column(u'planes_itemplan', 'costo',
+                      self.gf('django.db.models.fields.PositiveIntegerField')(default=0),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Itemplan.itemplan_uuid'
-        db.delete_column(u'planes_itemplan', 'itemplan_uuid')
+        # Deleting field 'Itemplan.precio'
+        db.delete_column(u'planes_itemplan', 'precio')
 
-        # Deleting field 'Itemplan.itemplan_padre_uuid'
-        db.delete_column(u'planes_itemplan', 'itemplan_padre_uuid_id')
+        # Deleting field 'Itemplan.costo'
+        db.delete_column(u'planes_itemplan', 'costo')
 
 
     models = {
@@ -108,15 +108,15 @@ class Migration(SchemaMigration):
         },
         u'planes.itemplan': {
             'Meta': {'object_name': 'Itemplan'},
+            'costo': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'estado': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'item': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'item_proyectados'", 'to': u"orm['categorias.Item']"}),
             'item_padre': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'items_hijos'", 'null': 'True', 'to': u"orm['planes.Itemplan']"}),
-            'itemplan_padre_uuid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['planes.Itemplan']", 'to_field': "'itemplan_uuid'", 'null': 'True', 'blank': 'True'}),
-            'itemplan_uuid': ('uuidfield.fields.UUIDField', [], {'default': "'f111c1d9-178b-49ba-84ff-25c22e3731bb'", 'unique': 'True', 'max_length': '32'}),
             'nombre': ('django.db.models.fields.CharField', [], {'max_length': '70'}),
             'plan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'item_planificados'", 'to': u"orm['planes.Plan']"}),
-            'planificable': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+            'planificable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'precio': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'planes.plan': {
             'Meta': {'object_name': 'Plan'},

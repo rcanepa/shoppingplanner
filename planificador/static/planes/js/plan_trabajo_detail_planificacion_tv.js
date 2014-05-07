@@ -4,11 +4,20 @@ Recibe la respuesta tipo AJAX que se genera al seleccionar un item a proyectar.
 function busquedaPlanificacionTV(data){
     /* Se revisa que la busqueda haya devuelto ventas. */
     if( data.ventas != null ){
-        $("#itemprecio_blanco").text(numeral(data.itemplan.precio).format('0,0'));
-        $("#itemcosto_unitario").text(numeral(data.itemplan.costo_unitario).format('0,0'));
+        console.log(data);
+        obj_trabajo.setPrecioItem(data.itemplan.precio);
+        obj_trabajo.setCostoItem(data.itemplan.costo_unitario);
         obj_trabajo.setDatos(data);
-        //actualizarPlanificacion();
         crearTablaPlanificacionTV(data);
+        /* Se actualizan los tooltips sobre los botones de precio blanco y costo unitario */
+        $( "#btnPB" ).prop( "title", "Precio: " + numeral(obj_trabajo.getPrecioItem()).format('0,0'));
+        $( "#btnCU" ).prop( "title", "Costo: " + numeral(obj_trabajo.getCostoItem()).format('0,0'));
+        $( "#btnPB" ).tooltip( "option", "content", "Precio: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') );
+        $( "#btnCU" ).tooltip( "option", "content", "Costo: " + numeral(obj_trabajo.getCostoItem()).format('0,0') );
+        if ( $( "#btnCU" ).is( ":hidden" ) )
+            $( "#btnCU" ).show();
+        if ( $( "#btnPB" ).is( ":hidden" ) )
+            $( "#btnPB" ).show();
     }
     else{
         alert("El item seleccionado no es válido. Por favor verifique que haya escogido correctamente un item y que tenga los permisos necesarios para verlo");

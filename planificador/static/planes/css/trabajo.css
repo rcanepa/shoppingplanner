@@ -1,7 +1,7 @@
 #tab_item_planificacion_tv, #tab_item_planificacion_tv_comp{
 	overflow: auto;
-	overflow-y: hidden;
-	-ms-overflow-y: hidden;
+	/*overflow-y: hidden;
+	-ms-overflow-y: hidden;*/
 }
 
 #accordion
@@ -12,6 +12,7 @@
 {
 	padding-left: 5px;
 	padding-right: 5px;
+	zoom: 1;
 }
 
 .datagrid

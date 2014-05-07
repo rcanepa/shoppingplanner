@@ -20,33 +20,30 @@ urlpatterns = patterns('',
     url(r'^plan/guardar-arbol/$', views.GuardarArbolView.as_view()),
     url(r'^plan/buscar-estructura-arbol/$', views.BuscarEstructuraArbolView.as_view(), name='plan_buscar_estructura_arbol'),
 
-    # Vista para trabajar una planificacion (proyectar, planificar y resumen)
+    # Vistas para el workflow de trabajo (proyeccion, planificacion y resumen)
     url(r'^plan/trabajar-planificacion/(?P<pk>\d+)/$', views.TrabajarPlanificacionView.as_view(), name='plan_trabajo_detail'),
-
-    # Vistas relacionadas a las proyecciones
-    url(r'^plan/proyeccion/(?P<pk>\d+)/$', views.ProyeccionesView.as_view(), name='plan_proyecciones_detail'),
     url(r'^plan/guardar-proyeccion/$', views.GuardarProyeccionView.as_view()),
     url(r'^plan/buscar-datos-proyeccion/$', views.BuscarVentaItemplanProyeccionView.as_view()),
     url(r'^plan/buscar-datos-proyeccion-comp/$', views.BuscarVentaItemplanCompProyeccionView.as_view()),
     url(r'^plan/buscar-lista-items/$', views.BuscarCategoriaListProyeccionView.as_view()),
     url(r'^plan/buscar-lista-items-comparacion/$', views.BuscarCategoriaListCompProyeccionView.as_view()),
-    
-    # Vistas relacionadas a la planificacion
-    url(r'^plan/planificacion/(?P<pk>\d+)/$', views.PlanificacionView.as_view(), name='plan_planificacion_detail'),
     url(r'^plan/guardar-planificacion-tv/$', views.GuardarPlanificacionView.as_view()),
     url(r'^plan/buscar-datos-planificacion-tv/$', views.BuscarVentaTemporadaItemplanView.as_view()),
     url(r'^plan/buscar-datos-planificacion-tv-comp/$', views.BuscarVentaTemporadaItemplanCompView.as_view()),
-    url(r'^plan/planstats/$', views.BuscarStatsPlanView.as_view()),
-
-    # Vistas relacionadas al resultado de la planificacion
-    url(r'^plan/resumen/(?P<pk>\d+)/$', views.ResumenPlanView.as_view(), name='resumen_plan_detail'),
     url(r'^plan/buscar-datos-resumen/$', views.ResumenDataGraficosView.as_view()),
-
-    # Vistas relacionadas a la planificacion de saldos y avances
-    url(r'^plan/saldos-avances/(?P<pk>\d+)/$', views.SaldosAvancesView.as_view(), name='plan_saldosavances_detail'),
     url(r'^plan/buscar-datos-planificacion-as/$', views.BuscarSaldosAvancesView.as_view()),
     url(r'^plan/buscar-datos-planificacion-as-comp/$', views.BuscarSaldosAvancesCompView.as_view()),
     url(r'^plan/guardar-planificacion-as/$', views.GuardarSaldosAvancesView.as_view()),
+    url(r'^plan/actualizar-precio-costo/$', views.GuardarPrecioCostoView.as_view()),
 
+
+    # Obsoletas
+    # url(r'^plan/planificacion/(?P<pk>\d+)/$', views.PlanificacionView.as_view(), name='plan_planificacion_detail'),
+    # url(r'^plan/proyeccion/(?P<pk>\d+)/$', views.ProyeccionesView.as_view(), name='plan_proyecciones_detail'),
+    # url(r'^plan/planstats/$', views.BuscarStatsPlanView.as_view()),
+    # url(r'^plan/resumen/(?P<pk>\d+)/$', views.ResumenPlanView.as_view(), name='resumen_plan_detail'),
+    # url(r'^plan/saldos-avances/(?P<pk>\d+)/$', views.SaldosAvancesView.as_view(), name='plan_saldosavances_detail'),
+
+    # Vistas relacionadas a la planificacion de saldos y avances
     url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarExcelView', name='plan_exportar_excel_detail'),
 )

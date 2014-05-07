@@ -13,8 +13,10 @@
 {% block sidebar %}
 <div class="pure-menu pure-menu-open">
     <a class="pure-menu-heading">Acciones</a>
-    <ul>
+    <ul id="ul-menu-acciones">
         <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
+        <li><a href="" id="btnPB">Precio Blanco</a></li>
+        <li><a href="" id="btnCU">Costo Unitario</a></li>
         <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar</a></li>
     </ul>
 </div>
@@ -102,12 +104,6 @@
 
     <!-- div para la vista de planificacion de temporada vigente -->
         <div id="tab_item_planificacion_tv" style="display:none;">
-            <div style="float:left; width:100%;">
-                <div style="float:left; width:7%;">Precio Blanco:</div>
-                <div id="itemprecio_blanco" class="editable" style="float:left; width:7%;"></div>
-                <div style="float:left; width:7%; padding-left: 10px;">Costo Unitario:</div>
-                <div id="itemcosto_unitario" class="editable" style="float:left; width:20%;"></div>
-            </div>
             <div style="width:100%; float:left">
                 <div style="width:100%; float:left;">
                     <div id="tab_planificacion_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad">
@@ -213,10 +209,22 @@
         <input id="json_datos_tarea" type="hidden" name="datos_tarea" value="" />
     </form>
 </div>
-<div id="dialog-box" title="Proyección" style="text-align:center;">
+<div style="display:none;">
+    <form id="form_datos_pbcu">
+        {% csrf_token %}
+        <input id="json_ajuste_pbcu" type="hidden" name="datos_ajuste_pbcu" value="" />
+    </form>
+</div>
+<div id="dialog-box" title="Ajustar Información" style="text-align:center;">
     <p id="dialog_help_msg"></p>
     <input id="inputval" type="text" style="width:8em">
 </div>
+
+<div id="dialog-box-pbcu" title="Ajustar Información" style="text-align:center;">
+    <p id="dialog_pbcu_help_msg"></p>
+    <input id="input_pbcu" type="text" style="width:8em">
+</div>
+
 {% endif%}
 
 {% endblock %}
@@ -237,6 +245,8 @@ $(function() {
         var id_item = -1;
         /* ID del item sobre el cual esta comparando */
         var id_item_comp = -1;
+        var precio_item = 0;
+        var costo_item = 0;
         /*
         Almacena la tarea que se esta realizando sobre la planificacion:
             - 1 Proyeccion (valor por defecto)
@@ -264,6 +274,12 @@ $(function() {
 
         function setItemComp(id){id_item_comp = id;}
         function getItemComp(){return id_item_comp;}
+
+        function setPrecioItem(precio){precio_item = precio;}
+        function getPrecioItem(){return precio_item;}
+
+        function setCostoItem(costo){costo_item = costo;}
+        function getCostoItem(){return costo_item;}
         
         function getPlan(){return id_plan;}
 
@@ -298,6 +314,10 @@ $(function() {
             getItem:getItem,
             setItemComp:setItemComp,
             getItemComp:getItemComp,
+            setPrecioItem:setPrecioItem,
+            getPrecioItem:getPrecioItem,
+            setCostoItem:setCostoItem,
+            getCostoItem:getCostoItem,
             getPlan:getPlan,
             setModificada:setModificada,
             getModificada:getModificada,
@@ -322,8 +342,8 @@ $(function() {
     });
 
     // Mantener sincronizado el movimiento del scroll inferior con el superior
-    $("#tab_item_planificacion_tv").on("scroll", function () {
-        $("#tab_item_planificacion_tv_comp").scrollLeft($(this).scrollLeft());
+    $('#tab_item_planificacion_tv').on('scroll', function () {
+        $('#tab_item_planificacion_tv_comp').scrollLeft($(this).scrollLeft());
     });
 
     // Mantener sincronizado el movimiento del scroll superior con el inferior
@@ -335,6 +355,11 @@ $(function() {
     $( "#enlace-proyeccion" ).addClass( "subopcion-seleccionada" );
 
     $( "#plan_trabajo_detail" ).addClass( "opcion-seleccionada" );
+
+    /* Se esconden las opciones para configurar precio blanco y costo unitario ya que
+    se deben presentar al momento de trabajar la planificacion y no la proyeccion */
+    $( "#btnPB" ).hide().tooltip().click(ajustarPBCU);
+    $( "#btnCU" ).hide().tooltip().click(ajustarPBCU);
 
     /*
     Actualiza el atributo actividad del objeto obj_trabajo. Con esto se especifica el tipo de actividad
@@ -358,6 +383,8 @@ $(function() {
                 $( "#tab_item_planificacion_as_comp" ).hide();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
                 break;
             case 'enlace-planificacion-tv':
                 obj_trabajo.setActividad(2);
@@ -371,6 +398,10 @@ $(function() {
                 $( "#tab_item_planificacion_as_comp" ).hide();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
+                if ( obj_trabajo.getItem() != -1 ){
+                    $( "#btnPB" ).show();
+                    $( "#btnCU" ).show();
+                }                
                 break;
             case 'enlace-planificacion-as':
                 obj_trabajo.setActividad(3);
@@ -384,6 +415,8 @@ $(function() {
                 $( "#tab_item_planificacion_as_comp" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
                 break;
             case 'enlace-resumen':
                 obj_trabajo.setActividad(4);
@@ -397,6 +430,8 @@ $(function() {
                 $( "#tab_item_planificacion_as_comp" ).hide();
                 $( "#tab_item_resumen" ).show();
                 $( "#tab_item_resumen_comp" ).show();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
                 break;
             default:
                 alert("No se ha escogido ninguna actividad!");
@@ -458,30 +493,6 @@ $(function() {
             }
         }
     });
-
-    /*
-        Ajax done callback para el evento que guarda una proyeccion
-    */
-    var saveAJAXDone = function(data){
-        obj_trabajo.setModificada(false);
-        desactivarGuardar();
-        $("#caja-mensajes")
-            .show()
-            .html(data.msg)
-            .addClass("msg_success")
-            .delay(3000)
-            .queue( function(next){ 
-                $(this).hide();
-                $(this).removeClass("msg_success");
-                $(this).html("");
-                    next(); 
-            });
-
-        $("#combo_resultado").trigger("change");
-        
-        if ( obj_trabajo.getItemComp() != -1 )
-            busquedaAJAXdatosComp(obj_trabajo.getItemComp());
-    };
 
     /* Cada vez que un usuario hace click sobre un input, el contenido 
     aparece seleccionado */
@@ -642,6 +653,18 @@ $(function() {
                     }
                 }
             },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    });
+
+    $( "#dialog-box-pbcu" ).dialog({
+        autoOpen: false,
+        width: 220,
+        modal: true,
+        buttons: {
+            "Guardar": guardarPBCU,
             Cancelar: function() {
                 $( this ).dialog( "close" );
             }

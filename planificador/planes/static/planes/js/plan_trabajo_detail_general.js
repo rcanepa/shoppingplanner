@@ -182,6 +182,26 @@ function modificarCelda(){
 }
 
 /*
+Controla la aparicion del dialog que permite modificar el precio blanco
+o costo unitario de un itemplan.
+*/
+function ajustarPBCU(event){
+    event.preventDefault();
+    var tipo_ajuste;
+    if ( event.currentTarget.id == "btnPB" )
+        tipo_ajuste = "precio";
+    else
+        tipo_ajuste = "costo";
+    $( "#json_tipo_ajuste" ).val(tipo_ajuste);
+    if( tipo_ajuste == "precio" )
+        $("#dialog_pbcu_help_msg").text("Precio blanco: ( Ref.: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') + " )");
+    else
+        $("#dialog_pbcu_help_msg").text("Costo unitario: ( Ref.: " + numeral(obj_trabajo.getCostoItem()).format('0,0') + " )");
+    $( "#dialog-box-pbcu" ).data('tipo_ajuste', tipo_ajuste).dialog( "open" );
+    $( "#dialog-box-pbcu input[type=text]" ).select();
+}
+
+/*
 Se encarga de borrar el contenido de los DIVS de proyeccion y planificacion. Tambien
 elimina los datos de los comparativos.
 */
@@ -218,4 +238,77 @@ se encuentra activado o desactivado.
 */
 function verificarGuardar(){
     return !$("#panel-acciones").hasClass("pure-menu-disabled");
+}
+
+/*
+Ejecuta la solicitud AJAX para guardar una modificacion
+en el PB o CU.
+*/
+function guardarPBCU(){
+    var valor;
+    var intRegex = /^\d+$/;
+    valor = $( "#input_pbcu" ).val().replace('%','').replace(',','.');
+
+    if(intRegex.test(valor)) {
+        $( "#input_pbcu" ).val("");
+        if ( $( "#input_pbcu" ).hasClass( "ui-state-error" ) )
+            $( "#input_pbcu" ).removeClass( "ui-state-error" );        
+        
+        var plan = obj_trabajo.getPlan();
+        var itemplan = obj_trabajo.getItem();
+        var tipo_ajuste = $(this).data('tipo_ajuste');
+        
+        json_data = JSON.stringify({
+            'plan': plan, 
+            'itemplan': itemplan,
+            'valor_ajuste': valor,
+            'tipo_ajuste': tipo_ajuste
+        });
+
+        $("#json_ajuste_pbcu").val(json_data);
+
+        $.ajax({
+            data: $( "#form_datos_pbcu" ).serialize(),
+            url: "/planes/plan/actualizar-precio-costo/",
+            type: 'post',
+            
+        }).done(saveAJAXDone);
+        
+        $( this ).dialog( "close" );
+    }
+    else {
+        $( "#input_pbcu" ).addClass( "ui-state-error" );
+        texto = $( "#dialog_pbcu_help_msg" ).text();
+        $( "#dialog_pbcu_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
+        $( "#dialog_pbcu_help_msg" ).addClass( "ui-state-highlight" );
+        setTimeout(function() {
+            $( "#dialog_pbcu_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+            $( "#dialog_pbcu_help_msg" ).html(texto);
+        }, 3000 );
+    }
+}
+
+/*
+Ajax done callback para el evento que guarda una proyeccion, planificacion o
+ajuste de precio/costo.
+*/
+function saveAJAXDone(data){
+    obj_trabajo.setModificada(false);
+    desactivarGuardar();
+    $("#caja-mensajes")
+        .show()
+        .html(data.msg)
+        .addClass("msg_success")
+        .delay(3000)
+        .queue( function(next){ 
+            $(this).hide();
+            $(this).removeClass("msg_success");
+            $(this).html("");
+                next(); 
+        });
+
+    $("#combo_resultado").trigger("change");
+    
+    if ( obj_trabajo.getItemComp() != -1 )
+        busquedaAJAXdatosComp(obj_trabajo.getItemComp());
 }
