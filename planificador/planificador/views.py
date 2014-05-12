@@ -1,20 +1,14 @@
-
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.context_processors import csrf
-from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect
-from django.utils.decorators import method_decorator
-from django.utils.text import slugify
+from django.http import HttpResponseRedirect
 from django.views.generic import View, TemplateView, ListView, DetailView
 from userprofile.forms import RegistrationForm
 from userprofile.models import UserProfile
 from braces.views import LoginRequiredMixin
-import csv
-import json
 
 
 # Mixins
@@ -29,19 +23,19 @@ class UserInfoMixin(object):
 
 
 def login(request):
-	c = {}
-	c.update(csrf(request))
-	return render_to_response('login.html', c)
+    c = {}
+    c.update(csrf(request))
+    return render_to_response('login.html', c)
 
 
 def auth_view(request):
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
     user = auth.authenticate(username=username, password=password)
-    
+
     if user is not None:
         auth.login(request, user)
-        return HttpResponseRedirect('/accounts/loggedin')
+        return HttpResponseRedirect('/planes/plan/list/')
     else:
         return HttpResponseRedirect('/accounts/invalid')
 
@@ -54,7 +48,7 @@ class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
 class InvalidLogin(TemplateView):
     """Vista para ingresos invalidos."""
     template_name = 'invalid_login.html'
-        
+
 
 @login_required()
 def logout(request):
@@ -72,16 +66,16 @@ class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):
         form = RegistrationForm()
         context = {'form': form}
         return render_to_response('register.html', context, context_instance=RequestContext(request))
-        #return HttpResponseRedirect(reverse('administracion:index'))
 
     def post(self, request, *args, **kwargs):
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(username=form.cleaned_data['username'], 
-                email = form.cleaned_data['email'], 
-                password = form.cleaned_data['password'], 
-                first_name = form.cleaned_data['first_name'], 
-                last_name = form.cleaned_data['last_name'])
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password'],
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'])
             user.save()
             userprofile = UserProfile(user=user, organizacion=request.user.get_profile().organizacion)
             userprofile.save()

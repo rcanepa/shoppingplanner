@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Sum
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.views.generic import CreateView
 from django.views.generic import DeleteView
 from django.views.generic import DetailView
@@ -15,7 +15,7 @@ from .models import Categoria, Item, Grupoitem
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
 from planes.models import Plan
 from planificador.views import UserInfoMixin
-from ventas.models import Venta, Ventaperiodo
+from ventas.models import Ventaperiodo
 import json
 
 """
@@ -101,15 +101,18 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         if request.GET:
             nodos = []
-            id_cat = request.GET['key']
-            item_obj = Item.vigente.get(pk=id_cat, categoria__organizacion=self.request.user.get_profile().organizacion)
+            id_item_seleccionado = request.GET['key']
+            id_plan = request.GET['plan']
+            item_obj = Item.vigente.get(pk=id_item_seleccionado, categoria__organizacion=self.request.user.get_profile().organizacion)
+            plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
+                venta_anual = children.get_venta_anual(plan_obj.anio-1)
                 nodo = {}
                 if children.precio != 0:
-                    nodo['title'] = children.nombre + " | " + "{:,}".format(children.precio)
+                    nodo['title'] = children.nombre + " | PB:" + "{:,}".format(children.precio) + " | VTA: " + "{:,}".format(venta_anual)
                 else:
-                    nodo['title'] = children.nombre
+                    nodo['title'] = children.nombre + " | VTA: " + "{:,}".format(venta_anual)
                 nodo['key'] = children.id
                 if (children.get_children()):
                     nodo['folder'] = True

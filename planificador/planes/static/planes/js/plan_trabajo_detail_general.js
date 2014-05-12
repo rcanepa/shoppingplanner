@@ -1,4 +1,165 @@
 /*
+Se utiliza al momento de abrir la vista por primera vez y controla la aparicion
+de los div asociados al enlace por donde se proviene.
+*/
+function actualizarActividad(){
+    var tipo_actividad = obj_trabajo.getActividad();
+    console.log(tipo_actividad);
+    switch (tipo_actividad){
+        case 1:
+            $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+            $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
+            $( "#tab_item_proyeccion" ).show();
+            $( "#tab_item_proyeccion_comp" ).show();
+            $( "#tab_item_planificacion_tv" ).hide();
+            $( "#tab_item_planificacion_tv_comp" ).hide();
+            $( "#tab_item_planificacion_as" ).hide();
+            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_item_resumen" ).hide();
+            $( "#tab_item_resumen_comp" ).hide();
+            $( "#btnPB" ).hide();
+            $( "#btnCU" ).hide();
+            break;
+        case 2:
+            $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+            $( "#enlace-planificacion-tv" ).addClass( "opcion-seleccionada" );
+            $( "#tab_item_proyeccion" ).hide();
+            $( "#tab_item_proyeccion_comp" ).hide();
+            $( "#tab_item_planificacion_tv" ).show();
+            $( "#tab_item_planificacion_tv_comp" ).show();
+            $( "#tab_item_planificacion_as" ).hide();
+            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_item_resumen" ).hide();
+            $( "#tab_item_resumen_comp" ).hide();
+            if ( obj_trabajo.getItem() != -1 ){
+                $( "#btnPB" ).show();
+                $( "#btnCU" ).show();
+            }                
+            break;
+        case 3:
+            $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+            $( "#enlace-planificacion-as" ).addClass( "opcion-seleccionada" );
+            $( "#tab_item_proyeccion" ).hide();
+            $( "#tab_item_proyeccion_comp" ).hide();
+            $( "#tab_item_planificacion_tv" ).hide();
+            $( "#tab_item_planificacion_tv_comp" ).hide();
+            $( "#tab_item_planificacion_as" ).show();
+            $( "#tab_item_planificacion_as_comp" ).show();
+            $( "#tab_item_resumen" ).hide();
+            $( "#tab_item_resumen_comp" ).hide();
+            $( "#btnPB" ).hide();
+            $( "#btnCU" ).hide();
+            break;
+        case 4:
+            $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+            $( "#enlace-resumen" ).addClass( "opcion-seleccionada" );
+            $( "#tab_item_proyeccion" ).hide();
+            $( "#tab_item_proyeccion_comp" ).hide();
+            $( "#tab_item_planificacion_tv" ).hide();
+            $( "#tab_item_planificacion_tv_comp" ).hide();
+            $( "#tab_item_planificacion_as" ).hide();
+            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_item_resumen" ).show();
+            $( "#tab_item_resumen_comp" ).show();
+            $( "#btnPB" ).hide();
+            $( "#btnCU" ).hide();
+            break;
+        default:
+            $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+            $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
+            break;
+    }
+}
+/*
+
+*/
+function controlActividades(event){
+    event.preventDefault();
+    var tipo_enlace = event.currentTarget.id;
+    if ( obj_trabajo.getModificada() ){
+        var mensaje = "Hay cambios que no han sido guardados. ";
+        mensaje += "Haga click en 'Guardar' si desea conservar los cambios. En caso contrario, ";
+        mensaje += "seleccione la opción 'Descartar'.";
+        $ ( "#dialog-box-alerta p" ).text(mensaje);
+        $( "#dialog-box-alerta" ).data('tipo_enlace', tipo_enlace).dialog( "open" );
+    }
+    else{
+        switch (tipo_enlace){
+            case 'enlace-proyeccion':
+                obj_trabajo.setActividad(1);
+                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+                $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).show();
+                $( "#tab_item_proyeccion_comp" ).show();
+                $( "#tab_item_planificacion_tv" ).hide();
+                $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
+                break;
+            case 'enlace-planificacion-tv':
+                obj_trabajo.setActividad(2);
+                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+                $( "#enlace-planificacion-tv" ).addClass( "opcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).hide();
+                $( "#tab_item_proyeccion_comp" ).hide();
+                $( "#tab_item_planificacion_tv" ).show();
+                $( "#tab_item_planificacion_tv_comp" ).show();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
+                if ( obj_trabajo.getItem() != -1 ){
+                    $( "#btnPB" ).show();
+                    $( "#btnCU" ).show();
+                }                
+                break;
+            case 'enlace-planificacion-as':
+                obj_trabajo.setActividad(3);
+                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+                $( "#enlace-planificacion-as" ).addClass( "opcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).hide();
+                $( "#tab_item_proyeccion_comp" ).hide();
+                $( "#tab_item_planificacion_tv" ).hide();
+                $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).show();
+                $( "#tab_item_planificacion_as_comp" ).show();
+                $( "#tab_item_resumen" ).hide();
+                $( "#tab_item_resumen_comp" ).hide();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
+                break;
+            case 'enlace-resumen':
+                obj_trabajo.setActividad(4);
+                $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
+                $( "#enlace-resumen" ).addClass( "opcion-seleccionada" );
+                $( "#tab_item_proyeccion" ).hide();
+                $( "#tab_item_proyeccion_comp" ).hide();
+                $( "#tab_item_planificacion_tv" ).hide();
+                $( "#tab_item_planificacion_tv_comp" ).hide();
+                $( "#tab_item_planificacion_as" ).hide();
+                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_item_resumen" ).show();
+                $( "#tab_item_resumen_comp" ).show();
+                $( "#btnPB" ).hide();
+                $( "#btnCU" ).hide();
+                break;
+            default:
+                alert("No se ha escogido ninguna actividad!");
+                obj_trabajo.setActividad(0);
+                break;
+        }
+        if ( obj_trabajo.getItem() != -1 )
+            $( "#combo_resultado" ).trigger( "change" );
+        if ( obj_trabajo.getItemComp() != -1 )
+            busquedaAJAXdatosComp(obj_trabajo.getItemComp());    
+    }
+}
+
+/*
     Controla los cambios hechos sobre el combobox de itemplan.
     Gatilla una busqueda sobre la informacion comercial del itemplan
     seleccionado.
@@ -285,6 +446,152 @@ function guardarPBCU(){
             $( "#dialog_pbcu_help_msg" ).removeClass( "ui-state-highlight", 3000 );
             $( "#dialog_pbcu_help_msg" ).html(texto);
         }, 3000 );
+    }
+}
+
+/*
+Guarda los cambios generados en una tabla de proyeccion o planificacion, en el
+objeto obj_trabajo y actualiza la vista que fue editada.
+*/
+function guardarUniDesc() {
+    /*
+    parametros[0]: tipo de metrica (unidades, descuentos)
+    parametros[1]: periodo
+    parametros[2]: temporada
+    */
+    var parametros = [];
+    var valor;
+    var intRegex = /^\d+$/;
+    var floatRegex = /^\-?([0-9]+(\.[0-9]+)?|Infinity)$/;
+    var texto = "";
+    parametros = obj_trabajo.getCeldaEditada().attr( "id" ).split("_");
+    valor = $( "#inputval" ).val().replace('%','').replace(',','.');
+
+    // Se revisa si el cambio corresponde a unidades o a un % de descuento
+    if ( parametros[0] == "unidades" ) {
+        // Se valida que el valor ingresado sea un numero entero
+        if(intRegex.test(valor)) {
+           obj_trabajo.getCeldaEditada().text(valor);
+           switch(obj_trabajo.getActividad()){
+                case 1:
+                    actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                    break;
+                case 2:
+                    actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
+                    break;
+                case 3:
+                    actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
+                    break;
+                default:
+                    return false;
+           }
+           $( "#inputval" ).val("");
+           if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+                $( "#inputval" ).removeClass( "ui-state-error" );
+            // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
+            // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
+            obj_trabajo.setModificada(true);
+            activarGuardar();
+           $( this ).dialog( "close" );
+        }
+        else {
+            $( "#inputval" ).addClass( "ui-state-error" );
+            texto = $( "#dialog_help_msg" ).text();
+            $( "#dialog_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
+            $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+            setTimeout(function() {
+                $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                $( "#dialog_help_msg" ).html(texto);
+            }, 3000 );
+        }
+    }
+
+    // Se trata de un ajuste de % de descuento
+    else {
+        if(floatRegex.test(valor)) {
+            obj_trabajo.getCeldaEditada().text(valor + "%");
+            switch(obj_trabajo.getActividad()){
+                case 1:
+                    actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
+                    break;
+                case 2:
+                    actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
+                    break;
+                case 3:
+                    actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
+                    break;
+                default:
+                    return false;
+            }
+            $( "#inputval" ).val("");
+            if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
+            $( "#inputval" ).removeClass( "ui-state-error" );
+            // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
+            // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
+            obj_trabajo.setModificada(true);
+            activarGuardar();
+            $( this ).dialog( "close" );
+        }
+        else {
+            $( "#inputval" ).addClass( "ui-state-error" );
+            texto = $( "#dialog_help_msg" ).text();
+            $( "#dialog_help_msg" ).html( "Debe ingresar un número respetando el formato señalado." );
+            $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
+            setTimeout(function() {
+                $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
+                $( "#dialog_help_msg" ).html(texto);
+            }, 3000 );
+        }
+    }
+}
+
+/*
+Guarda las modificaciones realizadas a una planificacion o proyeccion.
+*/
+function guardarTrabajo(event){
+    event.preventDefault();
+    if ( verificarGuardar() ){
+        var plan = obj_trabajo.getPlan();
+        var itemplan = obj_trabajo.getItem();
+        var ventas = obj_trabajo.getDatos();
+        var url = null;
+        
+        json_data = JSON.stringify({
+            'plan': plan, 
+            'itemplan': itemplan,
+            'ventas': ventas.ventas
+        });
+
+        /* Se determina el tipo de tarea que esta realizando el usuario para
+        definir la url correspondiente a la vista que guardara los datos */
+        switch(obj_trabajo.getActividad()){
+            case 1:
+                url = '/planes/plan/guardar-proyeccion/';
+                break;
+            case 2:
+                url = '/planes/plan/guardar-planificacion-tv/';
+                break;
+            case 3:
+                url = '/planes/plan/guardar-planificacion-as/';
+                break;
+            case 4:
+                url = null;
+                break;
+            default:
+                url = null;
+                break;
+        }
+        
+        $("#json_datos_tarea").val(json_data);
+
+        if ( url != null ){
+            $.ajax({
+                data: $("#form_datos").serialize(), // Se envia el form serializado para que contenga el token CSRF
+                url: url,
+                type: 'post',
+                
+            }).done(saveAJAXDone);
+        }
     }
 }
 

@@ -1,16 +1,16 @@
 <div class="pure-menu pure-menu-open pure-menu-horizontal">
     <ul>
-        <li><a href="{% url 'home' %}">INICIO</a></li>
+        <!--li><a href="{% url 'home' %}">INICIO</a></li-->
         {% if admin %}
 		<li><a href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
 		{% endif %}
-        <li><a id="plan_list" href="{% url 'planes:plan_list' %}">PLANIFICAR TEMPORADA</a></li>
+        <li><a id="plan_list" href="{% url 'planes:plan_list' %}">SELECCI&Oacute;N DE TEMPORADA</a></li>
         {% if plan.id %}
         <li><a id="plan_tree_detail" href="{% url 'planes:plan_tree_detail' plan.id %}">| ARBOL DE PLANIFICACI&Oacute;N |</a></li>
-        <li><a id="plan_trabajo_detail" href="{% url 'planes:plan_trabajo_detail' plan.id %}">| TRABAJAR PLANIFICACI&Oacute;N |</a></li>
-        <li><a class="enlace-actividades" id="enlace-proyeccion" href="#">| PROYECTAR VENTAS |</a></li>
-        <li><a class="enlace-actividades" id="enlace-planificacion-tv" href="#">| PLANIFICAR TEMPORADA VIGENTE |</a></li>
-        <li><a class="enlace-actividades" id="enlace-planificacion-as" href="#">| PLANIFICAR SALDOS Y AVANCES |</a></li>
+        <!--li><a id="plan_trabajo_detail" href="{% url 'planes:plan_trabajo_detail' plan.id %}">| TRABAJAR PLANIFICACI&Oacute;N |</a></li-->
+        <li><a class="enlace-actividades" id="enlace-proyeccion" href="#">| CIERRE DE TEMPORADA |</a></li>
+        <li><a class="enlace-actividades" id="enlace-planificacion-tv" href="#">| PLANIFICACI&Oacute;N DE VENTA |</a></li>
+        <li><a class="enlace-actividades" id="enlace-planificacion-as" href="#">| SALDOS Y AVANCES |</a></li>
         <li><a class="enlace-actividades" id="enlace-resumen" href="#">| RESUMEN |</a></li>
         {% endif %} 
     </ul>

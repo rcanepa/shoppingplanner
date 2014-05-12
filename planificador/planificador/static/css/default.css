@@ -44,6 +44,7 @@ h4{
 	float:left;
 	width:100%;
 	border-bottom:2px solid #ef4929;
+	background-color: white;
 }
 
 #header li a{
@@ -74,11 +75,13 @@ h4{
 
 /* column container */
 .colmask {
+	top: 40px;
 	position:relative;		/* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
 	clear:both;
 	float:left;
 	width:100%;			/* width of whole page */
 	overflow:hidden;	/* This chops off any overhanging divs */
+	padding-bottom: 50px;
 }
 /* 2 column left menu settings */
 .leftmenu {
@@ -97,7 +100,7 @@ h4{
 	padding-bottom:1em;
 }
 .leftmenu .col1 {
-	padding: 15px 0px;
+	/*padding: 15px 0px;*/
 	margin:0 15px 0 215px;
 	position:relative;
 	right:100%;
@@ -107,7 +110,7 @@ h4{
 	
 }
 .leftmenu .col2 {
-	padding: 15px 0px;
+	/*padding: 15px 0px;*/
 	float:left;
 	width:170px;
 	position:relative;
@@ -115,16 +118,15 @@ h4{
 }
 /* Footer styles */
 #footer {
+	padding: 0px 10px;
 	clear:both;
 	float:left;
 	width:100%;
 	border-top:2px solid #ef4929;
+	bottom: 0px;
+	background-color: #f5f5ed;
 }
-#footer p {
-	padding:10px;
-	margin:0;
-	color:#777;
-}
+
 /* --> */
 .box_content{
 	text-align: center;
@@ -225,7 +227,7 @@ div .right_label {
   	top: 0px;
   	left: 50%;
   	margin-left: -350px;
-  	z-index: 100;
+  	z-index: 10000;
 }
 
 /* Para listas de objetos (item list, categorias list, etc.) */
@@ -310,4 +312,16 @@ ol ol
 	url('../images/loading.gif') 
 	50% 50% 
 	no-repeat;
+}
+
+.menu_lateral_flotante{
+	position:fixed;
+	top: 40px;
+	z-index:50;
+	width: 170px;
+}
+
+.menu_flotante_completo{
+	position:fixed;
+	z-index:100;	
 }

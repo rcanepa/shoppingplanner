@@ -9,11 +9,8 @@ function busquedaPlanificacionTV(data){
         obj_trabajo.setCostoItem(data.itemplan.costo_unitario);
         obj_trabajo.setDatos(data);
         crearTablaPlanificacionTV(data);
-        /* Se actualizan los tooltips sobre los botones de precio blanco y costo unitario */
-        $( "#btnPB" ).prop( "title", "Precio: " + numeral(obj_trabajo.getPrecioItem()).format('0,0'));
-        $( "#btnCU" ).prop( "title", "Costo: " + numeral(obj_trabajo.getCostoItem()).format('0,0'));
-        $( "#btnPB" ).tooltip( "option", "content", "Precio: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') );
-        $( "#btnCU" ).tooltip( "option", "content", "Costo: " + numeral(obj_trabajo.getCostoItem()).format('0,0') );
+        $( "#btnPB" ).text( "Precio: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') );
+        $( "#btnCU" ).text( "Costo: " + numeral(obj_trabajo.getCostoItem()).format('0,0') );
         if ( $( "#btnCU" ).is( ":hidden" ) )
             $( "#btnCU" ).show();
         if ( $( "#btnPB" ).is( ":hidden" ) )
@@ -542,7 +539,7 @@ function actualizarPeriodoPlanificacion(metrica, periodo, temporada){
                 venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
                 
                 // Contribucion
-                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * venta.costo_u)).toFixed(1);
+                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion.itemplan.costo_unitario)).toFixed(1);
                 
                 // Margen                   
                 if(venta.vta_n != 0)
@@ -571,7 +568,7 @@ function actualizarPeriodoPlanificacion(metrica, periodo, temporada){
                 venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
                 
                 // Contribucion
-                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * venta.costo_u)).toFixed(1);
+                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion.itemplan.costo_unitario)).toFixed(1);
                 
                 // Margen                   
                 if(venta.vta_n != 0)
@@ -599,7 +596,7 @@ function actualizarPeriodoPlanificacion(metrica, periodo, temporada){
                 venta.vta_n = parseFloat( (1 - venta.dcto) * venta.vta_u * planificacion.itemplan.precio / 1.19 );
                 
                 // Contribucion
-                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * venta.costo_u)).toFixed(1);
+                venta.ctb_n = parseFloat(venta.vta_n - (venta.vta_u * planificacion.itemplan.costo_unitario)).toFixed(1);
                 
                 // Margen                   
                 if(venta.vta_n != 0)

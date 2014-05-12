@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy, reverse
-from django.db.models import Q, Sum, Avg, Min
+from django.db.models import Q, F, Sum, Avg, Min
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.views.generic import CreateView, UpdateView, DeleteView
@@ -97,6 +97,10 @@ class PlanCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):
         form.instance.nombre = str(form.instance.anio) + " - " + form.instance.temporada.nombre
         return super(PlanCreateView, self).form_valid(form)
 
+    def get_initial(self):
+        self.initial.update({'usuario': self.request.user})
+        return self.initial
+
 
 class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
@@ -174,15 +178,10 @@ class GuardarArbolView(LoginRequiredMixin, View):
                 Itemplan.objects.filter(plan=data['plan']).delete()
             plan_obj = Plan.objects.get(pk=data['plan'])
             #items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
-            items_obj_arr = Item.objects.filter(pk__in=data['items']).prefetch_related('item_padre')
-            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio) for x in items_obj_arr]
+            items_obj_arr = Item.objects.filter(pk__in=data['items']).prefetch_related('item_padre', 'venta_item')
+            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio, costo=x.calcular_costo_unitario()) for x in items_obj_arr]
             # Se marcan los itemplan que pueden ser planificados
             for itemplan_obj in itemplan_obj_arr:
-                #print itemplan_obj.itemplan_uuid
-                #print itemplan_obj.item.id
-                #obj_uuid = [x for x in obj_arr_item_padres if x['id'] == itemplan_obj.item.id][0]
-                #itemplan_obj.itemplan_uuid = obj_uuid['uuid']
-                #itemplan_obj.itemplan_padre_uuid_id = obj_uuid['padre_uuid']
                 if itemplan_obj.item.id in data['items_planificables']:
                     itemplan_obj.planificable = True
             plan_obj.estado = 1
@@ -229,70 +228,14 @@ class TrabajarPlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(TrabajarPlanificacionView, self).get_context_data(**kwargs)
+        if 'slug' in self.kwargs:
+            context['actividad'] = self.kwargs['slug']
+        else:
+            context['actividad'] = 1
         if context['plan'].estado == 0:
             # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
             context['msg'] = "Primero debe definir el árbol de planificación."
         else:
-            # Se deben presentar uno a uno los items a proyectar
-            # context['items'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).order_by('id')[1:3]
-            context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1, planificable=True).count()
-            context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0, planificable=True).count()
-            context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
-
-            # Lista de items sobre los cuales es el usuario es responsable
-            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
-
-            # Lista de items que pertenecen a la categoria mas alta a mostrar
-            items_categoria_raiz = []
-
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
-            # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
-
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
-
-            # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-            categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
-
-            # Se recalculan las listas de categorias a mostrar como comboboxes
-            # Se deben mostrar a partir de la categoria sobre la cual el usuario es responsable
-            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
-            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
-
-            # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
-            # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
-            # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
-            # poder ver como division a Hombre
-            items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
-
-            context['combo_categorias'] = combo_categorias
-            context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
-            context['items_categoria_raiz'] = items_categoria_raiz
-
-        return context
-
-
-class ProyeccionesView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
-    2da fase del proceso de planificacion.
-    Vista principal para la proyeccion de datos historicos de items.
-    '''
-    model = Plan
-    template_name = "planes/plan_proyecciones_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(ProyeccionesView, self).get_context_data(**kwargs)
-        if context['plan'].estado == 0:
-            # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
-            context['msg'] = "Primero debe definir el árbol de planificación."
-        else:
-            # Se deben presentar uno a uno los items a proyectar
-            # context['items'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0).order_by('id')[1:3]
-            context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1, planificable=True).count()
-            context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0, planificable=True).count()
-            context['num_items_tot'] = context['num_items_pro'] + context['num_items_nopro']
-
             # Lista de items sobre los cuales es el usuario es responsable
             items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
 
@@ -340,8 +283,8 @@ class GuardarProyeccionView(UserInfoMixin, View):
             plan_obj = Plan.objects.get(pk=data['plan'])
             itemplan_obj = Itemplan.objects.get(pk=data['itemplan'], plan=plan_obj)
 
-            # Se revisa si la categoria del item que esta siendo proyectado tiene hijos (si pertenece a una categoria hoja o no),
-            # en caso de tener hijos, se imputa la proyeccion al primero de ellos
+            # Se revisa si la categoria del item que esta siendo proyectado tiene hijos (si pertenece
+            # a una categoria hoja o no), en caso de tener hijos, se imputa la proyeccion al primero de ellos
             if itemplan_obj.item.categoria.get_children():
                 item_proyectado = itemplan_obj.item.get_children()[0]
             else:
@@ -390,7 +333,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
-class BuscarCategoriaListProyeccionView(View):
+class BuscarListaItemView(View):
     '''
     Revise como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
     puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
@@ -429,7 +372,7 @@ class BuscarCategoriaListProyeccionView(View):
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
-class BuscarCategoriaListCompProyeccionView(View):
+class BuscarListaItemCompView(View):
     '''
     Revise como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
     puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
@@ -439,7 +382,6 @@ class BuscarCategoriaListCompProyeccionView(View):
             data = {}
             items = []
             id_item = json.loads(request.GET['id_item'])
-            id_plan = request.GET['id_plan']
             # Se busca el objeto de item asociado al parametro id_item
             item_seleccionado = Item.objects.get(pk=id_item)
             # Se buscan todos los hijos del item pasado por parametro
@@ -463,7 +405,7 @@ class BuscarCategoriaListCompProyeccionView(View):
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
-class BuscarVentaItemplanProyeccionView(View):
+class BuscarDatosProyeccionView(View):
     '''
     Recibe un itemplan y un plan, y busca toda la informacion comercial de este de los ultimos
     12 periodos. Esta informacion se utiliza para completar las tablas de proyeccion
@@ -502,7 +444,8 @@ class BuscarVentaItemplanProyeccionView(View):
 
             # Se verifica que el item recibido exista
             if bool(itemplan_obj):
-                controlventa = Controlventa.objects.filter(organizacion=self.request.user.get_profile().organizacion).latest('fecha_creacion')
+                controlventa = Controlventa.objects.filter(
+                    organizacion=self.request.user.get_profile().organizacion).latest('fecha_creacion')
 
                 proyeccion = OrderedDict()
                 total_vta_u = 0
@@ -510,8 +453,8 @@ class BuscarVentaItemplanProyeccionView(View):
                 costo_unitario = 0
 
                 # Se busca el periodo inferior y superior de la temporada a proyectar
-                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
-                limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
+                # limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
+                # limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
 
                 # Se buscan las temporadas de los items a proyectar.
                 # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
@@ -520,10 +463,15 @@ class BuscarVentaItemplanProyeccionView(View):
                     'nombre', 'id').order_by('-planificable', 'nombre').distinct()
 
                 # Lista de los X periodos a considerar en la proyeccion
-                periodos = Periodo.objects.filter(
-                    Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
-                    Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
-                    ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+                # periodos = Periodo.objects.filter(
+                    #Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
+                    #Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
+                    #).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+
+                periodos = plan_obj.temporada.periodo.filter(
+                    tiempo__anio=plan_obj.anio-1,
+                    calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
+                    'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
                 # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
                 # Esto se utiliza en la vista para "pintar" de un color diferente los periodos de la
@@ -629,7 +577,7 @@ class BuscarVentaItemplanProyeccionView(View):
         #return HttpResponseRedirect(reverse('planes:plan_list'))
 
 
-class BuscarVentaItemplanCompProyeccionView(View):
+class BuscarDatosProyeccionCompView(View):
     '''
     Recibe un item y un plan, y busca toda la informacion comercial de este de los ultimos
     12 periodos. Esta informacion se utiliza para completar las tablas de comparacion en la vista
@@ -675,8 +623,8 @@ class BuscarVentaItemplanCompProyeccionView(View):
             costo_unitario = 0
 
             # Se busca el periodo inferior y superior de la temporada a proyectar
-            limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
-            limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
+            #limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
+            #limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
 
             # Se buscan las temporadas de los items a proyectar.
             # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
@@ -688,10 +636,15 @@ class BuscarVentaItemplanCompProyeccionView(View):
 
             # Lista de los X periodos a considerar en la proyeccion
             #periodos = ventas.order_by('anio','periodo').values('anio','periodo').distinct()
-            periodos = Periodo.objects.filter(
-                Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
-                Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
-                ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+            #periodos = Periodo.objects.filter(
+                #Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
+                #Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
+                #).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+
+            periodos = plan_obj.temporada.periodo.filter(
+                tiempo__anio=plan_obj.anio-1,
+                calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
+                'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
             # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
             # Esto se utiliza en la vista para "pintar" de un color diferente los periodos de la
@@ -794,54 +747,7 @@ class BuscarVentaItemplanCompProyeccionView(View):
             return HttpResponse(data, mimetype='application/json')
 
 
-class PlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
-    3era fase del proceso de planificacion.
-    Vista principal para la planificacion de items.
-    '''
-    model = Plan
-    template_name = "planes/plan_planificacion_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(PlanificacionView, self).get_context_data(**kwargs)
-        if context['plan'].estado == 0:
-            # El arbol no ha sido generado, por lo tanto,
-            # no se puede proyectar informacion
-            context['msg'] = "Primero debe definir el árbol de planificación."
-        else:
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
-
-            items_categoria_raiz = []
-
-            # Lista de items sobre los cuales el usuario es responsable
-            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
-
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
-            # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
-
-            # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-            categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
-
-            # Se eliminan las categorias que estan por sobre la categoria de la categoria raiz
-            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
-            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
-
-            # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
-            # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
-            # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
-            # poder ver como division a Hombre
-            items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
-
-            context['combo_categorias'] = combo_categorias
-            context['items_categoria_raiz'] = items_categoria_raiz
-            context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
-
-        return context
-
-
-class BuscarVentaTemporadaItemplanView(View):
+class BuscarDatosPlanificacionView(View):
     '''
     Recibe un itemplan y un plan, y busca toda la informacion comercial de este de los ultimos 3 años
     de la temporada asociada al plan. Esta informacion se utiliza para completar las tablas de planificacion
@@ -886,7 +792,6 @@ class BuscarVentaTemporadaItemplanView(View):
                 lista_hijos.append(hijo)
 
             proyeccion = OrderedDict()
-            costo_unitario = 0
 
             # Se buscan todas las temporadas
             temporadas = Temporada.objects.all().values(
@@ -928,18 +833,20 @@ class BuscarVentaTemporadaItemplanView(View):
                         for venta in ventas:
                             if venta['vta_u'] != 0:
                                 venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                if periodo['temporada']:
+                                if periodo['tiempo__anio'] == plan_obj.anio:
                                     venta['costo_u'] = itemplan_obj.costo
+                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.precio)), 4)
                                 else:
                                     venta['costo_u'] = float(venta['costo'] / venta['vta_u'])
-                                venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.precio)), 4)
+                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.item.precio)), 4)
                             else:
                                 venta['precio_real'] = 0
                                 venta['dcto'] = 0
-                            venta['vta_u'] = round(float(venta['vta_u']), 0)
-                            venta['vta_n'] = round(float(venta['vta_n']), 0)
-                            venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                            venta['costo'] = round(float(venta['costo']), 0)
+                                venta['vta_u'] = round(float(venta['vta_u']), 0)
+                                venta['vta_n'] = round(float(venta['vta_n']), 0)
+                                venta['ctb_n'] = round(float(venta['ctb_n']), 0)
+                                venta['costo'] = round(float(venta['costo']), 0)
+                                venta['costo_u'] = 0
                             if venta['ctb_n'] != 0:
                                 venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
                             else:
@@ -981,7 +888,7 @@ class BuscarVentaTemporadaItemplanView(View):
             return HttpResponse(data, mimetype='application/json')
 
 
-class BuscarVentaTemporadaItemplanCompView(View):
+class BuscarDatosPlanificacionCompView(View):
     '''
     Recibe un item y un plan, y busca toda la informacion comercial de este de los ultimos 3 años
     de la temporada asociada al plan. Esta informacion se utiliza para completar las tablas de planificacion
@@ -1107,7 +1014,7 @@ class BuscarVentaTemporadaItemplanCompView(View):
                             'periodo': periodo['nombre'],
                             'margen': Decimal('0.000'),
                             'precio_real': Decimal('0.000'),
-                            'dcto': Decimal('1.000'),
+                            'dcto': Decimal('0.000'),
                             'costo_u': Decimal('0.000')
                         }
                         # Se guarda la venta en el diccionario proyeccion
@@ -1131,7 +1038,8 @@ class BuscarVentaTemporadaItemplanCompView(View):
 
 class GuardarPrecioCostoView(View):
     '''
-
+    Actualiza el campo costo o campo precio de un objeto itemplan. Esta vista
+    es llamada a traves de la vista de trabajo de planificacion.
     '''
     def post(self, request, *args, **kwargs):
         if request.POST:
@@ -1148,8 +1056,11 @@ class GuardarPrecioCostoView(View):
                 itemplan_obj.precio = valor_ajuste
             else:
                 itemplan_obj.costo = valor_ajuste
+                print Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan_obj.item)
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan_obj.item).update(costo=F('vta_u') * valor_ajuste, vta_n=F('vta_u') * itemplan_obj.precio, ctb_n=(F('vta_u') * itemplan_obj.precio) - (F('vta_u') * valor_ajuste))
             itemplan_obj.save()
-            mensaje_respuesta = "El " + tipo_ajuste + " ha sido modificado al valor " + "{:,}".format(valor_ajuste) + "."
+            mensaje_respuesta = "El " + tipo_ajuste + " ha sido modificado al valor "
+            mensaje_respuesta += "{:,}".format(valor_ajuste) + "."
             datos = {'msg': mensaje_respuesta}
             respuesta = simplejson.dumps(datos, cls=DjangoJSONEncoder)
             return HttpResponse(respuesta, mimetype='application/json')
@@ -1159,9 +1070,6 @@ class GuardarPlanificacionView(View):
     """
     Guarda la planificacion asociada al item recibido como pararametro.
     """
-    def get(self, request, *args, **kwargs):
-        return HttpResponseRedirect(reverse('planes:plan_list'))
-
     def post(self, request, *args, **kwargs):
         if request.POST:
             data = json.loads(request.POST['datos_tarea'])
@@ -1183,10 +1091,11 @@ class GuardarPlanificacionView(View):
                 for periodo, venta in periodos.iteritems():
                     # Se seleccionan las ventas que no son reales (proyectadas o por proyectar)
                     if venta['tipo'] == 3:
+                        print venta
                         defaults = {
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
-                            'costo': float(venta['costo_u'] * venta['vta_u']),
+                            'costo': int(float(venta['costo_u']) * float(venta['vta_u'])),
                             'vta_u': venta['vta_u'],
                             'stk_u': Decimal('0.000'),
                             'stk_v': Decimal('0.000'),
@@ -1206,7 +1115,7 @@ class GuardarPlanificacionView(View):
                             obj.ctb_n = venta['ctb_n']
                             obj.dcto = float(venta['dcto'])
                             obj.margen = float(venta['margen'])
-                            obj.costo = float(venta['costo_u'] * venta['vta_u'])
+                            obj.costo = int(float(venta['costo_u']) * float(venta['vta_u']))
                             if venta['vta_n'] != 0:
                                 # Tipo = 2 -> Planificada
                                 obj.tipo = 2
@@ -1219,54 +1128,6 @@ class GuardarPlanificacionView(View):
             itemplan_obj.save()
         data = {'msg': "Planificación guardada."}
         return HttpResponse(json.dumps(data), mimetype='application/json')
-
-
-class SaldosAvancesView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
-    4ta fase del proceso de planificacion.
-    Vista principal para la planificacion de saldos y avances
-    '''
-    model = Plan
-    template_name = "planes/plan_saldosavances_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(SaldosAvancesView, self).get_context_data(**kwargs)
-        if context['plan'].estado == 0:
-            # El arbol no ha sido generado, por lo tanto, no se puede proyectar informacion
-            context['msg'] = "Primero debe definir el árbol de planificación."
-        else:
-            # Lista de items sobre los cuales es el usuario es responsable
-            items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
-
-            # Lista de items que pertenecen a la categoria mas alta a mostrar
-            items_categoria_raiz = []
-
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
-            # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
-
-            # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
-
-            # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-            categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
-
-            # Se recalculan las listas de categorias a mostrar como comboboxes
-            # Se deben mostrar a partir de la categoria sobre la cual el usuario es responsable
-            combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
-            combo_categorias = [x for x in combo_categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
-
-            # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
-            # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
-            # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
-            # poder ver como division a Hombre
-            items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
-
-            context['combo_categorias'] = combo_categorias
-            context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
-            context['items_categoria_raiz'] = items_categoria_raiz
-
-        return context
 
 
 class BuscarSaldosAvancesView(LoginRequiredMixin, View):
@@ -1409,7 +1270,7 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
                 itemplan_json['nombre'] = itemplan_obj.nombre
                 itemplan_json['precio'] = itemplan_obj.item.precio
                 #itemplan_json['costo_unitario'] = costo_unitario
-                itemplan_json['costo_unitario'] = itemplan_obj.item.calcularCostoUnitario()
+                itemplan_json['costo_unitario'] = itemplan_obj.item.calcular_costo_unitario()
 
                 resumen['itemplan'] = itemplan_json
                 resumen['temporadas'] = list(temporadas)
@@ -1564,7 +1425,7 @@ class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
             itemplan_json['id_itemplan'] = item_obj.id
             itemplan_json['nombre'] = item_obj.nombre
             itemplan_json['precio'] = item_obj.precio
-            itemplan_json['costo_unitario'] = item_obj.calcularCostoUnitario()
+            itemplan_json['costo_unitario'] = item_obj.calcular_costo_unitario()
             resumen['itemplan'] = itemplan_json
             resumen['temporadas'] = list(temporadas)
             resumen['temporada_vigente'] = temporada_vigente
@@ -1637,44 +1498,6 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
             itemplan_obj.save()
         data = {'msg': "Planificación guardada."}
         return HttpResponse(json.dumps(data), mimetype='application/json')
-
-
-class ResumenPlanView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
-    Vista para visualizar el resultado de una planificacion.
-    '''
-    model = Plan
-    template_name = "planes/plan_resumen_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(ResumenPlanView, self).get_context_data(**kwargs)
-        context['temporadas'] = Temporada.objects.all()
-
-        items_categoria_raiz = []
-
-        # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-        combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
-        # Se busca la lista de items sobre los cuales el usuario es responsable
-        items_responsable = Item.objects.filter(usuario_responsable=self.request.user)
-
-        # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
-        #categoria_raiz = sorted(combo_categorias_comp, key= lambda t: t.get_nivel())[0]
-        categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
-
-        # Luego se busca la lista de items que pertenecen a la categoria_raiz y que el usuario
-        # debiese poder ver, es decir, es el item padre del item sobre el cual es responsable
-        # Ejemplo: si el usuario es responsable del rubro Adulto Masculino, entonces debiese
-        # poder ver como division a Hombre
-
-        # Se obtiene una lista de items que el usuario puede ver de la categoria raiz
-        items_categoria_raiz = self.request.user.get_profile().items_visibles(categoria_raiz)
-
-        # Se eliminan las categorias que esten por sobre la categoria del item responsable
-        combo_categorias_comp = [x for x in combo_categorias_comp if x.get_nivel() >= categoria_raiz.get_nivel()]
-
-        context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
-        context['items_categoria_raiz'] = items_categoria_raiz
-        return context
 
 
 class ResumenDataGraficosView(View):

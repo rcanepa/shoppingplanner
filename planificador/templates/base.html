@@ -23,7 +23,7 @@
 </head>
 <body class="pure-skin-mine">
 	<div id="caja-mensajes" style="display:none;"></div>
-	<div id="header">
+	<div id="header" class="menu_flotante_completo">
 		<div class="top-menu">
 		{% block topbar %}
 			<div class="pure-menu pure-menu-open pure-menu-horizontal">
@@ -74,7 +74,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="footer">
+	<div id="footer" class="menu_flotante_completo">
 		<p>Conectado como: {% block username %} {% endblock %}<a href="{% url 'user_logout' %}" title="">(Salir)</a></p>
 	</div>
 {% block js %}

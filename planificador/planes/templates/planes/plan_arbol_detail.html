@@ -13,13 +13,13 @@
 
 {% block sidebar %}
 <!-- Menu general -->
-<div>
-    <div class="pure-menu pure-menu-open">
+<div class="menu_lateral_flotante">
+    <!--div class="pure-menu pure-menu-open">
         <a class="pure-menu-heading">M&oacute;dulos</a>
         <ul>
             <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
         </ul>
-    </div>
+    </div-->
     <p></p>
     <!-- Menu general -->
     <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/guardar-arbol/">
@@ -32,7 +32,7 @@
         <ul>
             <li><a id="btnExpand">Expandir Nodos</a></li>
             <li><a id="btnCollapse">Collapsar Nodos</a></li>
-            <li><a id="btnSave">Guardar &Aacute;rbol</a></li>
+            <li><a id="btnSave">Guardar</a></li>
         </ul>
     </div>        
 </div>
@@ -93,7 +93,7 @@
 <!-- Fancytree -->
 <link href="{% static "fancytree_2.0.0-8/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
 <script src="{% static "fancytree_2.0.0-8/jquery.fancytree.js" %}" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" href="{% static "css/planes/arbol.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "planes/css/arbol.css" %}">
 
 <script>
 
@@ -291,7 +291,7 @@ $(function() {
         // return a source in 'data.result'
             data.result = {
             url: "{% url 'categorias:item_nodesearch' %}",
-            data: {key: data.node.key}
+            data: {key: data.node.key, plan: parseInt({{plan.id}})}
             };
         },
         postProcess: function(event,data){
@@ -303,6 +303,7 @@ $(function() {
         },
         collapse: function(event, data){
             arbol_obj.setModificada(true);
+            data.node.resetLazy();
             definirVisibles();
         },
         beforeSelect: function(e, data) {
@@ -330,15 +331,21 @@ $(function() {
     // Expandir todos los nodos
     $("#btnExpand").click(function(){
         $("#itemstree").fancytree("getRootNode").visit(function(node){
-            node.setExpanded(true);
+            if ( node.isVisible() )
+                node.setExpanded(true);
         });
-        setConfirmUnload(true);
         return false;
     });
 
     $("#btnCollapse").click(function(){
         $("#itemstree").fancytree("getRootNode").visit(function(node){
-            node.setExpanded(false);
+            if (!node.hasChildren()){
+                if ( node.getParent() ){
+                    var nodo_padre = node.getParent();
+                    nodo_padre.setExpanded(false);
+                    nodo_padre.resetLazy();
+                }
+            }
         });
         return false;
     });

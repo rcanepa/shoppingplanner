@@ -27,7 +27,7 @@ class Periodo(models.Model):
 
 class Tiempo(models.Model):
     """docstring for ClassName"""
-    
+
     codigo = models.CharField(max_length=6)
     anio = models.PositiveSmallIntegerField(verbose_name="año")
     semana = models.PositiveSmallIntegerField()

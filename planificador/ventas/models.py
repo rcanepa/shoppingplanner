@@ -25,7 +25,7 @@ class Ventaperiodo(models.Model):
 	Este modelo almacena la venta real, proyectada y planificada. Esta resumida por periodos de tiempo. La venta
 	no real (proyectada -> tipo 1, o planificada -> tipo 2) siempre debe estar asociada a una planificacion.
 	"""
-	item = models.ForeignKey('categorias.Item')
+	item = models.ForeignKey('categorias.Item', related_name='venta_item')
 	periodo = models.CharField(max_length=20)
 	anio = models.PositiveSmallIntegerField(verbose_name="año")
 	"""

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from datetime import datetime
@@ -189,14 +190,37 @@ class Item(models.Model):
     def get_precio_promedio(self):
         return self.precio
 
-    def calcularCostoUnitario(self):
+    def calcular_costo_unitario(self):
         """
             Devuelve el costo unitario de un item en base a la ultima venta real registrada
         """
         venta = Ventaperiodo.objects.filter(
             item=self, tipo=0).exclude(vta_u=0).values('item', 'vta_u', 'costo').order_by('-anio', '-periodo')
-        if venta:
+        if venta.count():
             return round(float(venta[0]['costo'] / venta[0]['vta_u']), 0)
+        else:
+            return 0
+
+    def hijos_recursivos(self):
+        """
+        Itera sobre los hijos del item. Se devuelve a si mismo inicialmente.
+        """
+        children = list(self.get_children())
+        yield self
+        for child in children:
+            for next in child.hijos_recursivos():
+                yield next
+
+    def get_venta_anual(self, anio=None):
+        lista_hijos = []
+
+        for hijo in self.hijos_recursivos():
+            lista_hijos.append(hijo)
+
+        venta_anual = Ventaperiodo.objects.filter(item__in=lista_hijos, anio=anio, tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n'))
+
+        if venta_anual.count():
+            return int(venta_anual[0]['vta_n'])
         else:
             return 0
 

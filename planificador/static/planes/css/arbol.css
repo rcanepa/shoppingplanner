@@ -37,8 +37,5 @@ div.floating-menu-agrupaciones {
 	right: 10px;
 	top: 30%;
 	width: 30%;
-	/*background:#fff4c8;
-	border:1px solid #ffcc00;
-	width:150px;*/
 	z-index:100;
 }

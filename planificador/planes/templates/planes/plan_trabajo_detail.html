@@ -11,73 +11,74 @@
 {% endblock %}
 
 {% block sidebar %}
-<div class="pure-menu pure-menu-open">
-    <a class="pure-menu-heading">Acciones</a>
-    <ul id="ul-menu-acciones">
-        <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
-        <li><a href="" id="btnPB">Precio Blanco</a></li>
-        <li><a href="" id="btnCU">Costo Unitario</a></li>
-        <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar</a></li>
-    </ul>
-</div>
+<div class="menu_lateral_flotante">
+    <div class="pure-menu pure-menu-open">
+        <a class="pure-menu-heading">Acciones</a>
+        <ul id="ul-menu-acciones">
+            <li><a href="" id="btnPB">Precio Blanco</a></li>
+            <li><a href="" id="btnCU">Costo Unitario</a></li>
+            <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar</a></li>
+        </ul>
+    </div>
 
-<!-- Seccion con parametros de busqueda del item a proyectar  -->
-<div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
-    <a class="caja-header">Proyecci&oacute;n</a>
-    <table style="width:100%;">
-        {% for categoria in combo_categorias %}
-        <tr>
-            <td><label>{{ categoria.nombre }}</label></td>
-        </tr>
-        <tr>
-            <td>
-                <select id="combo_cat_proy_{{ categoria.id }}" class="buscador">
-                    <option value="-1" selected></option>
-                    {% for item in items_categoria_raiz %}
-                        {% if item.categoria = categoria %}
-                        <option value="{{ item.id }}">{{ item.nombre }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </td>
-        </tr>
-        {% endfor %}
-        <tr>
-            <td><label>ITEMS</label></td>
-        </tr>
-        <tr>
-            <td>
-                <select id="combo_resultado" class="buscador">
-                </select>
-            </td>
-        </tr>
-    </table>
-    <a class="caja-header">Comparativo</a>
-    <table style="width:100%;">
-        {% for categoria in combo_categorias_comp %}
-        <tr>
-            <td style="width:80%">
-                <label>{{ categoria.nombre }}</label>
-            </td>
-            <td style="width:20%"></td>
-        </tr>
-        <tr>
-            <td style="width:80%">
-                <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
-                    <option value="-1" selected></option>
-                    {% for item in items_categoria_raiz %}
-                        {% if item.categoria = categoria %}
-                        <option value="{{ item.id }}">{{ item.nombre }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </td>
-            <td style="width:20%">
-                <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    <!-- Seccion con parametros de busqueda del item a proyectar  -->
+    <div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
+        <a class="caja-header">Proyecci&oacute;n</a>
+        <table style="width:100%;">
+            {% for categoria in combo_categorias %}
+            <tr>
+                <td><label>{{ categoria.nombre }}</label></td>
+            </tr>
+            <tr>
+                <td>
+                    <select id="combo_cat_proy_{{ categoria.id }}" class="buscador">
+                        <option value="-1" selected></option>
+                        {% for item in items_categoria_raiz %}
+                            {% if item.categoria = categoria %}
+                            <option value="{{ item.id }}">{{ item.nombre }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><label>ITEMS</label></td>
+            </tr>
+            <tr>
+                <td>
+                    <select id="combo_resultado" class="buscador">
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <a class="caja-header">Comparativo</a>
+        <table style="width:100%;">
+            {% for categoria in combo_categorias_comp %}
+            <tr>
+                <td style="width:80%">
+                    <label>{{ categoria.nombre }}</label>
+                </td>
+                <td style="width:20%"></td>
+            </tr>
+            <tr>
+                <td style="width:80%">
+                    <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
+                        <option value="-1" selected></option>
+                        {% for item in items_categoria_raiz %}
+                            {% if item.categoria = categoria %}
+                            <option value="{{ item.id }}">{{ item.nombre }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td style="width:20%">
+                    <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 
 <!-- Seccion con parametros de busqueda del item a proyectar  -->
@@ -225,6 +226,10 @@
     <input id="input_pbcu" type="text" style="width:8em">
 </div>
 
+<div id="dialog-box-alerta" title="Advertencia" style="text-align:center;">
+    <p></p>
+</div>
+
 {% endif%}
 
 {% endblock %}
@@ -254,9 +259,9 @@ $(function() {
             - 3 Planificacion Saldos y Avances
             - 4 Resumen
         */
-        var actividad = 1;
+        var actividad = parseInt({{ actividad }});
         // ID de la planificacion sobre la cual se esta trabajando
-        var id_plan = parseInt({{plan.id}});
+        var id_plan = parseInt({{ plan.id }});
         /*
         Almacena el estado del trabajo, es decir, si se han realizado modificaciones que deben ser guardadas:
             - false = no han habido modificaciones
@@ -351,15 +356,10 @@ $(function() {
         $("#tab_item_planificacion_tv").scrollLeft($(this).scrollLeft());
     });
 
-    // Primera actividad a la que se ingresa al trabajar una planificacion (proyectar ventas)
-    $( "#enlace-proyeccion" ).addClass( "subopcion-seleccionada" );
-
-    $( "#plan_trabajo_detail" ).addClass( "opcion-seleccionada" );
-
     /* Se esconden las opciones para configurar precio blanco y costo unitario ya que
     se deben presentar al momento de trabajar la planificacion y no la proyeccion */
-    $( "#btnPB" ).hide().tooltip().click(ajustarPBCU);
-    $( "#btnCU" ).hide().tooltip().click(ajustarPBCU);
+    $( "#btnPB" ).hide().click(ajustarPBCU);
+    $( "#btnCU" ).hide().click(ajustarPBCU);
 
     /*
     Actualiza el atributo actividad del objeto obj_trabajo. Con esto se especifica el tipo de actividad
@@ -369,130 +369,12 @@ $(function() {
         - 3 Planificacion AS
         - 4 Resumen
     */
-    $( ".enlace-actividades" ).click(function(){
-        switch ($(this).attr('id')){
-            case 'enlace-proyeccion':
-                obj_trabajo.setActividad(1);
-                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
-                $( "#enlace-proyeccion" ).addClass( "subopcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).show();
-                $( "#tab_item_proyeccion_comp" ).show();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
-                $( "#tab_item_resumen" ).hide();
-                $( "#tab_item_resumen_comp" ).hide();
-                $( "#btnPB" ).hide();
-                $( "#btnCU" ).hide();
-                break;
-            case 'enlace-planificacion-tv':
-                obj_trabajo.setActividad(2);
-                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
-                $( "#enlace-planificacion-tv" ).addClass( "subopcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).show();
-                $( "#tab_item_planificacion_tv_comp" ).show();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
-                $( "#tab_item_resumen" ).hide();
-                $( "#tab_item_resumen_comp" ).hide();
-                if ( obj_trabajo.getItem() != -1 ){
-                    $( "#btnPB" ).show();
-                    $( "#btnCU" ).show();
-                }                
-                break;
-            case 'enlace-planificacion-as':
-                obj_trabajo.setActividad(3);
-                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
-                $( "#enlace-planificacion-as" ).addClass( "subopcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).show();
-                $( "#tab_item_planificacion_as_comp" ).show();
-                $( "#tab_item_resumen" ).hide();
-                $( "#tab_item_resumen_comp" ).hide();
-                $( "#btnPB" ).hide();
-                $( "#btnCU" ).hide();
-                break;
-            case 'enlace-resumen':
-                obj_trabajo.setActividad(4);
-                $( ".enlace-actividades" ).removeClass( "subopcion-seleccionada" );
-                $( "#enlace-resumen" ).addClass( "subopcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
-                $( "#tab_item_resumen" ).show();
-                $( "#tab_item_resumen_comp" ).show();
-                $( "#btnPB" ).hide();
-                $( "#btnCU" ).hide();
-                break;
-            default:
-                alert("No se ha escogido ninguna actividad!");
-                obj_trabajo.setActividad(0);
-                break;
-        }
-        if ( obj_trabajo.getItem() != -1 )
-            $( "#combo_resultado" ).trigger( "change" );
-        if ( obj_trabajo.getItemComp() != -1 )
-            busquedaAJAXdatosComp(obj_trabajo.getItemComp());
-    });
+    $( ".enlace-actividades" ).click(controlActividades);
 
     /*
         Guarda la proyeccion sobre la cual se esta trabajando.
     */
-    $("#btnSave").click(function(event){
-        event.preventDefault();
-        if ( verificarGuardar() ){
-            var plan = obj_trabajo.getPlan();
-            var itemplan = obj_trabajo.getItem();
-            var ventas = obj_trabajo.getDatos();
-            var url = null;
-            
-            json_data = JSON.stringify({
-                'plan': plan, 
-                'itemplan': itemplan,
-                'ventas': ventas.ventas
-            });
-
-            /* Se determina el tipo de tarea que esta realizando el usuario para
-            definir la url correspondiente a la vista que guardara los datos */
-            switch(obj_trabajo.getActividad()){
-                case 1:
-                    url = '/planes/plan/guardar-proyeccion/';
-                    break;
-                case 2:
-                    url = '/planes/plan/guardar-planificacion-tv/';
-                    break;
-                case 3:
-                    url = '/planes/plan/guardar-planificacion-as/';
-                    break;
-                case 4:
-                    url = null;
-                    break;
-                default:
-                    url = null;
-                    break;
-            }
-            
-            $("#json_datos_tarea").val(json_data);
-
-            if ( url != null ){
-                $.ajax({
-                    data: $("#form_datos").serialize(), // Se envia el form serializado para que contenga el token CSRF
-                    url: url,
-                    type: 'post',
-                    
-                }).done(saveAJAXDone);
-            }
-        }
-    });
+    $("#btnSave").click(guardarTrabajo);
 
     /* Cada vez que un usuario hace click sobre un input, el contenido 
     aparece seleccionado */
@@ -562,97 +444,7 @@ $(function() {
         width: 220,
         modal: true,
         buttons: {
-            "Guardar": function() {
-                /*
-                parametros[0]: tipo de metrica (unidades, descuentos)
-                parametros[1]: periodo
-                parametros[2]: temporada
-                */
-                var parametros = [];
-                var valor;
-                var intRegex = /^\d+$/;
-                var floatRegex = /^\-?([0-9]+(\.[0-9]+)?|Infinity)$/;
-                var texto = "";
-                parametros = obj_trabajo.getCeldaEditada().attr( "id" ).split("_");
-                valor = $( "#inputval" ).val().replace('%','').replace(',','.');
-
-                // Se revisa si el cambio corresponde a unidades o a un % de descuento
-                if ( parametros[0] == "unidades" ) {
-                    // Se valida que el valor ingresado sea un numero entero
-                    if(intRegex.test(valor)) {
-                       obj_trabajo.getCeldaEditada().text(valor);
-                       switch(obj_trabajo.getActividad()){
-                            case 1:
-                                actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            case 2:
-                                actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            case 3:
-                                actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            default:
-                                return false;
-                       }
-                       $( "#inputval" ).val("");
-                       if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
-                            $( "#inputval" ).removeClass( "ui-state-error" );
-                        // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
-                        // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
-                        obj_trabajo.setModificada(true);
-                        activarGuardar();
-                       $( this ).dialog( "close" );
-                    }
-                    else {
-                        $( "#inputval" ).addClass( "ui-state-error" );
-                        texto = $( "#dialog_help_msg" ).text();
-                        $( "#dialog_help_msg" ).html( "Sólo debe ingresar un número entero positivo." );
-                        $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
-                        setTimeout(function() {
-                            $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
-                            $( "#dialog_help_msg" ).html(texto);
-                        }, 3000 );
-                    }
-                }
-
-                // Se trata de un ajuste de % de descuento
-                else {
-                    if(floatRegex.test(valor)) {
-                        obj_trabajo.getCeldaEditada().text(valor + "%");
-                        switch(obj_trabajo.getActividad()){
-                            case 1:
-                                actualizarProyeccion(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            case 2:
-                                actualizarPeriodoPlanificacion(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            case 3:
-                                actualizarPlanificacionAS(parametros[0], parametros[1], parametros[2]);
-                                break;
-                            default:
-                                return false;
-                        }
-                        $( "#inputval" ).val("");
-                        if ( $( "#inputval" ).hasClass( "ui-state-error" ) )
-                        $( "#inputval" ).removeClass( "ui-state-error" );
-                        // Se marque que la proyeccion ha sido modificada y por lo tanto se desplegara
-                        // una aleta si el usuario intenta salir de la pagina sin guardar los cambios
-                        obj_trabajo.setModificada(true);
-                        activarGuardar();
-                        $( this ).dialog( "close" );
-                    }
-                    else {
-                        $( "#inputval" ).addClass( "ui-state-error" );
-                        texto = $( "#dialog_help_msg" ).text();
-                        $( "#dialog_help_msg" ).html( "Debe ingresar un número respetando el formato señalado." );
-                        $( "#dialog_help_msg" ).addClass( "ui-state-highlight" );
-                        setTimeout(function() {
-                            $( "#dialog_help_msg" ).removeClass( "ui-state-highlight", 3000 );
-                            $( "#dialog_help_msg" ).html(texto);
-                        }, 3000 );
-                    }
-                }
-            },
+            "Guardar": guardarUniDesc,
             Cancelar: function() {
                 $( this ).dialog( "close" );
             }
@@ -667,6 +459,28 @@ $(function() {
             "Guardar": guardarPBCU,
             Cancelar: function() {
                 $( this ).dialog( "close" );
+            }
+        }
+    });
+
+    $( "#dialog-box-alerta" ).dialog({
+        autoOpen: false,
+        width: 330,
+        modal: true,
+        buttons: {
+            "Guardar": function(){
+                console.log("cambios guardados!");
+                $( "#dialog-box-alerta" ).dialog( "close" );
+                $( "#btnSave" ).trigger( "click" );
+                obj_trabajo.setModificada(false);
+                var enlace = $(this).data('tipo_enlace');
+                $( "#" + enlace ).trigger( "click" );
+            },
+            Descartar: function() {
+                var enlace = $(this).data('tipo_enlace');
+                obj_trabajo.setModificada(false);
+                $( this ).dialog( "close" );
+                $( "#" + enlace ).trigger( "click" );
             }
         }
     });
@@ -687,6 +501,7 @@ $(function() {
     });
     $("[id^=combo_cat_proy_]").change(buscarCategoria);
     $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
+    actualizarActividad();
 
 });
 
