@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block topbar %}
 
 {% include "planes/menu.html" %}
@@ -44,13 +44,13 @@
 	<div class="middle_label">:</div>
 	<div class="right_label">{{ plan.get_num_items_planificables }}</div>
 	
-	<div class="left_label">Items Proyectados</div>
+	<div class="left_label">Items Planificados</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ num_items_pro }}</div>
+	<div class="right_label">{{ num_items_planificados }} ( {{ porcentaje_progreso }} )</div>
 
 	<div class="left_label">Items Pendientes</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ num_items_nopro }}</div>
+	<div class="right_label">{{ num_items_pendientes }}</div>
 
 	<div class="left_label">Responsable</div>
 	<div class="middle_label">:</div>

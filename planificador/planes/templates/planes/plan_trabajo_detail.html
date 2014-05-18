@@ -86,121 +86,77 @@
 
 {% block content %}
 {% if msg %}
-<h3>Proyectar Información</h3>
+<h3>!</h3>
 <div class="msg_warning">
     {{ msg }}
 </div>
 {% else %}
 
-<div id="accordion">
-    <h3>Item</h3>
-    <div>
-    <!-- div para la vista de proyeccion -->
-        <div id="tab_item_proyeccion">
-            <div style="width:100%; float:left">
-                <div id="tab_proyeccion" style="float:left; width:100%;" class="tabla_datos_actividad">
-                </div>
-            </div>
+<div class="accordion">
+    <h4>Item</h4>
+    <!-- div general para trabajo -->    
+    <div id="tab_trabajo">
+        <div style="width:100%; float:left;">
+            <div id="div_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad"></div>
+            <div id="div_datos" style="width:90%; float:left;" class="tabla_datos_actividad"></div>
         </div>
-
-    <!-- div para la vista de planificacion de temporada vigente -->
-        <div id="tab_item_planificacion_tv" style="display:none;">
-            <div style="width:100%; float:left">
-                <div style="width:100%; float:left;">
-                    <div id="tab_planificacion_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad">
-                    </div>
-                    <div id="tab_planificacion_datos" style="width:90%; float:left;" class="tabla_datos_actividad">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    <!-- div para la vista de planificacion de avances y saldos -->
-        <div id="tab_item_planificacion_as" style="display:none;">
-            <div style="width:100%; float:left">
-                <div id="tab_planificacion_as" style="float:left; width:100%;" class="tabla_datos_actividad">
-                </div>
-            </div>
-        </div>
-
-    <!-- div para la vista de resumen -->
-        <div id="tab_item_resumen" class="pure-g" style="display:none;">
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Venta</h3></div>
-                <div><canvas id="venta-chart" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
-                <div><canvas id="contribucion-chart" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Unidades</h3></div>
-                <div><canvas id="unidades-chart" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Precio Blanco</h3></div>
-                <div><canvas id="precio-chart" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-        </div>
-
     </div>
-    <h3>Comparativo</h3>
-    <div>
-    <!-- div para la vista de proyeccion comparativa -->
-        <div id="tab_item_proyeccion_comp">
-            <div id="item_proyeccion_comp"></div>
-            <div style="width:100%; float:left">
-                <div id="tab_comparativo" style="float:left; width:100%;" class="tabla_datos_actividad_comp">
-                </div>
-            </div>
-        </div>
-
-    <!-- div para la vista de planificacion de temporada vigente comparativa -->
-        <div id="tab_item_planificacion_tv_comp" style="display:none;">
-            <div id="item_planificacion_tv_comp"></div>
-            <div style="width:100%; float:left;">
-                <div id="tab_comparativo_etiquetas" style="width:10%; float:left;" class="tabla_datos_actividad_comp">
-                </div>
-                <div id="tab_comparativo_datos" style="width:90%; float:left;" class="tabla_datos_actividad_comp">
-                </div>
-            </div>
-        </div>
-
-    <!-- div para la vista de planificacion de avances y saldos comparativa -->
-        <div id="tab_item_planificacion_as_comp">
-            <div id="item_planificacion_as_comp"></div>
-            <div style="width:100%; float:left">
-                <div id="tab_planificacion_as_comp" style="float:left; width:100%;" class="tabla_datos_actividad_comp">
-                </div>
-            </div>
-        </div> 
-
     <!-- div para la vista de resumen -->
-        <div id="tab_item_resumen_comp" class="pure-g" style="display:none;">
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Venta</h3></div>
-                <div><canvas id="venta-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
-                <div><canvas id="contribucion-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Unidades</h3></div>
-                <div><canvas id="unidades-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo_chart"><h3>Precio Blanco</h3></div>
-                <div><canvas id="precio-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
-            </div>
+    <div id="tab_item_resumen" class="pure-g" style="display:none;">
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Venta</h3></div>
+            <div><canvas id="venta-chart" width="500" height="230">[No canvas support]</canvas></div>
         </div>
 
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
+            <div><canvas id="contribucion-chart" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Unidades</h3></div>
+            <div><canvas id="unidades-chart" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Precio Blanco</h3></div>
+            <div><canvas id="precio-chart" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+    </div>
+</div>
+<div class="accordion">
+    <h4>Comparativo</h4>
+    <!-- div general para comparativo -->
+    <div id="tab_comparativo">
+        <div id="nombre_item_comp"></div>
+        <div style="width:100%; float:left;">
+            <div id="div_etiquetas_comparativo" style="width:10%; float:left;" class="tabla_datos_actividad_comp">
+            </div>
+            <div id="div_datos_comparativo" style="width:90%; float:left;" class="tabla_datos_actividad_comp">
+            </div>
+        </div>
+    </div>
+    <!-- div para la vista de resumen -->
+    <div id="tab_item_resumen_comp" class="pure-g" style="display:none;">
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Venta</h3></div>
+            <div><canvas id="venta-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>
+            <div><canvas id="contribucion-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Unidades</h3></div>
+            <div><canvas id="unidades-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Precio Blanco</h3></div>
+            <div><canvas id="precio-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
+        </div>
     </div>
 </div>
 <div id="dvLoading" style="display:none;"></div>
@@ -347,13 +303,13 @@ $(function() {
     });
 
     // Mantener sincronizado el movimiento del scroll inferior con el superior
-    $('#tab_item_planificacion_tv').on('scroll', function () {
-        $('#tab_item_planificacion_tv_comp').scrollLeft($(this).scrollLeft());
+    $('#div_datos').on('scroll', function () {
+        $('#div_datos_comparativo').scrollLeft($(this).scrollLeft());
     });
 
     // Mantener sincronizado el movimiento del scroll superior con el inferior
-    $("#tab_item_planificacion_tv_comp").on("scroll", function () {
-        $("#tab_item_planificacion_tv").scrollLeft($(this).scrollLeft());
+    $("#div_datos_comparativo").on("scroll", function () {
+        $("#div_datos").scrollLeft($(this).scrollLeft());
     });
 
     /* Se esconden las opciones para configurar precio blanco y costo unitario ya que
@@ -406,37 +362,6 @@ $(function() {
     /* Para la activicion de tooltips */
     $( document ).tooltip({
         track: true
-    });
-
-    /* Permite abrir varios paneles del acordeon simultaneamente */
-    $('#accordion').accordion({
-        collapsible: true,
-        heightStyle: "content",
-        beforeActivate: function(event, ui) {
-             // The accordion believes a panel is being opened
-            if (ui.newHeader[0]) {
-                var currHeader  = ui.newHeader;
-                var currContent = currHeader.next('.ui-accordion-content');
-             // The accordion believes a panel is being closed
-            } else {
-                var currHeader  = ui.oldHeader;
-                var currContent = currHeader.next('.ui-accordion-content');
-            }
-             // Since we've changed the default behavior, this detects the actual status
-            var isPanelSelected = currHeader.attr('aria-selected') == 'true';
-            
-             // Toggle the panel's header
-            currHeader.toggleClass('ui-corner-all',isPanelSelected).toggleClass('accordion-header-active ui-state-active ui-corner-top',!isPanelSelected).attr('aria-selected',((!isPanelSelected).toString()));
-            
-            // Toggle the panel's icon
-            currHeader.children('.ui-icon').toggleClass('ui-icon-triangle-1-e',isPanelSelected).toggleClass('ui-icon-triangle-1-s',!isPanelSelected);
-            
-             // Toggle the panel's content
-            currContent.toggleClass('accordion-content-active',!isPanelSelected)    
-            if (isPanelSelected) { currContent.slideUp(); }  else { currContent.slideDown(); }
-
-            return false; // Cancels the default action
-        }
     });
     
     $( "#dialog-box" ).dialog({

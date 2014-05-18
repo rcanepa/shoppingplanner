@@ -38,5 +38,5 @@ urlpatterns = patterns('',
     url(r'^plan/actualizar-precio-costo/$', views.GuardarPrecioCostoView.as_view()),
 
     # Vistas para la generacion de un informe XLSX de planificacion
-    url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarExcelView', name='plan_exportar_excel_detail'),
+    url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarPlanificacionExcelView', name='plan_exportar_excel_detail'),
 )

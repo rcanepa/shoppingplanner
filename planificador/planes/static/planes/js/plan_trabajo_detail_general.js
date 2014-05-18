@@ -4,17 +4,12 @@ de los div asociados al enlace por donde se proviene.
 */
 function actualizarActividad(){
     var tipo_actividad = obj_trabajo.getActividad();
-    console.log(tipo_actividad);
     switch (tipo_actividad){
         case 1:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
             $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
-            $( "#tab_item_proyeccion" ).show();
-            $( "#tab_item_proyeccion_comp" ).show();
-            $( "#tab_item_planificacion_tv" ).hide();
-            $( "#tab_item_planificacion_tv_comp" ).hide();
-            $( "#tab_item_planificacion_as" ).hide();
-            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_trabajo" ).show();
+            $( "#tab_comparativo" ).show();
             $( "#tab_item_resumen" ).hide();
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
@@ -23,12 +18,8 @@ function actualizarActividad(){
         case 2:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
             $( "#enlace-planificacion-tv" ).addClass( "opcion-seleccionada" );
-            $( "#tab_item_proyeccion" ).hide();
-            $( "#tab_item_proyeccion_comp" ).hide();
-            $( "#tab_item_planificacion_tv" ).show();
-            $( "#tab_item_planificacion_tv_comp" ).show();
-            $( "#tab_item_planificacion_as" ).hide();
-            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_trabajo" ).show();
+            $( "#tab_comparativo" ).show();
             $( "#tab_item_resumen" ).hide();
             $( "#tab_item_resumen_comp" ).hide();
             if ( obj_trabajo.getItem() != -1 ){
@@ -39,12 +30,8 @@ function actualizarActividad(){
         case 3:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
             $( "#enlace-planificacion-as" ).addClass( "opcion-seleccionada" );
-            $( "#tab_item_proyeccion" ).hide();
-            $( "#tab_item_proyeccion_comp" ).hide();
-            $( "#tab_item_planificacion_tv" ).hide();
-            $( "#tab_item_planificacion_tv_comp" ).hide();
-            $( "#tab_item_planificacion_as" ).show();
-            $( "#tab_item_planificacion_as_comp" ).show();
+            $( "#tab_trabajo" ).show();
+            $( "#tab_comparativo" ).show();
             $( "#tab_item_resumen" ).hide();
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
@@ -53,12 +40,8 @@ function actualizarActividad(){
         case 4:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
             $( "#enlace-resumen" ).addClass( "opcion-seleccionada" );
-            $( "#tab_item_proyeccion" ).hide();
-            $( "#tab_item_proyeccion_comp" ).hide();
-            $( "#tab_item_planificacion_tv" ).hide();
-            $( "#tab_item_planificacion_tv_comp" ).hide();
-            $( "#tab_item_planificacion_as" ).hide();
-            $( "#tab_item_planificacion_as_comp" ).hide();
+            $( "#tab_trabajo" ).hide();
+            $( "#tab_comparativo" ).hide();
             $( "#tab_item_resumen" ).show();
             $( "#tab_item_resumen_comp" ).show();
             $( "#btnPB" ).hide();
@@ -89,59 +72,67 @@ function controlActividades(event){
                 obj_trabajo.setActividad(1);
                 $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
                 $( "#enlace-proyeccion" ).addClass( "opcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).show();
-                $( "#tab_item_proyeccion_comp" ).show();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_trabajo" ).show();
+                $( "#tab_comparativo" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
+                RGraph.Reset(document.getElementById("venta-chart"));
+                RGraph.Reset(document.getElementById("unidades-chart"));
+                RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("precio-chart"));
+                RGraph.Reset(document.getElementById("venta-chart-comp"));
+                RGraph.Reset(document.getElementById("unidades-chart-comp"));
+                RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("precio-chart-comp"));
                 break;
             case 'enlace-planificacion-tv':
                 obj_trabajo.setActividad(2);
                 $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
                 $( "#enlace-planificacion-tv" ).addClass( "opcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).show();
-                $( "#tab_item_planificacion_tv_comp" ).show();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_trabajo" ).show();
+                $( "#tab_comparativo" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
                 if ( obj_trabajo.getItem() != -1 ){
                     $( "#btnPB" ).show();
                     $( "#btnCU" ).show();
-                }                
+                }
+                RGraph.Reset(document.getElementById("venta-chart"));
+                RGraph.Reset(document.getElementById("unidades-chart"));
+                RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("precio-chart"));
+                RGraph.Reset(document.getElementById("venta-chart-comp"));
+                RGraph.Reset(document.getElementById("unidades-chart-comp"));
+                RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("precio-chart-comp"));           
                 break;
             case 'enlace-planificacion-as':
                 obj_trabajo.setActividad(3);
                 $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
                 $( "#enlace-planificacion-as" ).addClass( "opcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).show();
-                $( "#tab_item_planificacion_as_comp" ).show();
+                $( "#tab_trabajo" ).show();
+                $( "#tab_comparativo" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
+                RGraph.Reset(document.getElementById("venta-chart"));
+                RGraph.Reset(document.getElementById("unidades-chart"));
+                RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("precio-chart"));
+                RGraph.Reset(document.getElementById("venta-chart-comp"));
+                RGraph.Reset(document.getElementById("unidades-chart-comp"));
+                RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("precio-chart-comp"));
                 break;
             case 'enlace-resumen':
                 obj_trabajo.setActividad(4);
                 $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
                 $( "#enlace-resumen" ).addClass( "opcion-seleccionada" );
-                $( "#tab_item_proyeccion" ).hide();
-                $( "#tab_item_proyeccion_comp" ).hide();
-                $( "#tab_item_planificacion_tv" ).hide();
-                $( "#tab_item_planificacion_tv_comp" ).hide();
-                $( "#tab_item_planificacion_as" ).hide();
-                $( "#tab_item_planificacion_as_comp" ).hide();
+                $( "#tab_trabajo" ).hide();
+                $( "#tab_comparativo" ).hide();
                 $( "#tab_item_resumen" ).show();
                 $( "#tab_item_resumen_comp" ).show();
                 $( "#btnPB" ).hide();
@@ -348,18 +339,46 @@ o costo unitario de un itemplan.
 */
 function ajustarPBCU(event){
     event.preventDefault();
-    var tipo_ajuste;
-    if ( event.currentTarget.id == "btnPB" )
-        tipo_ajuste = "precio";
-    else
-        tipo_ajuste = "costo";
-    $( "#json_tipo_ajuste" ).val(tipo_ajuste);
-    if( tipo_ajuste == "precio" )
-        $("#dialog_pbcu_help_msg").text("Precio blanco: ( Ref.: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') + " )");
-    else
-        $("#dialog_pbcu_help_msg").text("Costo unitario: ( Ref.: " + numeral(obj_trabajo.getCostoItem()).format('0,0') + " )");
-    $( "#dialog-box-pbcu" ).data('tipo_ajuste', tipo_ajuste).dialog( "open" );
-    $( "#dialog-box-pbcu input[type=text]" ).select();
+    /* Se verifica si se han hecho modificaciones a los datos antes de 
+    permitir modificar el costo unitario y precio blanco. El usuario
+    debe indicar si desea guardar los cambios o descartarlos. */
+    if ( obj_trabajo.getModificada() ){
+        var tipo_enlace;
+        var mensaje = "Hay cambios que no han sido guardados. ";
+        mensaje += "Haga click en 'Guardar' si desea conservar los cambios. En caso contrario, ";
+        mensaje += "seleccione la opción 'Descartar'.";
+        switch(obj_trabajo.getActividad()){
+            case 1:
+                tipo_enlace = 'enlace-proyeccion';
+                break;
+            case 2:
+                tipo_enlace = 'enlace-planificacion-tv';
+                break;
+            case 3:
+                tipo_enlace = 'enlace-planificacion-as'
+                break;
+            default:
+                return false;
+                break;
+        }
+        $ ( "#dialog-box-alerta p" ).text(mensaje);
+        $( "#dialog-box-alerta" ).data('tipo_enlace', tipo_enlace).dialog( "open" );
+    }
+    else{
+        var tipo_ajuste;
+        if ( event.currentTarget.id == "btnPB" )
+            tipo_ajuste = "precio";
+        else
+            tipo_ajuste = "costo";
+        $( "#json_tipo_ajuste" ).val(tipo_ajuste);
+        if( tipo_ajuste == "precio" )
+            $("#dialog_pbcu_help_msg").text("Precio blanco: ( Ref.: " + numeral(obj_trabajo.getPrecioItem()).format('0,0') + " )");
+        else
+            $("#dialog_pbcu_help_msg").text("Costo unitario: ( Ref.: " + numeral(obj_trabajo.getCostoItem()).format('0,0') + " )");
+        $( "#dialog-box-pbcu" ).data('tipo_ajuste', tipo_ajuste).dialog( "open" );
+        $( "#dialog-box-pbcu input[type=text]" ).select();
+    }
+    
 }
 
 /*

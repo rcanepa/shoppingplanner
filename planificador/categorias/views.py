@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Sum
@@ -107,7 +108,8 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
             plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
-                venta_anual = children.get_venta_anual(plan_obj.anio-1)
+                #venta_anual = children.get_venta_anual(plan_obj.anio-1)
+                venta_anual = 0
                 nodo = {}
                 if children.precio != 0:
                     nodo['title'] = children.nombre + " | PB:" + "{:,}".format(children.precio) + " | VTA: " + "{:,}".format(venta_anual)
@@ -268,3 +270,28 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
             data['msg'] = "El grupo ha sido creado exitosamente."
             data['item_padre_id'] = nuevo_item.item_padre.id
             return HttpResponse(json.dumps(data), mimetype='application/json')
+
+
+class ItemCreateAjaxView(LoginRequiredMixin, View):
+    """
+    Crea un nuevo objeto Item a partir de un nodo item_padre
+    del arbol de seleccion. Recibe como parametro el ID del item padre,
+    nombre y precio del nuevo Item.
+    """
+    def post(self, request, *args, **kwargs):
+        data = {}
+        id_item_padre = request.POST['item_padre_id']
+        nombre_nuevo_item = request.POST['nombre']
+        precio_nuevo_item = request.POST['precio']
+        try:
+            item_padre = Item.objects.get(id=id_item_padre)
+        except ObjectDoesNotExist:
+            data['msg'] = "El item NO pudo ser creado, por favor intentelo nuevamente."
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+        nuevo_item = Item(
+            nombre=nombre_nuevo_item, item_padre=item_padre,
+            categoria=item_padre.categoria.get_children()[0], temporada=item_padre.temporada, precio=precio_nuevo_item)
+        nuevo_item.save()
+        data['msg'] = "El item ha sido creado exitosamente."
+        data['id_item_padre'] = id_item_padre
+        return HttpResponse(json.dumps(data), mimetype='application/json')

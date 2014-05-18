@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
@@ -190,14 +191,22 @@ class Item(models.Model):
     def get_precio_promedio(self):
         return self.precio
 
-    def calcular_costo_unitario(self):
+    def calcular_costo_unitario(self, anio):
         """
             Devuelve el costo unitario de un item en base a la ultima venta real registrada
         """
+        # Se busca si el item tiene hijos
+        arreglo_items = []
+        for item in self.hijos_recursivos():
+            arreglo_items.append(item)
+
+        # Obtiene el costo promedio del año entregado como parametro
         venta = Ventaperiodo.objects.filter(
-            item=self, tipo=0).exclude(vta_u=0).values('item', 'vta_u', 'costo').order_by('-anio', '-periodo')
-        if venta.count():
-            return round(float(venta[0]['costo'] / venta[0]['vta_u']), 0)
+            item__in=arreglo_items, anio=anio, tipo=0).exclude(
+            vta_u=0).order_by('-anio', '-periodo').aggregate(Sum('vta_u'), Sum('costo'))
+
+        if venta['costo__sum'] is not None and venta['vta_u__sum'] is not None:
+            return round(float(venta['costo__sum'] / venta['vta_u__sum']), 0)
         else:
             return 0
 

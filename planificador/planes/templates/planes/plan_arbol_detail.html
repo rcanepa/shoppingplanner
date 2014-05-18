@@ -33,6 +33,7 @@
             <li><a id="btnExpand">Expandir Nodos</a></li>
             <li><a id="btnCollapse">Collapsar Nodos</a></li>
             <li><a id="btnSave">Guardar</a></li>
+            <li id="li-nuevo-nodo" style="display:none;"><a id="btnSaveNuevoNodo">Crear Nodo</a></li>
         </ul>
     </div>        
 </div>
@@ -65,22 +66,32 @@
             <li><a id="btnAgrupar">Agrupar Items</a></li>
             <li><a id="btnCancelar">Cancelar Selecci&oacute;n</a></li>
         </ul>
-    </div>        
-    <!--form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/guardar-arbol/">
-        {% csrf_token %}
-        <input id="input_json_data" type="hidden" name="plan" value="" />
-    </form-->
+    </div>
 </div>
 <!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
 <div id="dialog-form" title="Crear nuevo Item" style="display:none;">
+    <p class="validateTips">Todos los campos son requeridos.</p>
+    <form id="crear_grupoitem_form">
+        {% csrf_token %}
+        <fieldset>
+            <label for="nombre">Nombre</label>
+            <input type="text" name="nombre" id="nombre-grupoitem" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" name="grupo_items" id="grupo_items">
+            <input type="hidden" name="plan_id" value="{{plan.id}}">
+        </fieldset>
+    </form>
+</div>
+<div id="dialog-form-nuevo-item" title="Crear nuevo Item" style="display:none;">
     <p class="validateTips">Todos los campos son requeridos.</p>
     <form id="crear_item_form">
         {% csrf_token %}
         <fieldset>
             <label for="nombre">Nombre</label>
-            <input type="text" name="nombre" id="nombre" class="text ui-widget-content ui-corner-all">
-            <input type="hidden" name="grupo_items" id="grupo_items">
-            <input type="hidden" name="plan_id" id="plan_id" value="{{plan.id}}">
+            <input type="text" name="nombre" id="nombre-item" class="text ui-widget-content ui-corner-all">
+            <label for="nombre">Precio</label>
+            <input type="text" name="precio" id="precio-item" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" name="plan_id" value="{{plan.id}}">
+            <input type="hidden" name="item_padre_id" id="item_padre_id">
         </fieldset>
     </form>
 </div>
@@ -190,7 +201,7 @@ $(function() {
         modal: true,
         buttons: {
             "Guardar": function() {
-                var nombre = $( "#nombre" ),
+                var nombre = $( "#nombre-grupoitem" ),
                     //temporada = $( "#combo_temporada_dialog" ),
                     //precio = $( "#precio" ),
                     grupo_items = $( "#grupo_items" ),
@@ -214,7 +225,7 @@ $(function() {
                     var tree = $("#itemstree").fancytree("getTree");
                     nombre.val("(GRUPO) " + nombre.val());
                     $.ajax({
-                        data: $("#crear_item_form").serialize(),
+                        data: $("#crear_grupoitem_form").serialize(),
                         url: '/categorias/grupoitem/create/',
                         type: 'post',
                         success: function(data){
@@ -223,10 +234,12 @@ $(function() {
                             nodo_padre.load(true);
                             // Se despliega un mensaje informando lo ocurrido
                             $("#caja-mensajes")
+                                .show()
                                 .html(data.msg)
                                 .addClass("msg_success")
-                                .delay(5000)
+                                .delay(3000)
                                 .queue( function(next){ 
+                                    $(this).hide();
                                     $(this).removeClass("msg_success");
                                     $(this).html("");
                                         next(); 
@@ -241,15 +254,82 @@ $(function() {
                 }
             },
             close: function() {
-                var nombre = $( "#nombre" ),
-                    //temporada = $( "#combo_temporada_dialog" ),
-                    //precio = $( "#precio" ),
+                var nombre = $( "#nombre-grupoitem" ),
                     allFields = $( [] ).add( nombre );
                 allFields.val( "" ).removeClass( "ui-state-error" );
-                //temporada.prop('selectedIndex', 0);
             }
     });
 
+    $( "#dialog-form-nuevo-item" ).dialog({
+        autoOpen: false,
+        height: 270,
+        width: 300,
+        modal: true,
+        buttons: {
+            "Guardar": function() {
+                var nombre = $( "#nombre-item" ),
+                    precio = $( "#precio-item" ),
+                    allFields = $( [] ).add( nombre ).add( precio );
+                var bValid = true;
+                allFields.removeClass( "ui-state-error" );
+
+                bValid = bValid && checkLength( nombre, "nombre", 5, 70 );
+                bValid = bValid && checkLength( precio, "precio", 1, 10 );
+
+                bValid = bValid && checkRegexp( nombre, /^[a-zA-ZñÑ]*/, "El nombre debe comenzar con una letra (a-z)." );
+                
+                // Se valida que el valor seleccionado sea positivo (la opcion nula tiene el valor -1)
+                bValid = bValid && checkRegexp( precio, /^\d+$/, "El precio solo admite números enteros (0-9)." );
+
+                // Si todas las validaciones resultaron positivas se gatilla la solicitud AJAX que crea el nuevo item,
+                if ( bValid ) {
+                    var nodo = $(this).data('node');
+                    console.log(nodo);
+                    $( "#item_padre_id" ).val(nodo.key);
+
+                    $.ajax({
+                        data: $("#crear_item_form").serialize(),
+                        url: '/categorias/item/create-ajax/',
+                        type: 'post',
+                        success: function(data){
+                            // Se busca y recarga el nodo padre para actualizar los cambios en el arbol
+                            var tree = $("#itemstree").fancytree("getTree");
+                            var nodo_padre = tree.getNodeByKey(String(data.id_item_padre));
+                            nodo_padre.load(true);
+                            // Se despliega un mensaje informando lo ocurrido
+                            $("#caja-mensajes")
+                                .show()
+                                .html(data.msg)
+                                .addClass("msg_success")
+                                .delay(3000)
+                                .queue( function(next){ 
+                                    $(this).hide();
+                                    $(this).removeClass("msg_success");
+                                    $(this).html("");
+                                        next(); 
+                            });
+                        }
+                    });
+                    
+
+                    $( this ).dialog( "close" );
+                    var nombre = $( "#nombre-item" ),
+                        precio = $( "#precio-item" ),
+                        allFields = $( [] ).add( nombre ).add( precio );
+                    allFields.val( "" ).removeClass( "ui-state-error" );
+                    $( ".validateTips" ).html("Todos los campos son requeridos.");
+                }
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+                var nombre = $( "#nombre-item" ),
+                    precio = $( "#precio-item" ),
+                    allFields = $( [] ).add( nombre ).add( precio );
+                allFields.val( "" ).removeClass( "ui-state-error" );
+                $( ".validateTips" ).html("Todos los campos son requeridos.");
+            },
+        }
+    });
 
     // Contar nodos a planificar (visibles)
     function definirVisibles(){
@@ -326,9 +406,37 @@ $(function() {
             if ( $("#menu-derecho").is(":hidden") )
                 $("#menu-derecho").show("slow");
         },
+        activate: function(event, data){
+            var node = data.node;
+            var options = {};
+            if( ( node.folder ) && ( node.extraClasses == "planificable" ) ){
+                $( "#li-nuevo-nodo" ).show().effect( "highlight", options, 1000 );
+            }  
+        },
+        deactivate: function(event, data){
+            $( "#li-nuevo-nodo" ).hide();
+        }
     });
+    
+    /* Se vincula el boton con la funcion que permite crear nodos/item */
+    $( "#btnSaveNuevoNodo" ).click(guardarNuevoNodo);
 
-    // Expandir todos los nodos
+    /*
+    Almacena el nuevo item creado.
+    */
+    function guardarNuevoNodo(){
+        var tree = $("#itemstree").fancytree("getTree"),
+        activeNode = tree.getActiveNode();
+        console.log(activeNode);
+        /* Se valida que el nodo seleccionado pueda tener nuevos hijos */
+        if( ( activeNode.folder ) && ( activeNode.extraClasses == "planificable" ) ){
+            $( "#dialog-form-nuevo-item" ).data('node', activeNode).dialog( "open" );
+        }
+    }
+
+    /* 
+    Expandir todos los nodos un nivel.
+    */
     $("#btnExpand").click(function(){
         $("#itemstree").fancytree("getRootNode").visit(function(node){
             if ( node.isVisible() )
@@ -465,7 +573,7 @@ $(function() {
             .show()
             .html(msg)
             .addClass(tipo)
-            .delay(8000)
+            .delay(3000)
             .queue(function(next){ 
                 $(this).hide();
                 $(this).removeClass(tipo);

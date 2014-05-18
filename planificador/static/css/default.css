@@ -7,8 +7,7 @@
 	CAFE OSCURO (FONDO): #554E44;
 
 */
-body
-{
+body{
 	margin:0;
 	padding:0;
 	border:0;			/* This removes the border around the viewport in old versions of IE */
@@ -20,16 +19,14 @@ body
 	font-size:70%;
 	font-family:sans-serif;
 }
-a
-{
+a{
 	color:#ef4929;
 }
 a:hover{
 	color:#9b9181;
 }
 
-p
-{
+p{
 	margin:.4em 0 .8em 0;
 	padding:0;
 }
@@ -39,7 +36,7 @@ h4{
 }
 
 /* Header styles */
-#header {
+#header{
 	clear:both;
 	float:left;
 	width:100%;
@@ -51,11 +48,11 @@ h4{
 	color:#9b9181;
 }
 /* Opciones para el menu horizontal superior de la app */
-.top-menu {	
+.top-menu{	
 	padding-bottom:2px;
 }
 
-.top-menu li a {
+.top-menu li a{
 	padding-left: 5px;
 	padding-right: 5px;
 }
@@ -74,7 +71,7 @@ h4{
 }
 
 /* column container */
-.colmask {
+.colmask{
 	top: 40px;
 	position:relative;		/* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
 	clear:both;
@@ -84,22 +81,22 @@ h4{
 	padding-bottom: 50px;
 }
 /* 2 column left menu settings */
-.leftmenu {
+.leftmenu{
 }
-.leftmenu .colright {
+.leftmenu .colright{
 	float:left;
 	width:200%;
 	position:relative;
 	left:200px;
 }
-.leftmenu .col1wrap {
+.leftmenu .col1wrap{
 	float:right;
 	width:50%;
 	position:relative;
 	right:200px;
 	padding-bottom:1em;
 }
-.leftmenu .col1 {
+.leftmenu .col1{
 	/*padding: 15px 0px;*/
 	margin:0 15px 0 215px;
 	position:relative;
@@ -109,7 +106,7 @@ h4{
 .leftmenu .col1 a:hover{
 	
 }
-.leftmenu .col2 {
+.leftmenu .col2{
 	/*padding: 15px 0px;*/
 	float:left;
 	width:170px;
@@ -117,7 +114,7 @@ h4{
 	right:185px;
 }
 /* Footer styles */
-#footer {
+#footer{
 	padding: 0px 10px;
 	clear:both;
 	float:left;
@@ -138,14 +135,13 @@ h4{
 	padding: 3px 3px;
 }
 
-div.floating-left-menu {
+div.floating-left-menu{
 	position:fixed;
 	z-index:100;
 }
 
 /* Para los select de los buscadores de items para proyeccion/planificacion */
-.buscador
-{
+.buscador{
 	width: 100%;
 }
 
@@ -153,27 +149,28 @@ input .proybox{
 	width:2em;
 }
 
-div .left_label {
+div .left_label{
 	float:left;
 	width:40%;
 }
 
-div .middle_label {
+div .middle_label{
 	float:left;
 	width:5%;
 }
 
-div .right_label {
+div .right_label{
 	float:left;
 	width:55%;
 }
 
-.caja_bordes {
+.caja_bordes{
 	background: white;
 	border: 1px solid #b7b7b7;
 	margin: 10px 0px;
 	padding:5px 10px;
 }
+
 .caja_bordes .caja-header{
 	color: #565d64;
 	text-transform: uppercase;
@@ -188,26 +185,25 @@ div .right_label {
 }
 
 /* Para las cajas de mensajes: info, warning, success y error */
-.msg_info {
+.msg_info{
 	color: #00529B;
 	background-color: #BDE5F8;
 }
-.msg_success {
+.msg_success{
 	color: #4F8A10;
 	background-color: #DFF2BF;
 }
-.msg_warning {
+.msg_warning{
 	color: #9F6000;
 	background-color: #FEEFB3;
 }
-.msg_error {
+.msg_error{
 	color: #D8000C;
 	background-color: #FFBABA;
 }
 
 /* Configuracion general de la caja de mensajes */
-#caja-mensajes
-{
+#caja-mensajes{
 	border: 0px 2px 2px 2px;
   	border-color: #ef4929;
 	font-size: 11px;
@@ -227,12 +223,11 @@ div .right_label {
   	top: 0px;
   	left: 50%;
   	margin-left: -350px;
-  	z-index: 100;
+  	z-index: 10000;
 }
 
 /* Para listas de objetos (item list, categorias list, etc.) */
-ol
-{
+ol{
 	counter-reset: li; /* Initiate a counter */
 	list-style: none; /* Remove default numbering */
 	*list-style: decimal; /* Keep using default numbering for IE6/7 */
@@ -242,13 +237,11 @@ ol
 	text-shadow: 0 1px 0 rgba(255,255,255,.5);
 }
 
-ol ol
-{
+ol ol{
 	margin: 0 0 0 2em; /* Add some left margin for inner lists */
 }
 
-.rectangle-list a
-{
+.rectangle-list a{
 	position: relative;
 	display: block;
 	padding: .4em .4em .4em .8em;
@@ -260,13 +253,11 @@ ol ol
 	transition: all .3s ease-out;	
 }
 
-.rectangle-list a:hover
-{
+.rectangle-list a:hover{
 	background: #eee;
 }	
 
-.rectangle-list a:before
-{
+.rectangle-list a:before{
 	content: counter(li);
 	counter-increment: li;
 	position: absolute;	
@@ -281,8 +272,7 @@ ol ol
 	font-weight: bold;
 }
 
-.rectangle-list a:after
-{
+.rectangle-list a:after{
 	position: absolute;	
 	content: '';
 	border: .5em solid transparent;
@@ -292,15 +282,13 @@ ol ol
 	transition: all .3s ease-out;				
 }
 
-.rectangle-list a:hover:after
-{
+.rectangle-list a:hover:after{
 	left: -.5em;
 	border-left-color: #fa8072;				
 }	
 
 /* Ejemplo de loading gif desde http://jsfiddle.net/jonathansampson/VpDUG/170/ */
-#dvLoading
-{
+#dvLoading{
 	display:    none;
 	position:   fixed;
 	z-index:    1000;

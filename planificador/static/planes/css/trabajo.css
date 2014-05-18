@@ -1,18 +1,22 @@
-#tab_item_planificacion_tv, #tab_item_planificacion_tv_comp{
+#div_datos, #div_datos_comparativo{
 	overflow: auto;
-	/*overflow-y: hidden;
-	-ms-overflow-y: hidden;*/
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
 }
 
-#accordion
+.accordion
 {
 	font-size: 11px;
-}
-#accordion .ui-accordion-content
-{
 	padding-left: 5px;
 	padding-right: 5px;
-	zoom: 1;
+	padding-bottom: 5px;
+	margin-bottom: 5px; 
+	background-color: white;
+	border: 1px solid #ef4929;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	overflow: hidden;
 }
 
 .datagrid
@@ -61,7 +65,6 @@
 
 .datagrid th.impar, td.impar
 {
-	/*background: #f5f5ed;*/
 	background: #f5f5ed;
 	color: #669;
 }

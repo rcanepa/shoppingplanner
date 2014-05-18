@@ -259,7 +259,7 @@ class Itemplan(models.Model):
         Devuelve la lista de itemplan hijos del itemplan. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre).
         """
-        return self.items_hijos.all().prefetch_related('item__categoria').order_by('nombre')
+        return self.items_hijos.all().prefetch_related('item__categoria').order_by('nombre', 'precio')
 
     def as_tree(self):
         """
@@ -285,6 +285,17 @@ class Itemplan(models.Model):
         for child in children:
             for next in child.get_hijos_planificables():
                 yield next
+
+    def get_padre(self):
+        """
+        Devuelve un arreglo con todos los objetos itemplan padres de self.
+        """
+        arreglo_padres = []
+        padre = self.item_padre
+        while padre is not None:
+            arreglo_padres.append(padre)
+            padre = padre.item_padre
+        return arreglo_padres
 
     def __unicode__(self):
         return self.item.nombre

@@ -111,8 +111,15 @@ class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(PlanDetailView, self).get_context_data(**kwargs)
-        context['num_items_pro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=1, planificable=True).count()
-        context['num_items_nopro'] = Itemplan.objects.filter(plan=context['plan'].id, estado=0, planificable=True).count()
+        num_items_planificados = Itemplan.objects.filter(
+            plan=context['plan'].id, estado=2, planificable=True).count()
+        num_items_pendientes = Itemplan.objects.filter(
+            plan=context['plan'].id, planificable=True).exclude(estado=2).count()
+        num_items_totales = Itemplan.objects.filter(
+            plan=context['plan'].id, planificable=True).count()
+        context['num_items_planificados'] = num_items_planificados
+        context['num_items_pendientes'] = num_items_pendientes
+        context['porcentaje_progreso'] = str(round(float(num_items_planificados / float(num_items_totales)), 2)) + "%"
         return context
 
 
@@ -179,7 +186,7 @@ class GuardarArbolView(LoginRequiredMixin, View):
             plan_obj = Plan.objects.get(pk=data['plan'])
             #items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
             items_obj_arr = Item.objects.filter(pk__in=data['items']).prefetch_related('item_padre', 'venta_item')
-            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio, costo=x.calcular_costo_unitario()) for x in items_obj_arr]
+            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio, costo=x.calcular_costo_unitario(plan_obj.anio-1)) for x in items_obj_arr]
             # Se marcan los itemplan que pueden ser planificados
             for itemplan_obj in itemplan_obj_arr:
                 if itemplan_obj.item.id in data['items_planificables']:
@@ -304,7 +311,11 @@ class GuardarProyeccionView(UserInfoMixin, View):
                             'vta_u': venta['vta_u'],
                             'stk_u': Decimal('0.000'),
                             'stk_v': Decimal('0.000'),
-                            'margen': venta['margen']
+                            'margen': venta['margen'],
+                            'precio_real': venta['precio_real'],
+                            'costo_unitario': venta['costo_unitario'],
+                            'dcto': venta['dcto']
+
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
                             plan=plan_obj,
@@ -318,10 +329,12 @@ class GuardarProyeccionView(UserInfoMixin, View):
                             obj.vta_n = venta['vta_n']
                             obj.vta_u = venta['vta_u']
                             obj.ctb_n = venta['ctb_n']
-                            obj.dcto = float(venta['dcto'])
-                            obj.margen = float(venta['margen'])
-                            obj.costo = float(venta['costo'])
-                            if venta['vta_n'] != 0:
+                            obj.dcto = venta['dcto']
+                            obj.margen = venta['margen']
+                            obj.costo = venta['costo']
+                            obj.costo_unitario = venta['costo_unitario']
+                            obj.precio_real = venta['precio_real']
+                            if venta['vta_u'] != 0:
                                 # Tipo = 1 -> Proyectada
                                 obj.tipo = 1
                             obj.save()
@@ -442,85 +455,47 @@ class BuscarDatosProyeccionView(View):
             for hijo in item.get_hijos():
                 lista_hijos.append(hijo)
 
-            # Se verifica que el item recibido exista
-            if bool(itemplan_obj):
-                controlventa = Controlventa.objects.filter(
-                    organizacion=self.request.user.get_profile().organizacion).latest('fecha_creacion')
+            controlventa = Controlventa.objects.filter(
+                organizacion=self.request.user.get_profile().organizacion).latest('fecha_creacion')
 
-                proyeccion = OrderedDict()
-                total_vta_u = 0
-                total_costo = 0
-                costo_unitario = 0
+            proyeccion = OrderedDict()
 
-                # Se busca el periodo inferior y superior de la temporada a proyectar
-                # limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
-                # limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
+            # Se buscan las temporadas de los items a proyectar.
+            # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
+            # mas de una temporada.
+            temporadas = Temporada.objects.all().values(
+                'nombre', 'id').order_by('-planificable', 'nombre').distinct()
 
-                # Se buscan las temporadas de los items a proyectar.
-                # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
-                # mas de una temporada.
-                temporadas = Temporada.objects.all().values(
-                    'nombre', 'id').order_by('-planificable', 'nombre').distinct()
+            periodos = plan_obj.temporada.periodo.filter(
+                tiempo__anio=plan_obj.anio-1,
+                calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
+                'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
-                # Lista de los X periodos a considerar en la proyeccion
-                # periodos = Periodo.objects.filter(
-                    #Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
-                    #Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
-                    #).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
-
-                periodos = plan_obj.temporada.periodo.filter(
-                    tiempo__anio=plan_obj.anio-1,
-                    calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
-                    'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
-
-                # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
-                # Esto se utiliza en la vista para "pintar" de un color diferente los periodos de la
-                # temporada que esta siendo planificada.
+            # Se llena el diccionario proyeccion, temporada->periodo->venta
+            for temporada in temporadas:
+                proyeccion[temporada['nombre']] = OrderedDict()
                 for periodo in periodos:
-                    if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
-                        periodo['temporada'] = True
-                    else:
-                        periodo['temporada'] = False
-
-                # Se llena el diccionario proyeccion, temporada->periodo->venta
-                for temporada in temporadas:
-                    proyeccion[temporada['nombre']] = OrderedDict()
-                    for periodo in periodos:
-                        ventas = Ventaperiodo.objects.filter(
-                            item__in=lista_hijos,
-                            anio=periodo['tiempo__anio'],
-                            periodo=periodo['nombre'],
-                            temporada__nombre=temporada['nombre'],
-                            tipo__in=[0, 1]
-                            ).values('anio', 'periodo', 'temporada').annotate(
-                            vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
-                            ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                            margen=Avg('margen'), tipo=Min('tipo')
-                            ).order_by('anio', 'periodo', 'temporada')
-                        # Se revisa si existe una venta asociada a la temporada y periodo en curso
-                        if ventas.exists():
-                            if ventas.count() > 1:
-                                print "MAS DE UNA VENTA!!!!"
-                            # Se agregan algunos calculos a las ventas
-                            for venta in ventas:
-                                if venta['vta_u'] != 0:
-                                    total_vta_u += venta['vta_u']
-                                    total_costo += venta['costo']
-                                    venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                    costo_unitario = float(venta['costo'] / venta['vta_u'])
-                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.item.precio)), 4)
-
-                                else:
-                                    venta['precio_real'] = 0
-                                    venta['dcto'] = 0
-                                venta['vta_u'] = round(float(venta['vta_u']), 0)
-                                venta['vta_n'] = round(float(venta['vta_n']), 0)
-                                venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                                venta['costo'] = round(float(venta['costo']), 0)
-                                if venta['ctb_n'] != 0:
-                                    venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
-                                else:
-                                    venta['margen'] = 0
+                    ventas = Ventaperiodo.objects.filter(
+                        item__in=lista_hijos,
+                        anio=periodo['tiempo__anio'],
+                        periodo=periodo['nombre'],
+                        temporada__nombre=temporada['nombre'],
+                        tipo__in=[0, 1]
+                        ).values('anio', 'periodo', 'temporada').annotate(
+                        vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
+                        ctb_n=Sum('ctb_n'), costo=Sum('costo'),
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
+                        ).order_by('anio', 'periodo', 'temporada')
+                    # Se revisa si existe una venta asociada a la temporada y periodo en curso
+                    if ventas.exists():
+                        for venta in ventas:
+                            # Se corrige el margen en caso de agrupaciones
+                            if venta['vta_n'] != 0:
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
+                            else:
+                                venta['margen'] = 0
                             # Se valida si la venta debe ser proyectable o no
                             if venta['anio'] >= controlventa.anio and venta['periodo'] > controlventa.periodo.nombre:
                                 # Venta por proyectar
@@ -529,52 +504,46 @@ class BuscarDatosProyeccionView(View):
                                 # Venta no proyectable
                                 venta['tipo'] = 0
 
-                            # Se guarda la venta en el diccionario proyeccion
-                            proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
+                        # Se guarda la venta en el diccionario proyeccion
+                        proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
+                    else:
+                        # Si no existe venta, se llena el gap con una venta vacia
+                        venta_gap = {
+                            'anio': periodo['tiempo__anio'],
+                            'tipo': 1,
+                            'vta_n': Decimal('0.000'),
+                            'ctb_n': Decimal('0.000'),
+                            'costo': Decimal('0.000'),
+                            'vta_u': Decimal('0.000'),
+                            'temporada': temporada['id'],
+                            'periodo': periodo['nombre'],
+                            'margen': Decimal('0.000'),
+                            'precio_real': Decimal('0.000'),
+                            'dcto': Decimal('0.000'),
+                            'costo_unitario': Decimal('0.000')
+                        }
+                        # Se valida si la venta debe ser proyectable o no
+                        if venta_gap['anio'] >= controlventa.anio and venta_gap['periodo'] > controlventa.periodo.nombre:
+                            # Venta por proyectar
+                            venta_gap['tipo'] = 1
                         else:
-                            # Si no existe venta, se llena el gap con una venta vacia
-                            venta_gap = {
-                                'anio': periodo['tiempo__anio'],
-                                'tipo': 1,
-                                'vta_n': Decimal('0.000'),
-                                'ctb_n': Decimal('0.000'),
-                                'costo': Decimal('0.000'),
-                                'vta_u': Decimal('0.000'),
-                                'temporada': temporada['id'],
-                                'periodo': periodo['nombre'],
-                                'margen': Decimal('0.000'),
-                                'precio_real': Decimal('0.000'),
-                                'dcto': Decimal('0.000')
-                            }
-                            # Se valida si la venta debe ser proyectable o no
-                            if venta_gap['anio'] >= controlventa.anio and venta_gap['periodo'] > controlventa.periodo.nombre:
-                                # Venta por proyectar
-                                venta_gap['tipo'] = 1
-                            else:
-                                # Venta no proyectable
-                                venta_gap['tipo'] = 0
-                            proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
-                # Se previenen errores provocados por dividir por cero
-                if total_vta_u > 0:
-                    costo_unitario = round(float(total_costo / total_vta_u), 0)
-                itemplan_json = {}
-                itemplan_json['id_item'] = itemplan_obj.item.id
-                itemplan_json['id_itemplan'] = itemplan_obj.id
-                itemplan_json['nombre'] = itemplan_obj.nombre
-                itemplan_json['precio'] = itemplan_obj.item.precio
-                itemplan_json['costo_unitario'] = costo_unitario
+                            # Venta no proyectable
+                            venta_gap['tipo'] = 0
+                        proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
+            itemplan_json = {}
+            itemplan_json['id_item'] = itemplan_obj.item.id
+            itemplan_json['id_itemplan'] = itemplan_obj.id
+            itemplan_json['nombre'] = itemplan_obj.nombre
+            itemplan_json['precio'] = itemplan_obj.item.precio
+            itemplan_json['costo_unitario'] = itemplan_obj.item.calcular_costo_unitario(plan_obj.anio-1)
 
-                resumen['itemplan'] = itemplan_json
-                resumen['temporadas'] = list(temporadas)
-                resumen['temporada_vigente'] = temporada_vigente
-                resumen['periodos'] = list(periodos)
-                resumen['ventas'] = proyeccion
-                data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
-
-            else:
-                data = {}
+            resumen['itemplan'] = itemplan_json
+            resumen['temporadas'] = list(temporadas)
+            resumen['temporada_vigente'] = temporada_vigente
+            resumen['periodos'] = list(periodos)
+            resumen['ventas'] = proyeccion
+            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
-        #return HttpResponseRedirect(reverse('planes:plan_list'))
 
 
 class BuscarDatosProyeccionCompView(View):
@@ -618,42 +587,14 @@ class BuscarDatosProyeccionCompView(View):
             controlventa = Controlventa.objects.filter(organizacion=self.request.user.get_profile().organizacion).latest('fecha_creacion')
 
             proyeccion = OrderedDict()
-            total_vta_u = 0
-            total_costo = 0
-            costo_unitario = 0
 
-            # Se busca el periodo inferior y superior de la temporada a proyectar
-            #limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[0]
-            #limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio)[1]
-
-            # Se buscan las temporadas de los items a proyectar.
-            # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
-            # mas de una temporada.
-            #temporadas = ventas.order_by('item__temporada__id','item__temporada__nombre').values('item__temporada__id','item__temporada__nombre').distinct()
-            #temporadas = Temporada.objects.all().order_by('-planificable','nombre')
             temporadas = Temporada.objects.all().values(
                 'nombre', 'id').order_by('-planificable', 'nombre').distinct()
-
-            # Lista de los X periodos a considerar en la proyeccion
-            #periodos = ventas.order_by('anio','periodo').values('anio','periodo').distinct()
-            #periodos = Periodo.objects.filter(
-                #Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
-                #Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
-                #).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
             periodos = plan_obj.temporada.periodo.filter(
                 tiempo__anio=plan_obj.anio-1,
                 calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
                 'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
-
-            # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
-            # Esto se utiliza en la vista para "pintar" de un color diferente los periodos de la
-            # temporada que esta siendo planificada.
-            for periodo in periodos:
-                if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
-                    periodo['temporada'] = True
-                else:
-                    periodo['temporada'] = False
 
             # Se llena el diccionario proyeccion, temporada->periodo->venta
             for temporada in temporadas:
@@ -668,40 +609,25 @@ class BuscarDatosProyeccionCompView(View):
                         ).values('anio', 'periodo', 'temporada').annotate(
                         vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
                         ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                        margen=Avg('margen'), tipo=Min('tipo')
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
                         ).order_by('anio', 'periodo', 'temporada')
                     # Se revisa si existe una venta asociada a la temporada y periodo en curso
                     if ventas.exists():
-                        if ventas.count() > 1:
-                            print "MAS DE UNA VENTA!!!!"
-                        # Se agregan algunos calculos a las ventas
                         for venta in ventas:
-                            if venta['vta_u'] != 0:
-                                total_vta_u += venta['vta_u']
-                                total_costo += venta['costo']
-                                venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                costo_unitario = float(venta['costo'] / venta['vta_u'])
-                            else:
-                                venta['precio_real'] = 0
-                            if item_obj.precio != 0:
-                                venta['dcto'] = round(float(1 - (venta['precio_real'] / item_obj.precio)), 4)
-                            else:
-                                venta['dcto'] = 0
-                            venta['vta_u'] = round(float(venta['vta_u']), 0)
-                            venta['vta_n'] = round(float(venta['vta_n']), 0)
-                            venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                            venta['costo'] = round(float(venta['costo']), 0)
+                            # Se corrige el margen en caso de agrupaciones
                             if venta['vta_n'] != 0:
-                                venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
                             else:
                                 venta['margen'] = 0
-                        # Se valida si la venta debe ser proyectable o no
-                        if venta['anio'] >= controlventa.anio and venta['periodo'] > controlventa.periodo.nombre:
-                            # Venta por proyectar
-                            venta['tipo'] = 1
-                        else:
-                            # Venta no proyectable
-                            venta['tipo'] = 0
+                            # Se valida si la venta debe ser proyectable o no
+                            if venta['anio'] >= controlventa.anio and venta['periodo'] > controlventa.periodo.nombre:
+                                # Venta por proyectar
+                                venta['tipo'] = 1
+                            else:
+                                # Venta no proyectable
+                                venta['tipo'] = 0
 
                         # Se guarda la venta en el diccionario proyeccion
                         proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
@@ -718,7 +644,8 @@ class BuscarDatosProyeccionCompView(View):
                             'periodo': periodo['nombre'],
                             'margen': Decimal('0.000'),
                             'precio_real': Decimal('0.000'),
-                            'dcto': Decimal('0.000')
+                            'dcto': Decimal('0.000'),
+                            'costo_unitario': Decimal('0.000')
                         }
                         # Se valida si la venta debe ser proyectable o no
                         if venta_gap['anio'] >= controlventa.anio and venta_gap['periodo'] > controlventa.periodo.nombre:
@@ -728,15 +655,12 @@ class BuscarDatosProyeccionCompView(View):
                             # Venta no proyectable
                             venta_gap['tipo'] = 0
                         proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
-            # Se previenen errores provocados por dividir por cero
-            if total_vta_u > 0:
-                costo_unitario = round(float(total_costo / total_vta_u), 0)
             item_json = {}
             item_json['id_item'] = item_obj.id
             item_json['id_itemplan'] = item_obj.id
             item_json['nombre'] = item_obj.nombre
             item_json['precio'] = item_obj.precio
-            item_json['costo_unitario'] = costo_unitario
+            item_json['costo_unitario'] = item_obj.calcular_costo_unitario(plan_obj.anio-1)
 
             resumen['itemplan'] = item_json
             resumen['temporadas'] = list(temporadas)
@@ -825,32 +749,21 @@ class BuscarDatosPlanificacionView(View):
                         ).values('anio', 'periodo', 'temporada').annotate(
                         vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
                         ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                        margen=Avg('margen'), tipo=Min('tipo')
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
                         ).order_by('anio', 'periodo', 'temporada')
                     # Se revisa si existe una venta asociada a la temporada y periodo en curso
                     if ventas.exists():
-                        # Se agregan algunos calculos a las ventas
                         for venta in ventas:
-                            if venta['vta_u'] != 0:
-                                venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                if periodo['tiempo__anio'] == plan_obj.anio:
-                                    venta['costo_u'] = itemplan_obj.costo
-                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.precio)), 4)
-                                else:
-                                    venta['costo_u'] = float(venta['costo'] / venta['vta_u'])
-                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.item.precio)), 4)
-                            else:
-                                venta['precio_real'] = 0
-                                venta['dcto'] = 0
-                                venta['vta_u'] = round(float(venta['vta_u']), 0)
-                                venta['vta_n'] = round(float(venta['vta_n']), 0)
-                                venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                                venta['costo'] = round(float(venta['costo']), 0)
-                                venta['costo_u'] = 0
-                            if venta['ctb_n'] != 0:
-                                venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
+                            # Se corrige el margen en caso de agrupaciones
+                            if venta['vta_n'] != 0:
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
                             else:
                                 venta['margen'] = 0
+                            # Se corrige el costo unitario para el caso de agrupaciones de items
+                            if periodo['temporada']:
+                                venta['costo_unitario'] = itemplan_obj.costo
                         # Se guarda la venta en el diccionario proyeccion
                         proyeccion[temporada['nombre']][str(periodo['tiempo__anio']) + " " + periodo['nombre']] = ventas[0]
                     else:
@@ -867,7 +780,7 @@ class BuscarDatosPlanificacionView(View):
                             'margen': Decimal('0.000'),
                             'precio_real': Decimal('0.000'),
                             'dcto': Decimal('0.000'),
-                            'costo_u': Decimal('0.000')
+                            'costo_unitario': Decimal('0.000')
                         }
                         # Se guarda la venta en el diccionario proyeccion
                         proyeccion[temporada['nombre']][str(periodo['tiempo__anio']) + " " + periodo['nombre']] = venta_gap
@@ -935,13 +848,10 @@ class BuscarDatosPlanificacionCompView(View):
                 lista_hijos.append(hijo)
 
             proyeccion = OrderedDict()
-            costo_unitario = 0
 
             # Se buscan las temporadas de los items a proyectar.
             # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
             # mas de una temporada.
-            #temporadas = ventas.order_by('item__temporada__id','item__temporada__nombre').values('item__temporada__id','item__temporada__nombre').distinct()
-            #temporadas = Temporada.objects.all().order_by('-planificable','nombre')
             temporadas = Temporada.objects.all().values(
                 'nombre', 'id').order_by('-planificable', 'nombre').distinct()
 
@@ -972,31 +882,16 @@ class BuscarDatosPlanificacionCompView(View):
                         ).values('anio', 'periodo', 'temporada').annotate(
                         vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
                         ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                        margen=Avg('margen'), tipo=Min('tipo')
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
                         ).order_by('anio', 'periodo', 'temporada')
                     # Se revisa si existe una venta asociada a la temporada y periodo en curso
                     if ventas.exists():
-                        if ventas.count() > 1:
-                            print "MAS DE UNA VENTA!!!!"
-                        # Se agregan algunos calculos a las ventas
                         for venta in ventas:
-                            if venta['vta_u'] != 0:
-                                venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                venta['costo_u'] = float(venta['costo'] / venta['vta_u'])
-                                costo_unitario = float(venta['costo'] / venta['vta_u'])
-
-                            else:
-                                venta['precio_real'] = 0
-                            if item_obj.precio != 0:
-                                venta['dcto'] = round(float(1 - (venta['precio_real'] / item_obj.precio)), 4)
-                            else:
-                                venta['dcto'] = 0
-                            venta['vta_u'] = round(float(venta['vta_u']), 0)
-                            venta['vta_n'] = round(float(venta['vta_n']), 0)
-                            venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                            venta['costo'] = round(float(venta['costo']), 0)
-                            if venta['ctb_n'] != 0:
-                                venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
+                            # Se corrige el margen en caso de agrupaciones
+                            if venta['vta_n'] != 0:
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
                             else:
                                 venta['margen'] = 0
                         # Se guarda la venta en el diccionario proyeccion
@@ -1015,7 +910,7 @@ class BuscarDatosPlanificacionCompView(View):
                             'margen': Decimal('0.000'),
                             'precio_real': Decimal('0.000'),
                             'dcto': Decimal('0.000'),
-                            'costo_u': Decimal('0.000')
+                            'costo_unitario': Decimal('0.000')
                         }
                         # Se guarda la venta en el diccionario proyeccion
                         proyeccion[temporada['nombre']][str(periodo['tiempo__anio']) + " " + periodo['nombre']] = venta_gap
@@ -1025,7 +920,7 @@ class BuscarDatosPlanificacionCompView(View):
             itemplan_json['id_itemplan'] = item_obj.id
             itemplan_json['nombre'] = item_obj.nombre
             itemplan_json['precio'] = item_obj.precio
-            itemplan_json['costo_unitario'] = costo_unitario
+            itemplan_json['costo_unitario'] = 0
 
             resumen['itemplan'] = itemplan_json
             resumen['temporadas'] = list(temporadas)
@@ -1050,14 +945,41 @@ class GuardarPrecioCostoView(View):
             valor_ajuste = int(data['valor_ajuste'])
             tipo_ajuste = data['tipo_ajuste']
 
-            print plan_obj, itemplan_obj, valor_ajuste, tipo_ajuste
+            # Se busca si el item tiene hijos
+            arreglo_items = []
+            for item in itemplan_obj.item.hijos_recursivos():
+                arreglo_items.append(item)
 
             if tipo_ajuste == "precio":
                 itemplan_obj.precio = valor_ajuste
+                # A continuacion se actualiza la informacion de ventas asociada al itemplan
+                # Venta Neta
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    vta_n=(1 - F('dcto')) * F('vta_u') * valor_ajuste / 1.19)
+                # Contribucion
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    ctb_n=F('vta_n') - F('costo'))
+                # Margen
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    margen=F('ctb_n') / F('vta_n'))
+                # Precio Real
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    precio_real=F('vta_n') / F('vta_u') * 1.19)
             else:
                 itemplan_obj.costo = valor_ajuste
-                print Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan_obj.item)
-                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan_obj.item).update(costo=F('vta_u') * valor_ajuste, vta_n=F('vta_u') * itemplan_obj.precio, ctb_n=(F('vta_u') * itemplan_obj.precio) - (F('vta_u') * valor_ajuste))
+                # A continuacion se actualiza la informacion de ventas asociada al itemplan
+                # Costo Unitario
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    costo_unitario=valor_ajuste)
+                # Costo
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    costo=F('vta_u') * valor_ajuste)
+                # Contribucion
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    ctb_n=F('vta_n') - F('costo'))
+                # Margen
+                Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=arreglo_items).update(
+                    margen=F('ctb_n') / F('vta_n'))
             itemplan_obj.save()
             mensaje_respuesta = "El " + tipo_ajuste + " ha sido modificado al valor "
             mensaje_respuesta += "{:,}".format(valor_ajuste) + "."
@@ -1095,11 +1017,14 @@ class GuardarPlanificacionView(View):
                         defaults = {
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
-                            'costo': int(float(venta['costo_u']) * float(venta['vta_u'])),
+                            'costo': venta['costo'],
                             'vta_u': venta['vta_u'],
                             'stk_u': Decimal('0.000'),
                             'stk_v': Decimal('0.000'),
-                            'margen': venta['margen']
+                            'margen': venta['margen'],
+                            'precio_real': venta['precio_real'],
+                            'costo_unitario': venta['costo_unitario'],
+                            'dcto': venta['dcto']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
                             plan=plan_obj,
@@ -1113,10 +1038,12 @@ class GuardarPlanificacionView(View):
                             obj.vta_n = venta['vta_n']
                             obj.vta_u = venta['vta_u']
                             obj.ctb_n = venta['ctb_n']
-                            obj.dcto = float(venta['dcto'])
-                            obj.margen = float(venta['margen'])
-                            obj.costo = int(float(venta['costo_u']) * float(venta['vta_u']))
-                            if venta['vta_n'] != 0:
+                            obj.dcto = venta['dcto']
+                            obj.margen = venta['margen']
+                            obj.costo = venta['costo']
+                            obj.costo_unitario = venta['costo_unitario']
+                            obj.precio_real = venta['precio_real']
+                            if venta['vta_u'] != 0:
                                 # Tipo = 2 -> Planificada
                                 obj.tipo = 2
                             obj.save()
@@ -1168,121 +1095,98 @@ class BuscarSaldosAvancesView(LoginRequiredMixin, View):
             for hijo in item.get_hijos():
                 lista_hijos.append(hijo)
 
-            # Se verifica que el item recibido exista
-            if bool(itemplan_obj):
+            proyeccion = OrderedDict()
 
-                proyeccion = OrderedDict()
-                total_vta_u = 0
-                total_costo = 0
-                costo_unitario = 0
+            # Se busca el periodo inferior y superior de la temporada a proyectar
+            limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[0]
+            limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[1]
 
-                # Se busca el periodo inferior y superior de la temporada a proyectar
-                limite_inf = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[0]
-                limite_sup = plan_obj.temporada.periodos_proyeccion(plan_obj.anio + 1)[1]
+            # Se buscan las temporadas de los items a proyectar.
+            # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
+            # mas de una temporada.
+            temporadas = Temporada.objects.all().values(
+                'nombre', 'id').order_by('-planificable', 'nombre').distinct()
 
-                # Se buscan las temporadas de los items a proyectar.
-                # Siempre es una si el item es una hoja, pero si es una agrupacion, puede que considere
-                # mas de una temporada.
-                temporadas = Temporada.objects.all().values(
-                    'nombre', 'id').order_by('-planificable', 'nombre').distinct()
+            # Lista de los X periodos a considerar en la planificacion de saldos y avances
+            periodos = Periodo.objects.filter(
+                Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
+                Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
+                ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
-                # Lista de los X periodos a considerar en la planificacion de saldos y avances
-                periodos = Periodo.objects.filter(
-                    Q(tiempo__anio=limite_sup['anio'], nombre__lte=limite_sup['periodo__nombre']) |
-                    Q(tiempo__anio=limite_inf['anio'], nombre__gte=limite_inf['periodo__nombre'])
-                    ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+            # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
+            # Esto se utiliza en la vista para "pintar" de un color diferente los periodos
+            # de la temporada que esta siendo planificada.
+            for periodo in periodos:
+                if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
+                    periodo['temporada'] = True
+                else:
+                    periodo['temporada'] = False
 
-                # Se marcan los periodos que pertenecen efectivamente a la temporada en curso
-                # Esto se utiliza en la vista para "pintar" de un color diferente los periodos
-                # de la temporada que esta siendo planificada.
+            # Se llena el diccionario proyeccion, temporada->periodo->venta
+            for temporada in temporadas:
+                proyeccion[temporada['nombre']] = OrderedDict()
                 for periodo in periodos:
-                    if plan_obj.temporada.comprobar_periodo(periodo['nombre']):
-                        periodo['temporada'] = True
+                    ventas = Ventaperiodo.objects.filter(
+                        item__in=lista_hijos,
+                        anio=periodo['tiempo__anio'],
+                        periodo=periodo['nombre'],
+                        temporada__nombre=temporada['nombre']
+                        ).values('anio', 'periodo', 'temporada').annotate(
+                        vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
+                        ctb_n=Sum('ctb_n'), costo=Sum('costo'),
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
+                        ).order_by('anio', 'periodo', 'temporada')
+                    # Se revisa si existe una venta asociada a la temporada y periodo en curso
+                    if ventas.exists():
+                        # Se agregan algunos calculos a las ventas
+                        for venta in ventas:
+                            # Se corrige el margen en caso de agrupaciones
+                            if venta['vta_n'] != 0:
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
+                            else:
+                                venta['margen'] = 0
+                            # Se corrige el costo unitario para el caso de agrupaciones de items
+                            if periodo['temporada']:
+                                venta['costo_unitario'] = itemplan_obj.costo
+                            if plan_obj.temporada.comprobar_periodo(venta['periodo']):
+                                venta['tipo'] = 0
+                        # Se guarda la venta en el diccionario proyeccion
+                        proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
                     else:
-                        periodo['temporada'] = False
+                        # Si no existe venta, se llena el gap con una venta vacia
+                        venta_gap = {
+                            'anio': periodo['tiempo__anio'],
+                            'tipo': 1,
+                            'vta_n': Decimal('0.000'),
+                            'ctb_n': Decimal('0.000'),
+                            'costo': Decimal('0.000'),
+                            'vta_u': Decimal('0.000'),
+                            'temporada': temporada['id'],
+                            'periodo': periodo['nombre'],
+                            'margen': Decimal('0.000'),
+                            'precio_real': Decimal('0.000'),
+                            'dcto': Decimal('0.000'),
+                            'costo_unitario': Decimal('0.000')
+                        }
+                        if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
+                            venta_gap['tipo'] = 0
+                        proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
+            itemplan_json = {}
+            itemplan_json['id_item'] = itemplan_obj.item.id
+            itemplan_json['id_itemplan'] = itemplan_obj.id
+            itemplan_json['nombre'] = itemplan_obj.nombre
+            itemplan_json['precio'] = itemplan_obj.precio
+            itemplan_json['costo_unitario'] = itemplan_obj.costo
 
-                # Se llena el diccionario proyeccion, temporada->periodo->venta
-                for temporada in temporadas:
-                    proyeccion[temporada['nombre']] = OrderedDict()
-                    for periodo in periodos:
-                        ventas = Ventaperiodo.objects.filter(
-                            item__in=lista_hijos,
-                            anio=periodo['tiempo__anio'],
-                            periodo=periodo['nombre'],
-                            temporada__nombre=temporada['nombre']
-                            ).values('anio', 'periodo', 'temporada').annotate(
-                            vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
-                            ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                            margen=Avg('margen'), tipo=Min('tipo')
-                            ).order_by('anio', 'periodo', 'temporada')
-                        # Se revisa si existe una venta asociada a la temporada y periodo en curso
-                        if ventas.exists():
-                            if ventas.count() > 1:
-                                print "MAS DE UNA VENTA!!!!"
-                            # Se agregan algunos calculos a las ventas
-                            for venta in ventas:
-                                if venta['vta_u'] != 0:
-                                    total_vta_u += venta['vta_u']
-                                    total_costo += venta['costo']
-                                    venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                    # costo_unitario = float(venta['costo'] / venta['vta_u'])
-                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / itemplan_obj.item.precio)), 4)
-
-                                else:
-                                    venta['precio_real'] = 0
-                                    venta['dcto'] = 0
-                                venta['vta_u'] = round(float(venta['vta_u']), 0)
-                                venta['vta_n'] = round(float(venta['vta_n']), 0)
-                                venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                                venta['costo'] = round(float(venta['costo']), 0)
-                                if venta['ctb_n'] != 0:
-                                    venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
-                                else:
-                                    venta['margen'] = 0
-                                if plan_obj.temporada.comprobar_periodo(venta['periodo']):
-                                    venta['tipo'] = 0
-                            # Se guarda la venta en el diccionario proyeccion
-                            proyeccion[temporada['nombre']][periodo['nombre']] = ventas[0]
-                        else:
-                            # Si no existe venta, se llena el gap con una venta vacia
-                            venta_gap = {
-                                'anio': periodo['tiempo__anio'],
-                                'tipo': 1,
-                                'vta_n': Decimal('0.000'),
-                                'ctb_n': Decimal('0.000'),
-                                'costo': Decimal('0.000'),
-                                'vta_u': Decimal('0.000'),
-                                'temporada': temporada['id'],
-                                'periodo': periodo['nombre'],
-                                'margen': Decimal('0.000'),
-                                'precio_real': Decimal('0.000'),
-                                'dcto': Decimal('0.000')
-                            }
-                            if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
-                                venta_gap['tipo'] = 0
-                            proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
-                # Se previenen errores provocados por dividir por cero
-                #if total_vta_u > 0:
-                    #costo_unitario = round(float(total_costo / total_vta_u),0)
-                itemplan_json = {}
-                itemplan_json['id_item'] = itemplan_obj.item.id
-                itemplan_json['id_itemplan'] = itemplan_obj.id
-                itemplan_json['nombre'] = itemplan_obj.nombre
-                itemplan_json['precio'] = itemplan_obj.item.precio
-                #itemplan_json['costo_unitario'] = costo_unitario
-                itemplan_json['costo_unitario'] = itemplan_obj.item.calcular_costo_unitario()
-
-                resumen['itemplan'] = itemplan_json
-                resumen['temporadas'] = list(temporadas)
-                resumen['temporada_vigente'] = temporada_vigente
-                resumen['periodos'] = list(periodos)
-                resumen['ventas'] = proyeccion
-                data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
-
-            else:
-                data = {}
+            resumen['itemplan'] = itemplan_json
+            resumen['temporadas'] = list(temporadas)
+            resumen['temporada_vigente'] = temporada_vigente
+            resumen['periodos'] = list(periodos)
+            resumen['ventas'] = proyeccion
+            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
             return HttpResponse(data, mimetype='application/json')
-        #return HttpResponseRedirect(reverse('planes:plan_list'))
 
 
 class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
@@ -1324,8 +1228,6 @@ class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
                 lista_hijos.append(hijo)
 
             proyeccion = OrderedDict()
-            total_vta_u = 0
-            total_costo = 0
 
             # Se busca el periodo inferior y superior de la
             # temporada a proyectar
@@ -1368,33 +1270,17 @@ class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
                         ).values('anio', 'periodo', 'temporada').annotate(
                         vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
                         ctb_n=Sum('ctb_n'), costo=Sum('costo'),
-                        margen=Avg('margen'), tipo=Min('tipo')
+                        margen=Avg('margen'), tipo=Min('tipo'),
+                        dcto=Avg('dcto'), precio_real=Avg('precio_real'),
+                        costo_unitario=Avg('costo_unitario')
                         ).order_by('anio', 'periodo', 'temporada')
                     # Se revisa si existe una venta asociada a la temporada
                     # y periodo en curso
                     if ventas.exists():
-                        if ventas.count() > 1:
-                            print "MAS DE UNA VENTA!!!!"
-                        # Se agregan algunos calculos a las ventas
                         for venta in ventas:
-                            if venta['vta_u'] != 0:
-                                total_vta_u += venta['vta_u']
-                                total_costo += venta['costo']
-                                venta['precio_real'] = float(venta['vta_n'] / venta['vta_u']) * 1.19
-                                if item_obj.precio != 0:
-                                    venta['dcto'] = round(float(1 - (venta['precio_real'] / item_obj.precio)), 4)
-                                else:
-                                    venta['dcto'] = 0
-
-                            else:
-                                venta['precio_real'] = 0
-                                venta['dcto'] = 0
-                            venta['vta_u'] = round(float(venta['vta_u']), 0)
-                            venta['vta_n'] = round(float(venta['vta_n']), 0)
-                            venta['ctb_n'] = round(float(venta['ctb_n']), 0)
-                            venta['costo'] = round(float(venta['costo']), 0)
-                            if venta['ctb_n'] != 0:
-                                venta['margen'] = round(float(venta['ctb_n'] / venta['vta_n']), 4)
+                            # Se corrige el margen en caso de agrupaciones
+                            if venta['vta_n'] != 0:
+                                venta['margen'] = round(venta['ctb_n'] / venta['vta_n'], 3)
                             else:
                                 venta['margen'] = 0
                             if plan_obj.temporada.comprobar_periodo(venta['periodo']):
@@ -1415,7 +1301,8 @@ class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
                             'periodo': periodo['nombre'],
                             'margen': Decimal('0.000'),
                             'precio_real': Decimal('0.000'),
-                            'dcto': Decimal('0.000')
+                            'dcto': Decimal('0.000'),
+                            'costo_unitario': Decimal('0.000')
                             }
                         if plan_obj.temporada.comprobar_periodo(venta_gap['periodo']):
                             venta_gap['tipo'] = 0
@@ -1425,7 +1312,7 @@ class BuscarSaldosAvancesCompView(LoginRequiredMixin, View):
             itemplan_json['id_itemplan'] = item_obj.id
             itemplan_json['nombre'] = item_obj.nombre
             itemplan_json['precio'] = item_obj.precio
-            itemplan_json['costo_unitario'] = item_obj.calcular_costo_unitario()
+            itemplan_json['costo_unitario'] = 0
             resumen['itemplan'] = itemplan_json
             resumen['temporadas'] = list(temporadas)
             resumen['temporada_vigente'] = temporada_vigente
@@ -1439,8 +1326,6 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
     """
     Guarda la planificacion de avances y saldos asociada al item recibido como pararametro.
     """
-    def get(self, request, *args, **kwargs):
-        return HttpResponseRedirect(reverse('planes:plan_list'))
 
     def post(self, request, *args, **kwargs):
         if request.POST:
@@ -1469,7 +1354,10 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
                             'vta_u': venta['vta_u'],
                             'stk_u': Decimal('0.000'),
                             'stk_v': Decimal('0.000'),
-                            'margen': venta['margen']
+                            'margen': venta['margen'],
+                            'precio_real': venta['precio_real'],
+                            'costo_unitario': venta['costo_unitario'],
+                            'dcto': venta['dcto']
                         }
                         obj, created = Ventaperiodo.objects.get_or_create(
                             plan=plan_obj,
@@ -1486,6 +1374,8 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
                             obj.dcto = float(venta['dcto'])
                             obj.margen = float(venta['margen'])
                             obj.costo = float(venta['costo'])
+                            obj.costo_unitario = venta['costo_unitario']
+                            obj.precio_real = venta['precio_real']
                             if venta['vta_n'] != 0:
                                 # Tipo = 2 -> Planificado
                                 obj.tipo = 2
@@ -1589,6 +1479,7 @@ class ResumenDataGraficosView(View):
 
                 vta_n, vta_u, ctb_n = int(x['vta_n']), int(x['vta_u']), int(x['ctb_n'])
                 costo, precio_prom = int(x['costo']), int(x['precio_prom'])
+                precio_prom = int(float(x['vta_n']) / float(x['vta_u']) * 1.19)
                 anio = str(x['anio'])
                 # Calculo de margen
                 if vta_n != 0:
@@ -1716,22 +1607,49 @@ class ResumenDataGraficosView(View):
             return HttpResponse(data, mimetype='application/json')
 
 
-def ExportarExcelView(request, pk=None):
+def ExportarPlanificacionExcelView(request, pk=None):
     """
     Devuelve un objeto response tipo xls con un resumen de las compras asociadas a la planificacion.
+    La estructura de salida es la siguiente:
+        Padre 1, Padre 2, Padre 3, Item, PB, Año, Periodo, Venta $, Venta U, Costo, Contribucion
     """
 
     plan_obj = get_object_or_404(Plan, pk=pk)
     nombre_archivo = 'planificacion_' + plan_obj.temporada.nombre + '_' + str(plan_obj.anio) + '.xlsx'
-    
+
+    # Reset queries
+    db.reset_queries()
+
+    itemplan_planificados = plan_obj.item_planificados.filter(
+        planificable=True, estado=2).prefetch_related('item__categoria')
+
+    for itemplan in itemplan_planificados:
+        # Se verifica si el item planificado tiene hijos, ya que la venta siempre esta asociada a
+        # nodos hijos y nunca a nodos intermedios, es decir, siempre a la ultima categoria.
+        if bool(itemplan.item.categoria.get_children()):
+            hijos = []
+            for hijo in itemplan.item.get_hijos():
+                hijos.append(hijo)
+            itemplan.info_comercial = Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=hijos).values(
+                'anio', 'periodo').annotate(
+                Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
+
+        # Si es de la ultima categoria, es decir, no es posible que tenga hijos.
+        else:
+            itemplan.info_comercial = Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan.item).values(
+                'anio', 'periodo').annotate(
+                Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
+
+    print "QUERIES: " + str(len(db.connection.queries))
+
     # create a workbook in memory
     output = StringIO.StringIO()
 
     book = Workbook(output)
     sheet = book.add_worksheet('Planificacion')
-    
+
     # Formato moneda
-    fmoney = book.add_format({'num_format': '$#,##0'})
+    # fmoney = book.add_format({'num_format': '$#,##0'})
     # Formato numerico
     fnumeros = book.add_format({'num_format': '#,##0'})
     # Formato negrita
@@ -1741,30 +1659,32 @@ def ExportarExcelView(request, pk=None):
     sheet.set_column(0, 0, 40)
 
     # Escribir la cabecera del archivo
-    cabecera = ['Item', 'Unidades Temporada Vigente', 'Unidades Avance', 'Unidades Saldo', 'Unidades Totales', 'Costo Unitario', 'Costo Total']
+    cabecera = ['Item', 'Precio', 'Anio', 'Periodo', 'Venta CLP', 'Unidades', 'Costo CLP', 'Contribucion CLP']
     for ccol, ccol_data in enumerate(cabecera):
-        sheet.write(0, ccol, ccol_data, fbold) 
+        sheet.write(0, ccol, ccol_data, fbold)
 
-    d_plan = plan_obj.resumen_plan_item()
-    numero_filas = len(d_plan.keys())
+    numero_filas = 0
+
     # Se itera sobre el diccionario de items y se crean las filas del archivo
-    for fila, tupla in enumerate(d_plan.iteritems()):
-        id, item = tupla
-        sheet.write(fila+1, 0, item['nombre'])
-        sheet.write(fila+1, 1, item['vta_u_vigente'], fnumeros)
-        sheet.write(fila+1, 2, item['vta_u_avance'], fnumeros)
-        sheet.write(fila+1, 3, item['vta_u_saldo'], fnumeros)
-        sheet.write(fila+1, 4, item['vta_u_total'], fnumeros)
-        sheet.write(fila+1, 5, item['costo_total'] / item['vta_u_total'], fmoney)
-        sheet.write(fila+1, 6, item['costo_total'], fmoney)
+    for item in itemplan_planificados:
+        for venta in item.info_comercial:
+            sheet.write(numero_filas+1, 0, item.nombre)
+            sheet.write(numero_filas+1, 1, item.precio, fnumeros)
+            sheet.write(numero_filas+1, 2, venta['anio'], fnumeros)
+            sheet.write(numero_filas+1, 3, venta['periodo'])
+            sheet.write(numero_filas+1, 4, venta['vta_n__sum'], fnumeros)
+            sheet.write(numero_filas+1, 5, venta['vta_u__sum'], fnumeros)
+            sheet.write(numero_filas+1, 6, venta['costo__sum'], fnumeros)
+            sheet.write(numero_filas+1, 7, venta['ctb_n__sum'], fnumeros)
+            numero_filas = numero_filas + 1
+
     # Se construye la fila de totales
+    print numero_filas
     sheet.write(numero_filas+1, 0, 'Total', fbold)
-    sheet.write(numero_filas+1, 1, '=SUM(B2:B'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 2, '=SUM(C2:C'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 3, '=SUM(D2:D'+str(numero_filas+1)+')', fnumeros)
     sheet.write(numero_filas+1, 4, '=SUM(E2:E'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 5, '=AVG(F2:F'+str(numero_filas+1)+')', fmoney)
-    sheet.write(numero_filas+1, 6, '=SUM(G2:G'+str(numero_filas+1)+')', fmoney)
+    sheet.write(numero_filas+1, 5, '=AVG(F2:F'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 6, '=SUM(G2:G'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, 7, '=SUM(H2:H'+str(numero_filas+1)+')', fnumeros)
     book.close()
 
     # construct response
