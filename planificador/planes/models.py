@@ -79,10 +79,6 @@ class Plan(models.Model):
     usuario_creador = models.ForeignKey(User)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
 
-    def get_num_items_planificables(self):
-        num_items = Itemplan.objects.filter(plan=self.id, planificable=True).count()
-        return num_items
-
     def resumen_estadisticas(self, temporada=None, item=None):
         """
         Obtiene la venta asociada a todos los items de una planificacion entre los
@@ -151,7 +147,7 @@ class Plan(models.Model):
         itemplan_raices = Itemplan.objects.filter(
             plan=self,
             item__in=items_responsable
-            ).select_related('item__categoria')
+            ).prefetch_related('item__categoria')
         # Si existen itemplan asociados al plan, entonces el arbol ha sido definido y debe ser cargado inicialmente
         if bool(itemplan_raices):
             arbol_json = "["
@@ -160,24 +156,17 @@ class Plan(models.Model):
                     if obj:
                         if obj.item.categoria.planificable:
                             extraClasses = "\"extraClasses\":\"planificable\","
+                            data = "\"data\":{\"precio\":" + str(obj.item.precio) + ", \"venta\": " + str(obj.item.get_venta_anual(self.anio-1)) + "}, "
                         else:
                             extraClasses = ""
+                            data = "\"data\":{\"precio\":" + str(obj.item.precio) + ", \"venta\":0}, "
                         if branch:
-                            if obj.item.precio != 0:
-                                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
-                            else:
-                                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
+                            arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
                         else:
-                            if obj.item.precio != 0:
-                                if bool(obj.item.get_children()):
-                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\" }"
-                                else:
-                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + " | " + "{:,}".format(obj.item.precio) + "\", \"key\":\"" + str(obj.item.id) + "\" }"
+                            if bool(obj.item.get_children()):
+                                arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\" }"
                             else:
-                                if bool(obj.item.get_children()):
-                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\" }"
-                                else:
-                                    arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"key\":\"" + str(obj.item.id) + "\" }"
+                                arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"key\":\"" + str(obj.item.id) + "\" }"
                     else:
                         if branch:
                             arbol_json = arbol_json[:-1]
@@ -194,9 +183,11 @@ class Plan(models.Model):
             for obj in items_responsable:
                 if obj.categoria.planificable:
                     extraClasses = "\"extraClasses\":\"planificable\","
+                    data = "\"data\":{\"precio\":" + str(obj.precio) + ", \"venta\": " + str(obj.get_venta_anual(self.anio-1)) + "}, "
                 else:
                     extraClasses = ""
-                arbol_json += "{" + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.id) + "\" },"
+                    data = "\"data\":{\"precio\":" + str(obj.precio) + ", \"venta\":0}, "
+                arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.id) + "\" },"
             arbol_json = arbol_json[:-1]
             arbol_json += "]"
         return arbol_json
@@ -231,6 +222,35 @@ class Plan(models.Model):
 
         # Devuelve un diccionario con todos los itemplan de la planificacion, unidades y costos asociados
         return d_totales_venta
+
+    def get_num_pendientes(self):
+        """
+            Devuelve la cantidad de Items que no han sido planificados.
+        """
+        return Itemplan.objects.filter(plan=self, planificable=True).exclude(estado=2).count()
+
+    def get_num_planificados(self):
+        """
+            Devuelve la cantidad de Items que han sido planificados.
+        """
+        return Itemplan.objects.filter(plan=self, estado=2, planificable=True).count()
+
+    def get_num_total(self):
+        """
+            Devuelve la cantidad total de Items que contiene el plan.
+        """
+        return Itemplan.objects.filter(plan=self, planificable=True).count()
+
+    def get_progreso(self):
+        """
+        Devuelve el porcentaje de avance de un plan en formato string. Se obtiene
+        a partir del cuociente entre los Items planificados y el total de Items de la
+        planificacion.
+        """
+        if self.get_num_total() != 0:
+            return str(round(float(self.get_num_planificados() / float(self.get_num_total())), 2)) + "%"
+        else:
+            return "0.0" + "%"
 
     def __unicode__(self):
         return str(self.anio) + " " + str(self.temporada)

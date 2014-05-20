@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
@@ -108,14 +109,17 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
             plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
-                #venta_anual = children.get_venta_anual(plan_obj.anio-1)
-                venta_anual = 0
-                nodo = {}
-                if children.precio != 0:
-                    nodo['title'] = children.nombre + " | PB:" + "{:,}".format(children.precio) + " | VTA: " + "{:,}".format(venta_anual)
+                if children.categoria.planificable:
+                    venta_anual = children.get_venta_anual(plan_obj.anio-1)
                 else:
-                    nodo['title'] = children.nombre + " | VTA: " + "{:,}".format(venta_anual)
+                    venta_anual = 0
+                nodo = {}
+                data = {}
+                nodo['title'] = children.nombre
+                data['precio'] = str(children.precio)
+                data['venta'] = str(venta_anual)
                 nodo['key'] = children.id
+                nodo['data'] = data
                 if (children.get_children()):
                     nodo['folder'] = True
                     nodo['lazy'] = True
@@ -294,4 +298,26 @@ class ItemCreateAjaxView(LoginRequiredMixin, View):
         nuevo_item.save()
         data['msg'] = "El item ha sido creado exitosamente."
         data['id_item_padre'] = id_item_padre
+        return HttpResponse(json.dumps(data), mimetype='application/json')
+
+
+class ItemQuitarVigenciaView(LoginRequiredMixin, View):
+    """
+    Quita la vigencia a un item, y por lo tanto, ya no aparece
+    en el árbol de planificación.
+    """
+    def post(self, request, *args, **kwargs):
+        data = {}
+        id_item = request.POST['item_id']
+        try:
+            item = Item.objects.get(id=id_item)
+        except ObjectDoesNotExist:
+            data['msg'] = "El item NO pudo ser actualizado, por favor intentelo nuevamente."
+            data['tipo_msg'] = "msg_error"
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+        item.vigencia = False
+        #item.save()
+        data['msg'] = "El item ha sido removido exitosamente."
+        data['tipo_msg'] = "msg_success"
+        data['id_item_padre'] = item.item_padre.id
         return HttpResponse(json.dumps(data), mimetype='application/json')

@@ -2,6 +2,24 @@
 	font-size: 90%;
 }
 
+#div_arbol{
+	font-size: 11px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	margin-bottom: 5px; 
+	background-color: white;
+	border: 1px solid #ef4929;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	overflow: hidden;
+}
+
+#div_arbol th{
+	color: #ef4929;
+}
+
 label, input {
 	display:block; 
 }
@@ -38,4 +56,12 @@ div.floating-menu-agrupaciones {
 	top: 30%;
 	width: 30%;
 	z-index:100;
+}
+
+.col_derecha{
+	text-align: right;
+}
+
+td.alignRight {
+     text-align: right;
 }

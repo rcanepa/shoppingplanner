@@ -33,7 +33,8 @@
             <li><a id="btnExpand">Expandir Nodos</a></li>
             <li><a id="btnCollapse">Collapsar Nodos</a></li>
             <li><a id="btnSave">Guardar</a></li>
-            <li id="li-nuevo-nodo" style="display:none;"><a id="btnSaveNuevoNodo">Crear Nodo</a></li>
+            <li id="li-nuevo-nodo" style="display:none;"><a id="btnSaveNuevoNodo">Crear Item</a></li>
+            <li id="li-vigencia-nodo" style="display:none;"><a id="btnVigencia">Remover Item</a></li>
         </ul>
     </div>        
 </div>
@@ -44,16 +45,23 @@
 <h3>Arbol de Planificaci&oacute;n</h3>
 <div style="width:100%; float:left">
     {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"><p>Items Totales: {{ nodos_visibles }} | Items a Planificar: {{ nodos_planificables }}</p></span>
-    
 </div>
-<div style="width:62%; float:left">
-    <div id="itemstree">
-        <ul id="treeData" style="display: none;">
-            {% for obj in items %}
-            <li id="{{ obj.id }}" class="folder lazy"><a href="{% url 'categorias:categoria_detail' obj.id %}" target="_self">{{ obj.nombre }}</a>
-            {% endfor %}
-        </ul>
-    </div>
+<div id="div_arbol" style="width:70%; float:left">
+    <table id="treetable">
+        <colgroup>
+            <col width="30px"></col>
+            <col width="30px"></col>
+            <col width="*"></col>
+            <col width="70px"></col>
+            <col width="100px"></col>
+        </colgroup>
+        <thead>
+          <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO</th> <th>VENTA CLP</th> </tr>
+        </thead>
+        <tbody>
+          <tr> <td></td> <td></td> <td></td> <td></td> </tr>
+        </tbody>
+    </table>
 </div>
 <!-- DIV DERECHO DEL SITIO -->
 <div class="floating-menu-agrupaciones">
@@ -69,7 +77,7 @@
     </div>
 </div>
 <!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
-<div id="dialog-form" title="Crear nuevo Item" style="display:none;">
+<div id="dialog-form" title="Crear nuevo Item">
     <p class="validateTips">Todos los campos son requeridos.</p>
     <form id="crear_grupoitem_form">
         {% csrf_token %}
@@ -95,274 +103,37 @@
         </fieldset>
     </form>
 </div>
+<div id="dialog-quitar-vigencia-item" title="Remover Item" style="display:none;">
+    <p>¿Est&aacute; seguro de querer continuar?. Esto quitar&aacute; permanentemente el item y no podr&aacute; volver a ser utilizado dentro de la planificaci&oacute;n.</p>
+    <form id="quitar_vigencia_item_form">
+        {% csrf_token %}
+        <fieldset>
+            <input type="hidden" name="item_id" id="item_id">
+        </fieldset>
+    </form>
+</div>
+
 <div id="dvLoading" style="display:none;"></div>
 <!-- DIV DERECHO DEL SITIO -->
 {% endblock %}
 
 {% block js %}
 {% load static %}
-<!-- Fancytree -->
-<link href="{% static "fancytree_2.0.0-8/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
-<script src="{% static "fancytree_2.0.0-8/jquery.fancytree.js" %}" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" href="{% static "planes/css/arbol.css" %}">
-
 <script>
 
 $(function() {
 
-    // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
-    // cambios que no han sido guardados
-    $(window).bind("beforeunload",function(event) {
-        if(arbol_obj.getModificada()) 
-            return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
-    });
-
-    $( "#plan_tree_detail" ).addClass( "opcion-seleccionada" );
-    
-    arbol_obj = function(){    
-        /*
-        Almacena el estado de la proyeccion:
-            - false = no ha sido modificada
-            - true = ha sido modificada y los cambios no han sido guardados
-        */
-        var modificada = false;
-        
-        function setModificada(estado){
-            modificada = estado;
-        }
-
-        function getModificada(){
-            return modificada;
-        }
-
-        return{
-            setModificada:setModificada,
-            getModificada:getModificada
-        }
-    }();
-
-    var contenedor_plantree = {}; // namespace para variables globales
-    contenedor_plantree.tips = $( ".validateTips" );
-
-    // Para que al hacer click en la tecla ENTER, los formularios de los dialogs sean enviados
-    $('body').on('keypress', '.ui-dialog', function(event) { 
-        if (event.keyCode === $.ui.keyCode.ENTER) { 
-            $('.ui-dialog-buttonpane button:first', $(this)).click();
-            return false;
-        }
-    });
-    
-    // Controla la aparicion y desaparicion de la imagen animada que indica que hay un proceso
-    // en ejecucion
-    $( document ).ajaxStart(function() {
-        $("#dvLoading").show();
-    });
-
-    $( document ).ajaxStop(function() {
-        $("#dvLoading").hide();
-    });
-    
-    $("#dialog-form").show();
-
-    function updateTips( t ) {
-        contenedor_plantree.tips
-        .text( t )
-        .addClass( "ui-state-highlight" );
-        setTimeout(function() {
-            contenedor_plantree.tips.removeClass( "ui-state-highlight", 1500 );
-        }, 500 );
-    }
-
-    function checkLength( o, n, min, max ) {
-        if ( o.val().length > max || o.val().length < min ) {
-            o.addClass( "ui-state-error" );
-            updateTips( "El largo del campo " + n + " debe contener entre " +
-            min + " y " + max + " letras." );
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    function checkRegexp( o, regexp, n ) {
-        if ( !( regexp.test( o.val() ) ) ) {
-            o.addClass( "ui-state-error" );
-            updateTips( n );
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    $( "#dialog-form" ).dialog({
-        autoOpen: false,
-        height: 200,
-        width: 300,
-        modal: true,
-        buttons: {
-            "Guardar": function() {
-                var nombre = $( "#nombre-grupoitem" ),
-                    //temporada = $( "#combo_temporada_dialog" ),
-                    //precio = $( "#precio" ),
-                    grupo_items = $( "#grupo_items" ),
-                    allFields = $( [] ).add( nombre );
-                var bValid = true;
-                allFields.removeClass( "ui-state-error" );
-
-                bValid = bValid && checkLength( nombre, "nombre", 5, 70 );
-                //bValid = bValid && checkLength( precio, "precio", 1, 10 );
-
-                bValid = bValid && checkRegexp( nombre, /^[a-zA-ZñÑ]*/, "El nombre debe comenzar con una letra (a-z)." );
-                
-                // Se valida que el valor seleccionado sea positivo (la opcion nula tiene el valor -1)
-                //bValid = bValid && checkRegexp( temporada, /^[1-9]\d*$/, "Debe escoger una temporada." );
-                //bValid = bValid && checkRegexp( precio, /^\d+$/, "El precio solo admite números enteros (0-9)." );
-
-                // Si todas las validaciones resultaron positivas se gatilla la solicitud AJAX que crea el nuevo item,
-                // grupoitem, quita la vigencia de los antiguos items y crea los nuevos registros de venta asociados
-                // al nuevo item
-                if ( bValid ) {
-                    var tree = $("#itemstree").fancytree("getTree");
-                    nombre.val("(GRUPO) " + nombre.val());
-                    $.ajax({
-                        data: $("#crear_grupoitem_form").serialize(),
-                        url: '/categorias/grupoitem/create/',
-                        type: 'post',
-                        success: function(data){
-                            // Se busca y recarga el nodo padre para actualizar los cambios en el arbol
-                            var nodo_padre = tree.getNodeByKey(String(data.item_padre_id));
-                            nodo_padre.load(true);
-                            // Se despliega un mensaje informando lo ocurrido
-                            $("#caja-mensajes")
-                                .show()
-                                .html(data.msg)
-                                .addClass("msg_success")
-                                .delay(3000)
-                                .queue( function(next){ 
-                                    $(this).hide();
-                                    $(this).removeClass("msg_success");
-                                    $(this).html("");
-                                        next(); 
-                            });
-                        }
-                    });
-                    $( this ).dialog( "close" );
-                }
-            },
-            Cancelar: function() {
-                $( this ).dialog( "close" );
-                }
-            },
-            close: function() {
-                var nombre = $( "#nombre-grupoitem" ),
-                    allFields = $( [] ).add( nombre );
-                allFields.val( "" ).removeClass( "ui-state-error" );
-            }
-    });
-
-    $( "#dialog-form-nuevo-item" ).dialog({
-        autoOpen: false,
-        height: 270,
-        width: 300,
-        modal: true,
-        buttons: {
-            "Guardar": function() {
-                var nombre = $( "#nombre-item" ),
-                    precio = $( "#precio-item" ),
-                    allFields = $( [] ).add( nombre ).add( precio );
-                var bValid = true;
-                allFields.removeClass( "ui-state-error" );
-
-                bValid = bValid && checkLength( nombre, "nombre", 5, 70 );
-                bValid = bValid && checkLength( precio, "precio", 1, 10 );
-
-                bValid = bValid && checkRegexp( nombre, /^[a-zA-ZñÑ]*/, "El nombre debe comenzar con una letra (a-z)." );
-                
-                // Se valida que el valor seleccionado sea positivo (la opcion nula tiene el valor -1)
-                bValid = bValid && checkRegexp( precio, /^\d+$/, "El precio solo admite números enteros (0-9)." );
-
-                // Si todas las validaciones resultaron positivas se gatilla la solicitud AJAX que crea el nuevo item,
-                if ( bValid ) {
-                    var nodo = $(this).data('node');
-                    console.log(nodo);
-                    $( "#item_padre_id" ).val(nodo.key);
-
-                    $.ajax({
-                        data: $("#crear_item_form").serialize(),
-                        url: '/categorias/item/create-ajax/',
-                        type: 'post',
-                        success: function(data){
-                            // Se busca y recarga el nodo padre para actualizar los cambios en el arbol
-                            var tree = $("#itemstree").fancytree("getTree");
-                            var nodo_padre = tree.getNodeByKey(String(data.id_item_padre));
-                            nodo_padre.load(true);
-                            // Se despliega un mensaje informando lo ocurrido
-                            $("#caja-mensajes")
-                                .show()
-                                .html(data.msg)
-                                .addClass("msg_success")
-                                .delay(3000)
-                                .queue( function(next){ 
-                                    $(this).hide();
-                                    $(this).removeClass("msg_success");
-                                    $(this).html("");
-                                        next(); 
-                            });
-                        }
-                    });
-                    
-
-                    $( this ).dialog( "close" );
-                    var nombre = $( "#nombre-item" ),
-                        precio = $( "#precio-item" ),
-                        allFields = $( [] ).add( nombre ).add( precio );
-                    allFields.val( "" ).removeClass( "ui-state-error" );
-                    $( ".validateTips" ).html("Todos los campos son requeridos.");
-                }
-            },
-            Cancelar: function() {
-                $( this ).dialog( "close" );
-                var nombre = $( "#nombre-item" ),
-                    precio = $( "#precio-item" ),
-                    allFields = $( [] ).add( nombre ).add( precio );
-                allFields.val( "" ).removeClass( "ui-state-error" );
-                $( ".validateTips" ).html("Todos los campos son requeridos.");
-            },
-        }
-    });
-
-    // Contar nodos a planificar (visibles)
-    function definirVisibles(){
-        var html = "";
-        var nodos_planificables = 0;
-        var nodos_visibles = 0;
-        $("#itemstree").fancytree("getTree").visit(function(node){
-            if(!(typeof node.extraClasses == "undefined") && (node.extraClasses == "planificable")){
-                if (node.isVisible()){
-                    if (node.hasChildren()){
-                        if (!node.isExpanded()){
-                            nodos_planificables++;
-                        }
-                    }
-                    else{
-                        nodos_planificables++;
-                    }
-                    
-                }
-            }
-            if (node.isVisible()){
-                nodos_visibles++;
-            }
-            
-        });
-        html += "<p>Items Totales: " + nodos_visibles + " | Items a Planificar: " + nodos_planificables + "</p>";
-        $("#msg_visibles").html(html);
-        return false;
-    }
-
-    $("#itemstree").fancytree({
-        selectMode: 2,
+    /*
+        Configuracion del arbol de items.
+    */
+    $("#treetable").fancytree({
+        extensions: ["table"],
         checkbox: true,
+        table: {
+            indentation: 20,      // indent 20px per node level
+            nodeColumnIdx: 2,     // render the node title into the 2nd column
+            checkboxColumnIdx: 0  // render the checkboxes into the 1st column
+        },
         source: {
             url: "{% url 'planes:plan_buscar_estructura_arbol' %}",
             data: {id_plan: parseInt({{plan.id}})}
@@ -372,10 +143,9 @@ $(function() {
             data.result = {
             url: "{% url 'categorias:item_nodesearch' %}",
             data: {key: data.node.key, plan: parseInt({{plan.id}})}
-            };
+            };  
         },
         postProcess: function(event,data){
-            //console.log(data);
         },
         expand: function(event, data){
             arbol_obj.setModificada(true);
@@ -410,43 +180,182 @@ $(function() {
             var node = data.node;
             var options = {};
             if( ( node.folder ) && ( node.extraClasses == "planificable" ) ){
-                $( "#li-nuevo-nodo" ).show().effect( "highlight", options, 1000 );
-            }  
+                $( "#li-nuevo-nodo" ).show().effect( "highlight", options, 300 );
+            }
+            if( !node.folder ){
+                $( "#li-vigencia-nodo" ).show().effect( "highlight", options, 300 );
+            }
         },
         deactivate: function(event, data){
             $( "#li-nuevo-nodo" ).hide();
+            $( "#li-vigencia-nodo" ).hide();
+        },
+        renderColumns: function(event, data) {
+            var node = data.node,
+            $tdList = $(node.tr).find(">td");
+            // (index #0 is rendered by fancytree by adding the checkbox)
+            $tdList.eq(1).text(node.getIndexHier());
+            // (index #2 is rendered by fancytree)
+            $tdList.eq(3).text(numeral(node.data['precio']).format('0,0')).addClass("alignRight");
+            $tdList.eq(4).text(numeral(node.data['venta']).format('0,0')).addClass("alignRight");
+        }
+    });
+
+    // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
+    // cambios que no han sido guardados
+    $(window).bind("beforeunload",function(event) {
+        if(arbol_obj.getModificada()) 
+            return "Hay cambios que no han sido guardados, ¿está seguro de querer salir?";
+    });
+
+    $( "#plan_tree_detail" ).addClass( "opcion-seleccionada" );
+    
+    arbol_obj = function(){    
+        /*
+        Almacena el estado de la proyeccion:
+            - false = no ha sido modificada
+            - true = ha sido modificada y los cambios no han sido guardados
+        */
+        var modificada = false;
+        var tips = $( ".validateTips" );
+
+        function setModificada(estado){
+            modificada = estado;
+        }
+
+        function getModificada(){
+            return modificada;
+        }
+
+        function getTips(){
+            return tips;
+        }
+
+        return{
+            setModificada:setModificada,
+            getModificada:getModificada,
+            getTips:getTips
+        }
+    }();
+
+    // Para que al hacer click en la tecla ENTER, los formularios de los dialogs sean enviados
+    $('body').on('keypress', '.ui-dialog', function(event) { 
+        if (event.keyCode === $.ui.keyCode.ENTER) { 
+            $('.ui-dialog-buttonpane button:first', $(this)).click();
+            return false;
         }
     });
     
-    /* Se vincula el boton con la funcion que permite crear nodos/item */
-    $( "#btnSaveNuevoNodo" ).click(guardarNuevoNodo);
+    /* 
+        Controla la aparicion y desaparicion de la imagen animada que indica que
+        hay un proceso en ejecucion.
+    */
+    $( document ).ajaxStart(function() {
+        $("#dvLoading").show();
+    });
+
+    $( document ).ajaxStop(function() {
+        $("#dvLoading").hide();
+    });
+    
+    /*
+        Configuracion del dialog para la creacion de un objeto Grupoitem.
+    */
+    $( "#dialog-form" ).dialog({
+        autoOpen: false,
+        height: 200,
+        width: 300,
+        modal: true,
+        buttons: {
+            "Guardar": guardarGrupoItem,
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        },
+        close: function() {
+            var nombre = $( "#nombre-grupoitem" ),
+                allFields = $( [] ).add( nombre );
+            allFields.val( "" ).removeClass( "ui-state-error" );
+        }
+    });
 
     /*
-    Almacena el nuevo item creado.
+        Configuracion del dialog para la creacion de un nuevo Item.
     */
-    function guardarNuevoNodo(){
-        var tree = $("#itemstree").fancytree("getTree"),
+    $( "#dialog-form-nuevo-item" ).dialog({
+        autoOpen: false,
+        height: 270,
+        width: 300,
+        modal: true,
+        buttons: {
+            "Guardar": guardarNuevoItem,
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+                var nombre = $( "#nombre-item" ),
+                    precio = $( "#precio-item" ),
+                    allFields = $( [] ).add( nombre ).add( precio );
+                allFields.val( "" ).removeClass( "ui-state-error" );
+                $( ".validateTips" ).html("Todos los campos son requeridos.");
+            },
+        }
+    });
+    
+    /*
+        Configuracion del dialog para quitar la vigencia (remover) a un Item.
+    */
+    $( "#dialog-quitar-vigencia-item" ).dialog({
+        autoOpen: false,
+        height: 170,
+        width: 300,
+        modal: true,
+        buttons: {
+            "Remover": quitarVigenciaItem,
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            },
+        }
+    });
+
+    /* 
+        Se vincula el boton con la funcion que permite crear nodos/item.
+    */
+    $( "#btnSaveNuevoNodo" ).click(function(){
+        var tree = $("#treetable").fancytree("getTree"),
         activeNode = tree.getActiveNode();
-        console.log(activeNode);
         /* Se valida que el nodo seleccionado pueda tener nuevos hijos */
         if( ( activeNode.folder ) && ( activeNode.extraClasses == "planificable" ) ){
             $( "#dialog-form-nuevo-item" ).data('node', activeNode).dialog( "open" );
         }
-    }
+    });
+
+    /*
+        Se vincula el boton Remover Item con el dialog respectivo.
+    */
+    $( "#btnVigencia" ).click(function(){
+        var tree = $("#treetable").fancytree("getTree"),
+        activeNode = tree.getActiveNode();
+        /* Se valida que el nodo seleccionado sea un nodo hoja */
+        if( !activeNode.folder ){
+            $( "#dialog-quitar-vigencia-item" ).data('node', activeNode).dialog( "open" );
+        }
+    });
 
     /* 
-    Expandir todos los nodos un nivel.
+        Expandir todos los nodos un nivel.
     */
     $("#btnExpand").click(function(){
-        $("#itemstree").fancytree("getRootNode").visit(function(node){
+        $("#treetable").fancytree("getRootNode").visit(function(node){
             if ( node.isVisible() )
                 node.setExpanded(true);
         });
         return false;
     });
 
+    /*
+        Collapsar todos los nodos un nivel.
+    */
     $("#btnCollapse").click(function(){
-        $("#itemstree").fancytree("getRootNode").visit(function(node){
+        $("#treetable").fancytree("getRootNode").visit(function(node){
             if (!node.hasChildren()){
                 if ( node.getParent() ){
                     var nodo_padre = node.getParent();
@@ -463,68 +372,13 @@ $(function() {
         seleccion de la derecha.
     */
     $("#btnCancelar").click(function(){
-        tree = $("#itemstree").fancytree("getTree");
+        tree = $("#treetable").fancytree("getTree");
         items_arr = tree.getSelectedNodes();
         for (var x=0; x<items_arr.length; x++){
             items_arr[x].setSelected(false);
         }
         $("#menu-derecho").hide("slow");
     })
-
-    /*
-        Genera un registro de agrupacion de item (Grupoitem). Esto implica la creacion de un nuevo
-        Item y un registro de Grupoitem por cada Item que se agrupo.
-    */
-    function crearGrupoitem(){
-        var agrupacion_valida = true;
-        var num_items = 0;        
-        var items_arr = [],
-            items_arr_keys = [];
-        var tree;
-        tree = $("#itemstree").fancytree("getTree");
-        // Se genera obtiene un arreglo con los nodos seleccionados por el usuario
-        items_arr = tree.getSelectedNodes();
-        // Se almacena la cantidad de items que han sido seleccionados por el usuario
-        num_items = items_arr.length;
-        
-        // Validaciones antes de permitir guardar la agrupacion
-        // Se verifica que el usuario haya seleccionado al menos dos items para crear una agrupacion
-        if ( num_items <= 1 ){
-            agrupacion_valida = false;
-            msg = "Una agrupación debe contener al menos 2 items.";
-            tipo = "msg_warning";
-            mostrarMensaje(msg, tipo);
-            return false;
-        }
-        else{
-            // Se valida que todos los items pertenezcan al mismo padre. Es decir, no se pueden
-            // agrupar items de distintas ramas (padres)
-            for (var x=1; x<num_items; x++){
-                if ( items_arr[x].parent != items_arr[x-1].parent ){
-                    agrupacion_valida = false;
-                    break;
-                }
-            }
-            if ( !agrupacion_valida ){
-                msg = "No es posible agrupar items que pertenezcan a distintas ramas (padres).";
-                tipo = "msg_warning";
-                mostrarMensaje(msg, tipo);
-                return false;
-            }
-        }
-        // Fin validaciones
-
-        // Se despliega el dialog con el formulario a completar (informacion del nuevo item a crear)
-        for(var x = 0; x<num_items; x++){
-            items_arr_keys.push(items_arr[x].key);
-        }
-
-        items_arr[0].title
-
-        $("#grupo_items").val(items_arr_keys);
-        $( "#dialog-form" ).dialog( "open" );
-
-    }
 
     /*
         Enviar por POST dos campos, el ID del plan y un string de IDs de items
@@ -535,13 +389,13 @@ $(function() {
         var nodos_planificables_lista = [];
         var plan = parseInt({{plan.id}});
         /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
-        $("#itemstree").fancytree("getTree").visit(function(node){
+        $("#treetable").fancytree("getTree").visit(function(node){
             if (node.isVisible()){
                 var nodo = {};
                 nodo.id = parseInt(node.key);
                 nodo.padre_id = parseInt(node.parent.key);
-                nodo.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
-                nodo.padre_uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
+                /*nodo.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
+                nodo.padre_uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });*/
                 nodos_lista_padres.push(nodo);
                 nodos_lista.push(parseInt(node.key));
                 if ( (node.extraClasses == "planificable") ){
@@ -562,29 +416,19 @@ $(function() {
             items_planificables: nodos_planificables_lista,
             items_padres: nodos_lista_padres
         });
-        //console.log(json_data);
         $("#input_json_data").val(json_data);
         arbol_obj.setModificada(false);
         $("#save_form").submit();
     });
     
-    function mostrarMensaje(msg, tipo){
-        $("#caja-mensajes")
-            .show()
-            .html(msg)
-            .addClass(tipo)
-            .delay(3000)
-            .queue(function(next){ 
-                $(this).hide();
-                $(this).removeClass(tipo);
-                $(this).html("");
-                next(); 
-            });
-    }
-
     $("#btnAgrupar").click(crearGrupoitem);
 });
 
 </script>
-
+<script src="{% static "planes/js/plan_arbol.js" %}" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{% static "planes/css/arbol.css" %}">
+<!-- Fancytree -->
+<link href="{% static "fancytree_2.0.0-8/skin-lion/ui.fancytree.css" %}" rel="stylesheet" type="text/css">
+<script src="{% static "fancytree_2.0.0-8/jquery.fancytree.js" %}" type="text/javascript"></script>
+<script src="{% static "fancytree_2.0.0-8/jquery.fancytree.table.js" %}" type="text/javascript"></script>
 {% endblock %}

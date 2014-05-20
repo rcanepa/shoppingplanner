@@ -88,6 +88,9 @@ class PlanListView(LoginRequiredMixin, UserInfoMixin, ListView):
 
 
 class PlanCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):
+    """
+    Vista para la creacion de un Plan.
+    """
     model = Plan
     template_name = "planes/plan_create.html"
     form_class = PlanForm
@@ -108,19 +111,6 @@ class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     model = Plan
     template_name = "planes/plan_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(PlanDetailView, self).get_context_data(**kwargs)
-        num_items_planificados = Itemplan.objects.filter(
-            plan=context['plan'].id, estado=2, planificable=True).count()
-        num_items_pendientes = Itemplan.objects.filter(
-            plan=context['plan'].id, planificable=True).exclude(estado=2).count()
-        num_items_totales = Itemplan.objects.filter(
-            plan=context['plan'].id, planificable=True).count()
-        context['num_items_planificados'] = num_items_planificados
-        context['num_items_pendientes'] = num_items_pendientes
-        context['porcentaje_progreso'] = str(round(float(num_items_planificados / float(num_items_totales)), 2)) + "%"
-        return context
 
 
 class PlanDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):
@@ -150,6 +140,8 @@ class PlanTreeDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
 class BuscarEstructuraArbolView(LoginRequiredMixin, View):
     """
+    Recibe un ID de Plan y devuelve en formato JSON, la estructura
+    del arbol de planificacion.
     """
     def get(self, request, *args, **kwargs):
         if request.GET:

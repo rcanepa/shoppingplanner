@@ -24,6 +24,7 @@
 	background: #fff;
 	border-collapse: collapse;
 	text-align: left;
+	width: 100%;
 }
 
 .datagrid th
@@ -34,7 +35,6 @@
 	color: #039;
 	border-bottom: 2px solid #6678b1;
 	text-align: center;
-	width: 150px;
 }
 
 .datagrid tbody tr:hover td 

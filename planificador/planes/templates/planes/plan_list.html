@@ -26,7 +26,7 @@
 <ol class="rectangle-list">
     {% for plan in planes %}
 
-    <li><a href="{% url 'planes:plan_detail' plan.id %}"> {{ plan.nombre }} </a></li>
+    <li><a href="{% url 'planes:plan_detail' plan.id %}"> {{ plan.nombre }}</a>( Avance: {{ plan.get_progreso }} )</li>
 
     {% endfor %}
 </ol>

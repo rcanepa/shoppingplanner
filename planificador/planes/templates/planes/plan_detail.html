@@ -42,15 +42,15 @@
 	
 	<div class="left_label">Número de ítems</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ plan.get_num_items_planificables }}</div>
+	<div class="right_label">{{ plan.get_num_total }}</div>
 	
 	<div class="left_label">Items Planificados</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ num_items_planificados }} ( {{ porcentaje_progreso }} )</div>
+	<div class="right_label">{{ plan.get_num_planificados }} ( {{ plan.get_progreso }} )</div>
 
 	<div class="left_label">Items Pendientes</div>
 	<div class="middle_label">:</div>
-	<div class="right_label">{{ num_items_pendientes }}</div>
+	<div class="right_label">{{ plan.get_num_pendientes }}</div>
 
 	<div class="left_label">Responsable</div>
 	<div class="middle_label">:</div>
