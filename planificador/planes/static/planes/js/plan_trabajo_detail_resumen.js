@@ -11,9 +11,6 @@ function busquedaResumen(data){
     var data_costo = data.estadisticas.costo;
     var data_dcto_precio = data.estadisticas.dcto_precio;
 
-color_texto_ingraph = "#777"
-            color_fondo_ingraph = "#f5f5ed"
-
     var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
     var color_linea_margen = ['#0055bb'];
     var color_texto = '#777';
