@@ -11,6 +11,9 @@ function busquedaResumen(data){
     var data_costo = data.estadisticas.costo;
     var data_dcto_precio = data.estadisticas.dcto_precio;
 
+color_texto_ingraph = "#777"
+            color_fondo_ingraph = "#f5f5ed"
+
     var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
     var color_linea_margen = ['#0055bb'];
     var color_texto = '#777';
@@ -25,7 +28,7 @@ function busquedaResumen(data){
 
     var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)
         .Set('text.color', color_texto)
-        //.Set('text.font', tipo_letra)
+        /*.Set('text.font', tipo_letra)*/
         .Set('labels', data_venta.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -56,8 +59,8 @@ function busquedaResumen(data){
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
         .Set('text.color', color_texto)
-        .Set('tooltips', data_contribucion.tooltips)
-        .Set('tooltips.event','onmousemove')
+        /*.Set('tooltips', data_contribucion.tooltips)
+        .Set('tooltips.event','onmousemove')*/
         .Set('labels', data_contribucion.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -67,12 +70,16 @@ function busquedaResumen(data){
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
 		.Set('gutter.bottom', 60)
+        .Set('gutter.top', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_contribucion.ingraph)
 
     var line_margen = new RGraph.Line('contribucion-chart', data_margen.rows)
-        .Set('tooltips', data_margen.tooltips)
-        .Set('tooltips.hotspot.size', 20)
+        /*.Set('tooltips', data_margen.tooltips)
+        .Set('tooltips.hotspot.size', 20)*/
+        .Set('text.color', color_texto)
+        /*.Set('labels.above', true)
+        .Set('labels.above.size', tamano_letra)*/
         .Set('colors', color_linea_margen)
         .Set('tickmarks', 'circle')
         .Set('ylabels', false)
@@ -84,6 +91,7 @@ function busquedaResumen(data){
 		.Set('gutter.bottom', 60)	
         .Set('background.grid', false)
 		.Set('outofbounds', true) // Para valores negativos
+        .Set('labels.ingraph', data_margen.ingraph)
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
 
@@ -116,8 +124,8 @@ function busquedaResumen(data){
         var rect = new RGraph.Drawing.Rect('precio-chart', x, y, w, h)
             .Set('strokestyle', 'rgba(0,0,0,0)')
             .Set('fillstyle', 'rgba(0,0,0,0)')
-            .Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')
+            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
+            .Set('tooltips.event','onmousemove')*/
             .Set('highlight.stroke', 'rgba(0,0,0,0)')
             .Draw();
     }, bar_precio_dcto);
@@ -198,8 +206,8 @@ function busquedaResumenComp(data){
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart-comp', data_contribucion.rows)
         .Set('text.color', color_texto)
-        .Set('tooltips', data_contribucion.tooltips)
-        .Set('tooltips.event','onmousemove')
+        /*.Set('tooltips', data_contribucion.tooltips)
+        .Set('tooltips.event','onmousemove')*/
         .Set('labels', data_contribucion.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -209,12 +217,13 @@ function busquedaResumenComp(data){
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
 		.Set('gutter.bottom', 60)
+        .Set('gutter.top', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_contribucion.ingraph)
 
     var line_margen = new RGraph.Line('contribucion-chart-comp', data_margen.rows)
-        .Set('tooltips', data_margen.tooltips)
-        .Set('tooltips.hotspot.size', 20)
+        /*.Set('tooltips', data_margen.tooltips)
+        .Set('tooltips.hotspot.size', 20)*/
         .Set('colors', color_linea_margen)
         .Set('tickmarks', 'circle')
         .Set('ylabels', false)
@@ -226,6 +235,7 @@ function busquedaResumenComp(data){
 		.Set('gutter.bottom', 60)	
         .Set('background.grid', false)
 		.Set('outofbounds', true) // Para valores negativos
+        .Set('labels.ingraph', data_margen.ingraph)
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
 
@@ -258,8 +268,8 @@ function busquedaResumenComp(data){
         var rect = new RGraph.Drawing.Rect('precio-chart-comp', x, y, w, h)
             .Set('strokestyle', 'rgba(0,0,0,0)')
             .Set('fillstyle', 'rgba(0,0,0,0)')
-            .Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')
+            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
+            .Set('tooltips.event','onmousemove')*/
             .Set('highlight.stroke', 'rgba(0,0,0,0)')
             .Draw();
     }, bar_precio_dcto);

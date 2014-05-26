@@ -109,8 +109,7 @@ class Plan(models.Model):
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
-                costo=Sum('costo'),
-                precio_prom=Avg('item__precio')).order_by(
+                costo=Sum('costo')).order_by(
                 'anio')
         elif temporada == "TT":
             estadisticas = Ventaperiodo.objects.filter(
@@ -121,8 +120,7 @@ class Plan(models.Model):
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
-                costo=Sum('costo'),
-                precio_prom=Avg('item__precio')).order_by(
+                costo=Sum('costo')).order_by(
                 'anio')
         else:
             estadisticas = Ventaperiodo.objects.filter(
@@ -134,8 +132,7 @@ class Plan(models.Model):
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
-                costo=Sum('costo'),
-                precio_prom=Avg('item__precio')).order_by(
+                costo=Sum('costo')).order_by(
                 'anio')
         return estadisticas
 

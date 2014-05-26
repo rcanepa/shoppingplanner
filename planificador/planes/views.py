@@ -1395,6 +1395,9 @@ class ResumenDataGraficosView(View):
             resumen = {}
             data = {}
 
+            color_texto_ingraph = "#777"
+            color_fondo_ingraph = "#f5f5ed"
+
             # Label para todos los graficos (años)
             rows_label = []
 
@@ -1414,6 +1417,7 @@ class ResumenDataGraficosView(View):
             rows_margen = []
             rows_margen_label = []
             rows_margen_tooltip = []
+            rows_margen_ingraph = []
 
             rows_dcto_precio_imp = []
             rows_dcto_precio_imp_label = []
@@ -1470,8 +1474,8 @@ class ResumenDataGraficosView(View):
                 row_precio_dcto_imp = []
 
                 vta_n, vta_u, ctb_n = int(x['vta_n']), int(x['vta_u']), int(x['ctb_n'])
-                costo, precio_prom = int(x['costo']), int(x['precio_prom'])
-                precio_prom = int(float(x['vta_n']) / float(x['vta_u']) * 1.19)
+                costo = int(x['costo'])
+
                 anio = str(x['anio'])
                 # Calculo de margen
                 if vta_n != 0:
@@ -1481,13 +1485,13 @@ class ResumenDataGraficosView(View):
 
                 # Calculos para el grafico de precio blanco
                 if x['vta_u'] != 0:
-                    precio_real_cimp = int(vta_n / vta_u)
-                    precio_real_simp = int(precio_real_cimp * 0.81)
+                    precio_real_cimp = int(vta_n / vta_u * 1.19)
+                    precio_real_simp = int(vta_n / vta_u)
                     impuesto = precio_real_cimp - precio_real_simp
                     costo_unitario = int(costo / vta_u)
                 else:
-                    precio_real, costo_unitario, precio_real_simp, precio_real_cimp, impuesto = 0, 0, 0, 0, 0
-                descuento = precio_prom - precio_real_cimp  # precio blanco promedio - precio real
+                    costo_unitario, precio_real_simp, precio_real_cimp, impuesto = 0, 0, 0, 0
+                descuento = precio_real_cimp - precio_real_simp  # precio blanco promedio - precio real
 
                 # Se genera el arreglo que contiene las etiquetas de cada categoria (años)
                 rows_label.append(anio)
@@ -1501,21 +1505,44 @@ class ResumenDataGraficosView(View):
                     crecimiento_vta_n, crecimiento_vta_u, crecimiento_ctb_n = 0, 0, 0
 
                 # Se agrega el crecimiento por año a la lista
-                row_crecimiento_venta.append('{:.1%}'.format(crecimiento_vta_n))
-                row_crecimiento_venta.append("#777")
-                row_crecimiento_venta.append("white")
-                row_crecimiento_venta.append(-1)
-                row_crecimiento_venta.append(-10)
-                row_crecimiento_unidades.append('{:.1%}'.format(crecimiento_vta_u))
-                row_crecimiento_unidades.append("#777")
-                row_crecimiento_unidades.append("white")
-                row_crecimiento_unidades.append(-1)
-                row_crecimiento_unidades.append(-10)
-                row_crecimiento_contribucion.append('{:.1%}'.format(crecimiento_ctb_n))
-                row_crecimiento_contribucion.append("#777")
-                row_crecimiento_contribucion.append("white")
-                row_crecimiento_contribucion.append(-1)
-                row_crecimiento_contribucion.append(-10)
+                if crecimiento_vta_n != 0:
+                    row_crecimiento_venta.append('{:.1%}'.format(crecimiento_vta_n))
+                    row_crecimiento_venta.append(color_texto_ingraph)
+                    row_crecimiento_venta.append(color_fondo_ingraph)
+                    row_crecimiento_venta.append(-1)
+                    row_crecimiento_venta.append(-10)
+                    rows_crecimiento_venta.append(row_crecimiento_venta)
+                else:
+                    rows_crecimiento_venta.append(None)
+                if crecimiento_vta_u != 0:
+                    row_crecimiento_unidades.append('{:.1%}'.format(crecimiento_vta_u))
+                    row_crecimiento_unidades.append(color_texto_ingraph)
+                    row_crecimiento_unidades.append(color_fondo_ingraph)
+                    row_crecimiento_unidades.append(-1)
+                    row_crecimiento_unidades.append(-10)
+                    rows_crecimiento_unidades.append(row_crecimiento_unidades)
+                else:
+                    rows_crecimiento_unidades.append(None)
+                if crecimiento_ctb_n != 0:
+                    row_crecimiento_contribucion.append('{:.1%}'.format(crecimiento_ctb_n))
+                    row_crecimiento_contribucion.append(color_texto_ingraph)
+                    row_crecimiento_contribucion.append(color_fondo_ingraph)
+                    row_crecimiento_contribucion.append(-1)
+                    row_crecimiento_contribucion.append(-10)
+                    rows_crecimiento_contribucion.append(row_crecimiento_contribucion)
+                else:
+                    rows_crecimiento_contribucion.append(None)
+
+                row_margen.append('{:.1%}'.format(margen))
+                row_margen.append(color_texto_ingraph)
+                row_margen.append(color_fondo_ingraph)
+                row_margen.append(1)
+
+                if margen < 0:
+                    row_margen.append(90)
+                else:
+                    row_margen.append(70)
+                rows_margen_ingraph.append(row_margen)
 
                 # Se genera el arreglo que contiene los valores de cada categoria (años)
                 row_venta.append(vta_n)
@@ -1533,11 +1560,6 @@ class ResumenDataGraficosView(View):
                 rows_dcto_precio_imp.append(row_precio_dcto_imp)
                 rows_costo.append(costo_unitario)
 
-                # Se agrega el crecimiento por año a la lista de crecimientos
-                rows_crecimiento_venta.append(row_crecimiento_venta)
-                rows_crecimiento_unidades.append(row_crecimiento_unidades)
-                rows_crecimiento_contribucion.append(row_crecimiento_contribucion)
-
                 contribucion_tooltip_msg = (
                     "<p><b>Año: </b>" + anio
                     + "</p><p><b>Contribución: </b>" + '{:,}'.format(ctb_n)
@@ -1548,7 +1570,7 @@ class ResumenDataGraficosView(View):
                 margen_tooltip_msg = contribucion_tooltip_msg
 
                 dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio +
-                    "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_prom)  +
+                    "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_real_cimp)  +
                     "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) +
                     "</p><p><b>Impuesto (19%): </b>" + '{:,}'.format(impuesto) +
                     "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) +
@@ -1578,6 +1600,7 @@ class ResumenDataGraficosView(View):
 
             JSONMargen['cols'] = rows_label
             JSONMargen['rows'] = rows_margen
+            JSONMargen['ingraph'] = rows_margen_ingraph
             JSONMargen['tooltips'] = rows_margen_tooltip
 
             JSONDctoPrecio['cols'] = rows_label
