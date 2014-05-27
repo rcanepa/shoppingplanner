@@ -316,7 +316,7 @@ class ItemQuitarVigenciaView(LoginRequiredMixin, View):
             data['tipo_msg'] = "msg_error"
             return HttpResponse(json.dumps(data), mimetype='application/json')
         item.vigencia = False
-        #item.save()
+        item.save()
         data['msg'] = "El item ha sido removido exitosamente."
         data['tipo_msg'] = "msg_success"
         data['id_item_padre'] = item.item_padre.id

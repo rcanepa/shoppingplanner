@@ -64,6 +64,16 @@ class Categoria(models.Model):
             hijo = hijo.categoria_padre
         return nivel
 
+    def hijos_recursivos(self):
+        """
+        Itera sobre los hijos del item. Se devuelve a si mismo inicialmente.
+        """
+        children = list(self.get_children())
+        yield self
+        for child in children:
+            for next in child.hijos_recursivos():
+                yield next
+
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
 

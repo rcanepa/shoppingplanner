@@ -1403,24 +1403,19 @@ class ResumenDataGraficosView(View):
 
             rows_venta = []
             rows_crecimiento_venta = []
-            rows_venta_label = []
 
             rows_unidades = []
             rows_crecimiento_unidades = []
-            rows_unidades_label = []
 
             rows_contribucion = []
             rows_crecimiento_contribucion = []
-            rows_contribucion_label = []
             rows_contribucion_tooltip = []
 
             rows_margen = []
-            rows_margen_label = []
             rows_margen_tooltip = []
             rows_margen_ingraph = []
 
             rows_dcto_precio_imp = []
-            rows_dcto_precio_imp_label = []
             rows_dcto_precio_imp_tooltip = []
             rows_costo = []
 
@@ -1537,11 +1532,7 @@ class ResumenDataGraficosView(View):
                 row_margen.append(color_texto_ingraph)
                 row_margen.append(color_fondo_ingraph)
                 row_margen.append(1)
-
-                if margen < 0:
-                    row_margen.append(90)
-                else:
-                    row_margen.append(70)
+                row_margen.append(5)
                 rows_margen_ingraph.append(row_margen)
 
                 # Se genera el arreglo que contiene los valores de cada categoria (años)
@@ -1654,6 +1645,7 @@ def ExportarPlanificacionExcelView(request, pk=None):
             itemplan.info_comercial = Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan.item).values(
                 'anio', 'periodo').annotate(
                 Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
+        itemplan.padres = itemplan.get_padre()
 
     print "QUERIES: " + str(len(db.connection.queries))
 
@@ -1671,35 +1663,71 @@ def ExportarPlanificacionExcelView(request, pk=None):
     fbold = book.add_format({'bold': True})
 
     # Ajustar el tamaño de la columna A (nombre de items)
-    sheet.set_column(0, 0, 40)
+    # sheet.set_column(0, 0, 40)
+
+    categoria_raiz = None
+    # Se busca la lista de objectos itemplan que no tienen padre (raices del arbol).
+    arr_itemplan_raiz = Itemplan.objects.filter(plan=plan_obj, item_padre=None)
+    itemplan_raiz = arr_itemplan_raiz[0]
+    categoria_raiz = itemplan_raiz.item.categoria
+    # Se busca el que tiene la categoria con menor nivel (mas cercana a la raiz).
+    for x in arr_itemplan_raiz:
+        if x.item.categoria.get_nivel() < itemplan_raiz.item.categoria.get_nivel():
+            itemplan_raiz = x
+            # Se asigna la categoria de menor nivel, para ser usada como la primera columna
+            # del archivo excel.
+            categoria_raiz = x.item.categoria
+    cabecera_excel = []
+    categorias = Categoria.objects.filter(organizacion=request.user.get_profile().organizacion)
+    numero_total_categorias = len(categorias)
+    categorias = [x for x in categorias if x.get_nivel() >= categoria_raiz.get_nivel()]
+    categorias = sorted(categorias, key=lambda t: t.get_nivel())
+    numero_final_categorias = len(categorias)
+    numero_categorias_consideradas = numero_total_categorias - numero_final_categorias
+
+    # Se generan los valores dinamicos de la cabecera
+    for categoria in categorias:
+        cabecera_excel.append(categoria.nombre)
 
     # Escribir la cabecera del archivo
-    cabecera = ['Item', 'Precio', 'Anio', 'Periodo', 'Venta CLP', 'Unidades', 'Costo CLP', 'Contribucion CLP']
-    for ccol, ccol_data in enumerate(cabecera):
-        sheet.write(0, ccol, ccol_data, fbold)
+    cabecera_excel += ['PRECIO', 'ANIO', 'PERIODO', 'VENTA CLP', 'UNIDADES', 'COSTO CLP', 'CONTRIBUCION CLP']
+    for columna, titulo_columna in enumerate(cabecera_excel):
+        sheet.write(0, columna, titulo_columna, fbold)
 
+    # Se obtiene el numero de columnas dinamicas (categorias del modelo)
+    numero_col_dinamicas = len(categorias)
     numero_filas = 0
 
     # Se itera sobre el diccionario de items y se crean las filas del archivo
     for item in itemplan_planificados:
         for venta in item.info_comercial:
-            sheet.write(numero_filas+1, 0, item.nombre)
-            sheet.write(numero_filas+1, 1, item.precio, fnumeros)
-            sheet.write(numero_filas+1, 2, venta['anio'], fnumeros)
-            sheet.write(numero_filas+1, 3, venta['periodo'])
-            sheet.write(numero_filas+1, 4, venta['vta_n__sum'], fnumeros)
-            sheet.write(numero_filas+1, 5, venta['vta_u__sum'], fnumeros)
-            sheet.write(numero_filas+1, 6, venta['costo__sum'], fnumeros)
-            sheet.write(numero_filas+1, 7, venta['ctb_n__sum'], fnumeros)
+            # Se agrega la lista de padres del itemplan.
+            for padre in item.get_padre():
+                sheet.write(numero_filas+1, padre.item.categoria.get_nivel()-(1+numero_categorias_consideradas), padre.nombre)
+            # Si revisa si el itemplan pertenece a la categoria hoja.
+            if bool(item.item.categoria.get_children()) is False:
+                sheet.write(numero_filas+1, item.item.categoria.get_nivel()-(1+numero_categorias_consideradas), item.nombre)
+            # Si no es categoria hoja entonces se debe repetir su nombre en las categorias inferiores.
+            else:
+                contador_niveles = item.item.categoria.get_nivel()
+                for i in range(contador_niveles, numero_total_categorias+1):
+                    sheet.write(numero_filas+1, i - numero_categorias_consideradas - 1, item.nombre)
+            sheet.write(numero_filas+1, numero_col_dinamicas, item.precio, fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+1, venta['anio'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+2, venta['periodo'])
+            sheet.write(numero_filas+1, numero_col_dinamicas+3, venta['vta_n__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+4, venta['vta_u__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+5, venta['costo__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+6, venta['ctb_n__sum'], fnumeros)
             numero_filas = numero_filas + 1
 
-    # Se construye la fila de totales
-    print numero_filas
+    # Se construye la fila de totales. La asignacion de las letras para los totales deberia ser
+    # dinamica tambien. Seria bueno utilizar una tabla de mapeo entre numeros y letras.
     sheet.write(numero_filas+1, 0, 'Total', fbold)
-    sheet.write(numero_filas+1, 4, '=SUM(E2:E'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 5, '=AVG(F2:F'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 6, '=SUM(G2:G'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, 7, '=SUM(H2:H'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, numero_col_dinamicas+3, '=SUM(H2:H'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, numero_col_dinamicas+4, '=AVG(I2:I'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, numero_col_dinamicas+5, '=SUM(J2:J'+str(numero_filas+1)+')', fnumeros)
+    sheet.write(numero_filas+1, numero_col_dinamicas+6, '=SUM(K2:K'+str(numero_filas+1)+')', fnumeros)
     book.close()
 
     # construct response
