@@ -182,9 +182,10 @@ $(function() {
             if( ( node.folder ) && ( node.extraClasses == "planificable" ) ){
                 $( "#li-nuevo-nodo" ).show().effect( "highlight", options, 300 );
             }
-            if( !node.folder ){
+            /*if( !node.folder ){
                 $( "#li-vigencia-nodo" ).show().effect( "highlight", options, 300 );
-            }
+            }*/
+            $( "#li-vigencia-nodo" ).show().effect( "highlight", options, 300 );
         },
         deactivate: function(event, data){
             $( "#li-nuevo-nodo" ).hide();
@@ -335,9 +336,10 @@ $(function() {
         var tree = $("#treetable").fancytree("getTree"),
         activeNode = tree.getActiveNode();
         /* Se valida que el nodo seleccionado sea un nodo hoja */
-        if( !activeNode.folder ){
+        /*if( !activeNode.folder ){
             $( "#dialog-quitar-vigencia-item" ).data('node', activeNode).dialog( "open" );
-        }
+        }*/
+        $( "#dialog-quitar-vigencia-item" ).data('node', activeNode).dialog( "open" );
     });
 
     /* 

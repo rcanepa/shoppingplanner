@@ -21,11 +21,12 @@ function busquedaResumen(data){
 	RGraph.Reset(document.getElementById("venta-chart"));
 	RGraph.Reset(document.getElementById("unidades-chart"));
 	RGraph.Reset(document.getElementById("contribucion-chart"));
+    RGraph.Reset(document.getElementById("margen-chart"));
 	RGraph.Reset(document.getElementById("precio-chart"));
 
     var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)
         .Set('text.color', color_texto)
-        //.Set('text.font', tipo_letra)
+        /*.Set('text.font', tipo_letra)*/
         .Set('labels', data_venta.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -34,7 +35,6 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_venta.ingraph)
         .Draw();
@@ -49,15 +49,14 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_unidades.ingraph)
         .Draw();
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
         .Set('text.color', color_texto)
-        .Set('tooltips', data_contribucion.tooltips)
-        .Set('tooltips.event','onmousemove')
+        /*.Set('tooltips', data_contribucion.tooltips)
+        .Set('tooltips.event','onmousemove')*/
         .Set('labels', data_contribucion.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -66,13 +65,15 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_contribucion.ingraph)
 
-    var line_margen = new RGraph.Line('contribucion-chart', data_margen.rows)
-        .Set('tooltips', data_margen.tooltips)
-        .Set('tooltips.hotspot.size', 20)
+    var line_margen = new RGraph.Line('margen-chart', data_margen.rows)
+        /*.Set('tooltips', data_margen.tooltips)
+        .Set('tooltips.hotspot.size', 20)*/
+        .Set('text.color', color_texto)
+        /*.Set('labels.above', true)
+        .Set('labels.above.size', tamano_letra)*/
         .Set('colors', color_linea_margen)
         .Set('tickmarks', 'circle')
         .Set('ylabels', false)
@@ -81,9 +82,9 @@ function busquedaResumen(data){
         .Set('units.post', '%')
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)	
         .Set('background.grid', false)
 		.Set('outofbounds', true) // Para valores negativos
+        .Set('labels.ingraph', data_margen.ingraph)
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
 
@@ -97,7 +98,6 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('ylabels', false)
         .Set('linewidth', 2)
@@ -116,8 +116,8 @@ function busquedaResumen(data){
         var rect = new RGraph.Drawing.Rect('precio-chart', x, y, w, h)
             .Set('strokestyle', 'rgba(0,0,0,0)')
             .Set('fillstyle', 'rgba(0,0,0,0)')
-            .Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')
+            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
+            .Set('tooltips.event','onmousemove')*/
             .Set('highlight.stroke', 'rgba(0,0,0,0)')
             .Draw();
     }, bar_precio_dcto);
@@ -135,7 +135,6 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Draw();
 }
@@ -163,6 +162,7 @@ function busquedaResumenComp(data){
 	RGraph.Reset(document.getElementById("venta-chart-comp"));
 	RGraph.Reset(document.getElementById("unidades-chart-comp"));
 	RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+    RGraph.Reset(document.getElementById("margen-chart-comp"));
 	RGraph.Reset(document.getElementById("precio-chart-comp"));
 
     var bar_venta = new RGraph.Bar('venta-chart-comp', data_venta.rows)
@@ -176,7 +176,6 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_venta.ingraph)
         .Draw();
@@ -191,15 +190,14 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_unidades.ingraph)
         .Draw();
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart-comp', data_contribucion.rows)
         .Set('text.color', color_texto)
-        .Set('tooltips', data_contribucion.tooltips)
-        .Set('tooltips.event','onmousemove')
+        /*.Set('tooltips', data_contribucion.tooltips)
+        .Set('tooltips.event','onmousemove')*/
         .Set('labels', data_contribucion.cols)
         .Set('labels.above', true)
         .Set('labels.above.size', tamano_letra)
@@ -208,13 +206,12 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('labels.ingraph', data_contribucion.ingraph)
 
-    var line_margen = new RGraph.Line('contribucion-chart-comp', data_margen.rows)
-        .Set('tooltips', data_margen.tooltips)
-        .Set('tooltips.hotspot.size', 20)
+    var line_margen = new RGraph.Line('margen-chart-comp', data_margen.rows)
+        /*.Set('tooltips', data_margen.tooltips)
+        .Set('tooltips.hotspot.size', 20)*/
         .Set('colors', color_linea_margen)
         .Set('tickmarks', 'circle')
         .Set('ylabels', false)
@@ -223,9 +220,8 @@ function busquedaResumenComp(data){
         .Set('units.post', '%')
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)	
-        .Set('background.grid', false)
 		.Set('outofbounds', true) // Para valores negativos
+        .Set('labels.ingraph', data_margen.ingraph)
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
 
@@ -239,7 +235,6 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Set('ylabels', false)
         .Set('linewidth', 2)
@@ -258,8 +253,8 @@ function busquedaResumenComp(data){
         var rect = new RGraph.Drawing.Rect('precio-chart-comp', x, y, w, h)
             .Set('strokestyle', 'rgba(0,0,0,0)')
             .Set('fillstyle', 'rgba(0,0,0,0)')
-            .Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')
+            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
+            .Set('tooltips.event','onmousemove')*/
             .Set('highlight.stroke', 'rgba(0,0,0,0)')
             .Draw();
     }, bar_precio_dcto);
@@ -277,7 +272,6 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('gutter.bottom', 60)
         .Set('background.grid', false)
         .Draw();
 }

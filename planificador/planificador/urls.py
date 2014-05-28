@@ -7,13 +7,13 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^$', 'planificador.views.login'),
     url(r'^admin/', include(admin.site.urls)),
-        
+
     url(r'^accounts/login/$', 'planificador.views.login'),
     url(r'^accounts/auth/$', 'planificador.views.auth_view'),
     url(r'^accounts/logout/$', 'planificador.views.logout', name='user_logout'),
     url(r'^accounts/loggedin/$', views.LoggedInView.as_view(), name='home'),
-    url(r'^accounts/invalid/$', views.InvalidLogin.as_view()),
     url(r'^accounts/register/$', views.RegisterUserView.as_view(), name='user_register'),
     url(r'^accounts/register_success/$', views.RegisterSuccessView.as_view()),
     url(r'^accounts/list/$', views.UserListView.as_view(), name="user_list"),

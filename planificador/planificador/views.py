@@ -25,7 +25,10 @@ class UserInfoMixin(object):
 def login(request):
     c = {}
     c.update(csrf(request))
-    return render_to_response('login.html', c)
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/planes/plan/list/')
+    else:
+        return render_to_response('login.html', c)
 
 
 def auth_view(request):
@@ -37,7 +40,7 @@ def auth_view(request):
         auth.login(request, user)
         return HttpResponseRedirect('/planes/plan/list/')
     else:
-        return HttpResponseRedirect('/accounts/invalid')
+        return HttpResponseRedirect('/accounts/login')
 
 
 class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
@@ -45,15 +48,10 @@ class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     template_name = "loggedin.html"
 
 
-class InvalidLogin(TemplateView):
-    """Vista para ingresos invalidos."""
-    template_name = 'invalid_login.html'
-
-
 @login_required()
 def logout(request):
     auth.logout(request)
-    return render_to_response('logout.html')
+    return HttpResponseRedirect('/accounts/login')
 
 
 class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):

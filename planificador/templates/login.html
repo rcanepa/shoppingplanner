@@ -1,21 +1,59 @@
-{% extends "welcome.html" %}
+{% load static %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+        <meta charset="utf-8">
+        <title>Bienvenido</title>
+        <meta name="generator" content="Bootply" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" type="text/css" href="{% static "bootstrap-3.1.1-dist/css/bootstrap.min.css" %}">
+		<link rel="stylesheet" type="text/css" href="{% static "css/login.css" %}">
+	</head>
+<body>
 
-{% block content %}
+	<div id="header">
+	</div>
 
-  {% if form.errors %}
-    <p class="error">Sorry, that's not a valid username or password</p>
-  {% endif %}
-    <div>
-    <form action="/accounts/auth/" method="post">{% csrf_token %}
+	<div id="content">
+		<div id="loginModal" class="modal show" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+				    <div class="modal-header">
+				        <h1 class="text-center">Bienvenido</h1>
+				    </div>
+				    <div class="modal-body">
+				        <form class="form col-md-12 center-block" action="/accounts/auth/" method="post">
+				        	{% csrf_token %}
+				          	<div class="form-group">
+				            	<input type="text" class="form-control input-lg" placeholder="Usuario" name="username">
+				          	</div>
+				          	<div class="form-group">
+				            	<input type="password" class="form-control input-lg" placeholder="Contraseña" name="password">
+				          	</div>
+				          	<div class="form-group">
+				            	<button class="btn btn-primary btn-lg btn-block" type="submit">Ingresar</button>
+				          	</div>
+				        </form>
+				    </div>
+				    <div class="modal-footer">
+				        <div class="col-md-12"></div>  
+				    </div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-      <label for="username">User name:</label>
-      <input type="text" name="username" value="" id="username">
-      <label for="password">Password:</label>
-      <input type="password" name="password" value="" id="password">
+	<div id="footer">
+	</div>
 
-      <input type="submit" value="login" />
-      
-    </form>
-    </div>
-    
-{% endblock %}
+	<script type='text/javascript' src="{% static "js/jquery-1.10.2.min.js" %}"></script>
+	<script type='text/javascript' src="{% static "bootstrap-3.1.1-dist/js/bootstrap.min.js" %}"></script>
+	<script>
+		$(function() {
+			/* Hacer que el input del username aparezca seleccionado por defecto */
+		    $( "input[name='username']" ).select();
+		})
+	</script>
+</body>
+</html>

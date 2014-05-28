@@ -315,8 +315,10 @@ class ItemQuitarVigenciaView(LoginRequiredMixin, View):
             data['msg'] = "El item NO pudo ser actualizado, por favor intentelo nuevamente."
             data['tipo_msg'] = "msg_error"
             return HttpResponse(json.dumps(data), mimetype='application/json')
-        item.vigencia = False
-        item.save()
+        # Se quita la vigencia al item y a sus posibles hijos.
+        for i in item.hijos_recursivos():
+            i.vigencia = False
+            i.save()
         data['msg'] = "El item ha sido removido exitosamente."
         data['tipo_msg'] = "msg_success"
         data['id_item_padre'] = item.item_padre.id
