@@ -1468,7 +1468,7 @@ class ResumenDataGraficosView(View):
 
                 row_precio_dcto_imp = []
 
-                vta_n, vta_u, ctb_n = int(x['vta_n']), int(x['vta_u']), int(x['ctb_n'])
+                vta_n, vta_u, ctb_n, precio_blanco = int(x['vta_n']), int(x['vta_u']), int(x['ctb_n']), int(x['precio_blanco'])
                 costo = int(x['costo'])
 
                 anio = str(x['anio'])
@@ -1486,7 +1486,8 @@ class ResumenDataGraficosView(View):
                     costo_unitario = int(costo / vta_u)
                 else:
                     costo_unitario, precio_real_simp, precio_real_cimp, impuesto = 0, 0, 0, 0
-                descuento = precio_real_cimp - precio_real_simp  # precio blanco promedio - precio real
+                #descuento = precio_real_cimp - precio_real_simp  # precio blanco promedio - precio real
+                descuento = precio_blanco - precio_real_cimp
 
                 # Se genera el arreglo que contiene las etiquetas de cada categoria (años)
                 rows_label.append(anio)
@@ -1636,13 +1637,13 @@ def ExportarPlanificacionExcelView(request, pk=None):
             hijos = []
             for hijo in itemplan.item.get_hijos():
                 hijos.append(hijo)
-            itemplan.info_comercial = Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item__in=hijos).values(
+            itemplan.info_comercial = Ventaperiodo.objects.filter(item__in=hijos).values(
                 'anio', 'periodo').annotate(
                 Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
 
         # Si es de la ultima categoria, es decir, no es posible que tenga hijos.
         else:
-            itemplan.info_comercial = Ventaperiodo.objects.filter(plan=plan_obj, tipo=2, item=itemplan.item).values(
+            itemplan.info_comercial = Ventaperiodo.objects.filter(item=itemplan.item).values(
                 'anio', 'periodo').annotate(
                 Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
         itemplan.padres = itemplan.get_padre()
@@ -1685,12 +1686,16 @@ def ExportarPlanificacionExcelView(request, pk=None):
     numero_final_categorias = len(categorias)
     numero_categorias_consideradas = numero_total_categorias - numero_final_categorias
 
-    # Se generan los valores dinamicos de la cabecera
+    # Se generan los valores dinamicos de la cabecera. El ultimo nivel siempre
+    # se llamara ITEM.
     for categoria in categorias:
-        cabecera_excel.append(categoria.nombre)
+        if bool(categoria.get_children()):
+            cabecera_excel.append(categoria.nombre)
+        else:
+            cabecera_excel.append('ITEM')
 
     # Escribir la cabecera del archivo
-    cabecera_excel += ['PRECIO', 'ANIO', 'PERIODO', 'VENTA CLP', 'UNIDADES', 'COSTO CLP', 'CONTRIBUCION CLP']
+    cabecera_excel += ['PRECIO', 'TEMPORADA', 'ANIO', 'PERIODO', 'VENTA CLP', 'UNIDADES', 'COSTO CLP', 'CONTRIBUCION CLP']
     for columna, titulo_columna in enumerate(cabecera_excel):
         sheet.write(0, columna, titulo_columna, fbold)
 
@@ -1712,22 +1717,26 @@ def ExportarPlanificacionExcelView(request, pk=None):
                 contador_niveles = item.item.categoria.get_nivel()
                 for i in range(contador_niveles, numero_total_categorias+1):
                     sheet.write(numero_filas+1, i - numero_categorias_consideradas - 1, item.nombre)
-            sheet.write(numero_filas+1, numero_col_dinamicas, item.precio, fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+1, venta['anio'], fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+2, venta['periodo'])
-            sheet.write(numero_filas+1, numero_col_dinamicas+3, venta['vta_n__sum'], fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+4, venta['vta_u__sum'], fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+5, venta['costo__sum'], fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+6, venta['ctb_n__sum'], fnumeros)
+            if plan_obj.anio == venta['anio']:
+                sheet.write(numero_filas+1, numero_col_dinamicas, item.precio, fnumeros)
+            else:
+                sheet.write(numero_filas+1, numero_col_dinamicas, item.item.precio, fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+1, item.item.temporada.nombre)
+            sheet.write(numero_filas+1, numero_col_dinamicas+2, venta['anio'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+3, venta['periodo'])
+            sheet.write(numero_filas+1, numero_col_dinamicas+4, venta['vta_n__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+5, venta['vta_u__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+6, venta['costo__sum'], fnumeros)
+            sheet.write(numero_filas+1, numero_col_dinamicas+7, venta['ctb_n__sum'], fnumeros)
             numero_filas = numero_filas + 1
 
     # Se construye la fila de totales. La asignacion de las letras para los totales deberia ser
     # dinamica tambien. Seria bueno utilizar una tabla de mapeo entre numeros y letras.
-    sheet.write(numero_filas+1, 0, 'Total', fbold)
-    sheet.write(numero_filas+1, numero_col_dinamicas+3, '=SUM(H2:H'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, numero_col_dinamicas+4, '=AVG(I2:I'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, numero_col_dinamicas+5, '=SUM(J2:J'+str(numero_filas+1)+')', fnumeros)
-    sheet.write(numero_filas+1, numero_col_dinamicas+6, '=SUM(K2:K'+str(numero_filas+1)+')', fnumeros)
+    # sheet.write(numero_filas+1, 0, 'Total', fbold)
+    # sheet.write(numero_filas+1, numero_col_dinamicas+3, '=SUM(H2:H'+str(numero_filas+1)+')', fnumeros)
+    # sheet.write(numero_filas+1, numero_col_dinamicas+4, '=AVG(I2:I'+str(numero_filas+1)+')', fnumeros)
+    # sheet.write(numero_filas+1, numero_col_dinamicas+5, '=SUM(J2:J'+str(numero_filas+1)+')', fnumeros)
+    # sheet.write(numero_filas+1, numero_col_dinamicas+6, '=SUM(K2:K'+str(numero_filas+1)+')', fnumeros)
     book.close()
 
     # construct response

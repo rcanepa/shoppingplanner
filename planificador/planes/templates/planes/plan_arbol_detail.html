@@ -35,6 +35,7 @@
             <li><a id="btnSave">Guardar</a></li>
             <li id="li-nuevo-nodo" style="display:none;"><a id="btnSaveNuevoNodo">Crear Item</a></li>
             <li id="li-vigencia-nodo" style="display:none;"><a id="btnVigencia">Remover Item</a></li>
+            <li id="li-agrupar-nodos" style="display:none;"><a id="btnAgrupar">Agrupar Items</a></li>
         </ul>
     </div>        
 </div>
@@ -46,36 +47,25 @@
 <div style="width:100%; float:left">
     {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"><p>Items Totales: {{ nodos_visibles }} | Items a Planificar: {{ nodos_planificables }}</p></span>
 </div>
-<div id="div_arbol" style="width:70%; float:left">
+<div id="div_arbol" style="width:90%; float:left">
     <table id="treetable">
         <colgroup>
             <col width="30px"></col>
             <col width="30px"></col>
             <col width="*"></col>
-            <col width="70px"></col>
             <col width="100px"></col>
+            <col width="100px"></col>
+            <col width="70px"></col>
         </colgroup>
         <thead>
-          <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO</th> <th>VENTA CLP</th> </tr>
+          <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO BLANCO</th> <th>VENTA</th> <th>ESTADO</th> </tr>
         </thead>
         <tbody>
-          <tr> <td></td> <td></td> <td></td> <td></td> </tr>
+          <tr> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
         </tbody>
     </table>
 </div>
-<!-- DIV DERECHO DEL SITIO -->
-<div class="floating-menu-agrupaciones">
-    <div id="menu-derecho" class="pure-menu pure-menu-open" style="display:none;overflow-x:scroll;">
-        <a class="pure-menu-heading">SELECCIÓN</a>
-        <ul id="seleccion">
-        </ul>
-        <a class="pure-menu-heading">ACCIONES</a>
-        <ul>
-            <li><a id="btnAgrupar">Agrupar Items</a></li>
-            <li><a id="btnCancelar">Cancelar Selecci&oacute;n</a></li>
-        </ul>
-    </div>
-</div>
+
 <!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
 <div id="dialog-form" title="Crear nuevo Item">
     <p class="validateTips">Todos los campos son requeridos.</p>
@@ -88,6 +78,12 @@
             <input type="hidden" name="plan_id" value="{{plan.id}}">
         </fieldset>
     </form>
+    <div class="pure-menu pure-menu-open">
+        <a class="pure-menu-heading">ITEMS AGRUPADOS</a>
+        <ul id="lista-seleccion-items">
+        </ul>
+    </div>
+    
 </div>
 <div id="dialog-form-nuevo-item" title="Crear nuevo Item" style="display:none;">
     <p class="validateTips">Todos los campos son requeridos.</p>
@@ -129,6 +125,7 @@ $(function() {
     $("#treetable").fancytree({
         extensions: ["table"],
         checkbox: true,
+        icons: false,
         table: {
             indentation: 20,      // indent 20px per node level
             nodeColumnIdx: 2,     // render the node title into the 2nd column
@@ -165,16 +162,14 @@ $(function() {
             var html = "";
             // Se obtiene la lista de nodos seleccionados
             var selNodes = data.tree.getSelectedNodes();
-            if (selNodes.length == 0)
-                $("#menu-derecho").hide("slow");
-            else{
+            if (selNodes.length != 0){
                 for (x=0; x<selNodes.length; x++){
                     html += "<li><a>" + parseInt(x+1) + ". " + selNodes[x].title + "</a></li>";
                 }
             }
-            $("#seleccion").html(html);
-            if ( $("#menu-derecho").is(":hidden") )
-                $("#menu-derecho").show("slow");
+            $("#lista-seleccion-items").html(html);
+            if ( $( "#li-agrupar-nodos" ).is(":hidden") )
+                $( "#li-agrupar-nodos" ).show().effect( "highlight", options, 300 );
         },
         activate: function(event, data){
             var node = data.node;
@@ -197,9 +192,25 @@ $(function() {
             // (index #0 is rendered by fancytree by adding the checkbox)
             $tdList.eq(1).text(node.getIndexHier());
             // (index #2 is rendered by fancytree)
-            $tdList.eq(3).text(numeral(node.data['precio']).format('0,0')).addClass("alignRight");
-            $tdList.eq(4).text(numeral(node.data['venta']).format('0,0')).addClass("alignRight");
-        }
+            /* Se verifica que el item tenga precio */
+            if (node.data['precio'] != 0)
+                $tdList.eq(3).text(numeral(node.data['precio']).format('0,0')).addClass("alignRight");
+            else
+                $tdList.eq(3).text("").addClass("alignRight");
+            /* Se verifica que el item tenga venta */
+            if(typeof node.data['venta'] === "undefined")
+                $tdList.eq(4).text("").addClass("alignRight");
+            else
+                $tdList.eq(4).text(numeral(node.data['venta']).format('0,0')).addClass("alignRight");
+            /* Se agrega un icono dependiendo del estado de planificacion */
+            if ( node['extraClasses'] == "planificable" ){
+                if ( node.data['estado'] == 2 )
+                    $tdList.eq(5).html("").addClass("icono-planificado");
+                else
+                    $tdList.eq(5).html("").addClass("icono-pendiente");    
+            }
+            
+        }   
     });
 
     // Evento que permite enviar una alerta al usuario cuando esta tratando de salir de la pagina y hay
@@ -264,13 +275,18 @@ $(function() {
     */
     $( "#dialog-form" ).dialog({
         autoOpen: false,
-        height: 200,
-        width: 300,
+        //height: 300,
+        width: 400,
         modal: true,
         buttons: {
             "Guardar": guardarGrupoItem,
             Cancelar: function() {
                 $( this ).dialog( "close" );
+                tree = $("#treetable").fancytree("getTree");
+                items_arr = tree.getSelectedNodes();
+                for (var x=0; x<items_arr.length; x++){
+                    items_arr[x].setSelected(false);
+                }
             }
         },
         close: function() {
@@ -368,19 +384,6 @@ $(function() {
         });
         return false;
     });
-
-    /*
-        Se cancela la seleccion de todos los items que han sido seleccionados y se esconde la caja de
-        seleccion de la derecha.
-    */
-    $("#btnCancelar").click(function(){
-        tree = $("#treetable").fancytree("getTree");
-        items_arr = tree.getSelectedNodes();
-        for (var x=0; x<items_arr.length; x++){
-            items_arr[x].setSelected(false);
-        }
-        $("#menu-derecho").hide("slow");
-    })
 
     /*
         Enviar por POST dos campos, el ID del plan y un string de IDs de items

@@ -21,9 +21,10 @@
 				<div class="modal-content">
 				    <div class="modal-header">
 				        <h1 class="text-center">Bienvenido</h1>
+				        
 				    </div>
 				    <div class="modal-body">
-				        <form class="form col-md-12 center-block" action="/accounts/auth/" method="post">
+				        <form class="form col-md-12 center-block" method="post">
 				        	{% csrf_token %}
 				          	<div class="form-group">
 				            	<input type="text" class="form-control input-lg" placeholder="Usuario" name="username">
@@ -37,11 +38,16 @@
 				        </form>
 				    </div>
 				    <div class="modal-footer">
-				        <div class="col-md-12"></div>  
+				        <div class="col-md-12 text-center">
+				        	{% if message %}
+				        	<div class="alert alert-danger">{{ message }}</div>
+				        	{% endif %}
+				        </div>  
 				    </div>
 				</div>
 			</div>
 		</div>
+
 	</div>
 
 	<div id="footer">

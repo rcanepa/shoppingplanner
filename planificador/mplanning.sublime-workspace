@@ -4,6 +4,38 @@
 		"selected_items":
 		[
 			[
+				"ver",
+				"verbose_name"
+			],
+			[
+				"help",
+				"help_text"
+			],
+			[
+				"back",
+				"background-color"
+			],
+			[
+				"bac",
+				"background-size"
+			],
+			[
+				"extr",
+				"extraClasses"
+			],
+			[
+				"add",
+				"addClass"
+			],
+			[
+				"text",
+				"textEstado"
+			],
+			[
+				"plan",
+				"plan_obj	statement"
+			],
+			[
 				"id_ite",
 				"id_item_comparativo"
 			],
@@ -412,10 +444,6 @@
 				"color"
 			],
 			[
-				"back",
-				"background"
-			],
-			[
 				"temp",
 				"temp_periodo	forflow"
 			],
@@ -486,34 +514,6 @@
 			[
 				"itempla",
 				"itemplan_obj	statement"
-			],
-			[
-				"itemplan_",
-				"itemplan_json	statement"
-			],
-			[
-				"no",
-				"None	statement"
-			],
-			[
-				"fun",
-				"function"
-			],
-			[
-				"or",
-				"organizacion"
-			],
-			[
-				"organ",
-				"organizaciones	import"
-			],
-			[
-				"F",
-				"ForeignKey	import"
-			],
-			[
-				"I",
-				"IntegerField	class"
 			]
 		]
 	},
@@ -535,7 +535,11 @@
 	},
 	"console":
 	{
-		"height": 139.0
+		"height": 139.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
 	},
 	"distraction_free":
 	{
@@ -548,6 +552,26 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_arbol_detail.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_arbol.js",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/arbol.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
+		"/home/rcanepa/Development/planificador/planificador/categorias/models.py",
+		"/home/rcanepa/Development/planificador/planificador/categorias/views.py",
+		"/home/rcanepa/Development/planificador/planificador/calendarios/models.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
+		"/home/rcanepa/Development/planificador/planificador/categorias/forms.py",
+		"/home/rcanepa/Development/planificador/planificador/templates/base.html",
+		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu.html",
+		"/home/rcanepa/Development/planificador/planificador/templates/login.html",
+		"/home/rcanepa/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
+		"/home/rcanepa/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/home/rcanepa/Development/planificador/planificador/admin/img/icon-yes.gif",
+		"/home/rcanepa/Development/planificador/planificador/admin/img/icon-no.gif",
+		"/home/rcanepa/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/rcanepa/Development/planificador/planificador/admin/img/default-bg.gif",
+		"/home/rcanepa/Development/planificador/planificador/mplanning.sublime-project",
 		"/home/rcanepa/Development/planificador/planificador/templates/welcome.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_proyecciones_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_planificacion_detail.html",
@@ -555,18 +579,11 @@
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_tree_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planificador/settings.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/planificacion.css",
-		"/home/rcanepa/Development/planificador/planificador/templates/base.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
-		"/home/rcanepa/Development/planificador/planificador/categorias/models.py",
-		"/home/rcanepa/Development/planificador/planificador/categorias/views.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/arbol.css",
-		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
 		"/home/rcanepa/Development/planificador/planificador/ventas/models.py",
 		"/home/rcanepa/Development/planificador/planificador/calendarios/views.py",
 		"/home/rcanepa/Development/planificador/planificador/administracion/templates/administracion/menu.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_list.html",
 		"/home/rcanepa/Development/planificador/planificador/categorias/urls.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/resumen.css",
@@ -618,13 +635,11 @@
 		"/home/rcanepa/Development/planificador/planificador/static/css/purecss/pure-skin-mine.css",
 		"/home/rcanepa/Development/planificador/planificador/static/css/base.css",
 		"/home/rcanepa/Development/planificador/planificador/templates/base2.html",
-		"/home/rcanepa/Development/planificador/planificador/calendarios/models.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/purecss/pure-min.css",
 		"/home/rcanepa/Development/planificador/planificador/static/css/purecss/buttons-min.css",
 		"/home/rcanepa/Development/planificador/planificador/static/css/purecss/tables-min.css",
 		"/home/rcanepa/Development/planificador/planificador/static/css/purecss/forms-min.css",
 		"/home/rcanepa/Development/planificador/planificador/calendarios/forms.py",
-		"/home/rcanepa/Development/planificador/planificador/categorias/forms.py",
 		"/home/rcanepa/Development/planificador/planificador/categorias/admin.py",
 		"/home/rcanepa/Development/planificador/planificador/userprofile/forms.py",
 		"/home/rcanepa/Development/planificador/planificador/planificador.sublime-project",
@@ -640,7 +655,7 @@
 	],
 	"find":
 	{
-		"height": 170.0
+		"height": 37.0
 	},
 	"find_in_files":
 	{
@@ -654,6 +669,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"btnCancelar",
+			"menu-derecho",
+			"btnCancelar",
+			"btnAgrupar",
+			"organizacion",
+			"undefined",
 			"assets/",
 			"console.log",
 			"buscarTablaComparacionAJAX_par",
@@ -775,13 +796,7 @@
 			"planificacion.ventas[temporada][x]",
 			"GuardarProyeccionView",
 			"BuscarCategoriaListProyeccionView",
-			"BuscarVentaItemplanProyeccionView",
-			"console.log",
-			"item__temporada__nombre",
-			"temporada_vigente",
-			"temporadas",
-			"periodo",
-			"precio_blanco_sin_iva"
+			"BuscarVentaItemplanProyeccionView"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -860,6 +875,11 @@
 		]
 	},
 	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "mplanning.sublime-project",
 	"replace":
 	{
 		"height": 64.0
@@ -881,10 +901,24 @@
 		],
 		"width": 0.0
 	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
 	"show_minimap": false,
-	"show_open_files": false,
+	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
 	"side_bar_width": 281.0,
-	"status_bar_visible": true
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
 }

@@ -3,7 +3,7 @@
 }
 
 #div_arbol{
-	font-size: 11px;
+	/*font-size: 11px;*/
 	padding-left: 5px;
 	padding-right: 5px;
 	padding-bottom: 5px;
@@ -41,6 +41,10 @@ fieldset {
 	margin-top:10px; 
 }
 
+#div_arbol th{
+	text-align: center;	
+}
+
 .ui-dialog .ui-state-error { 
 	padding: .3em; 
 }
@@ -63,5 +67,24 @@ div.floating-menu-agrupaciones {
 }
 
 td.alignRight {
-     text-align: right;
+    text-align: right;
+}
+
+td.alignCenter{
+	text-align: center;
+}
+
+td.icono-planificado{
+	background: url("../images/smile.png");
+	background-repeat: no-repeat;
+	background-position: right;
+	background-size: auto 70%;
+	/*background-color: #99FF66;*/
+}
+
+td.icono-pendiente{
+	background: url("../images/sad.png");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 70%;
 }

@@ -3,15 +3,19 @@
 	[
 		{
 			"follow_symlinks": true,
-			"path": "/home/rcanepa/Development/planificador/planificador"
+			"path": "."
 		}
 	],
-	"settings": 
+	"settings":
 	{
-    	"auto_complete_triggers": [{"selector": "source.python", "characters": "."}],
-    	"python_interpreter_path": "/home/rcanepa/.virtualenvs/plan/bin/python",
-    	// Set to true to insert spaces when tab is pressed
-    	"translate_tabs_to_spaces": true
-
+		"auto_complete_triggers":
+		[
+			{
+				"characters": ".",
+				"selector": "source.python"
+			}
+		],
+		"python_interpreter_path": "/home/rcanepa/.virtualenvs/plan/bin/python",
+		"translate_tabs_to_spaces": true
 	}
 }

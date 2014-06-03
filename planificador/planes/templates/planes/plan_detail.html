@@ -15,7 +15,6 @@
     <a class="pure-menu-heading">M&oacute;dulos</a>
     <ul>
     	<li><a href="{% url 'planes:plan_delete' plan.id %}">Eliminar Planificaci&oacute;n</a></li>
-    	<!--li><a href="{% url 'planes:plan_list' %}">Volver</a></li-->
 	</ul>
 </div>
 {% endblock %}
@@ -24,9 +23,6 @@
 
 <div style="float:left; width:40%;">
 	<div style="float:left; width:100%;"><h3>Plan</h3></div>
-	<div class="left_label">Nombre</div>
-	<div class="middle_label">:</div>
-	<div class="right_label">{{ plan.nombre }}</div>
 
 	<div class="left_label">Año</div>
 	<div class="middle_label">:</div>
@@ -35,10 +31,6 @@
 	<div class="left_label">Temporada</div>
 	<div class="middle_label">:</div>
 	<div class="right_label">{{ plan.temporada }}</div>
-	
-	<div class="left_label">Estado</div>
-	<div class="middle_label">:</div>
-	<div class="right_label">{{ plan.get_estado_display }}</div>
 	
 	<div class="left_label">Número de ítems</div>
 	<div class="middle_label">:</div>
@@ -55,11 +47,13 @@
 	<div class="left_label">Responsable</div>
 	<div class="middle_label">:</div>
 	<div class="right_label">{{ plan.usuario_creador.first_name }} {{ plan.usuario_creador.last_name }}</div>
+	
 	{% if plan.get_num_planificados > 0 %}
 	<div class="left_label">Exportar</div>
 	<div class="middle_label">:</div>
 	<div class="right_label"><a href="{% url 'planes:plan_exportar_excel_detail' plan.id %}">Excel</a> (xlsx)</div>
 	{% endif %}
+
 </div>
 
 {% endblock %}

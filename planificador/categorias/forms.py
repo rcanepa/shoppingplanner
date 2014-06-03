@@ -5,7 +5,7 @@ class CategoriaForm(forms.ModelForm):
 	
 	class Meta:
 		model = Categoria
-		fields = ('nombre', 'vigencia', 'categoria_padre','planificable')
+		fields = ('nombre', 'vigencia', 'categoria_padre', 'planificable', 'venta_arbol')
 
 class ItemForm(forms.ModelForm):
 	

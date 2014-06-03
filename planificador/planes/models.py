@@ -2,13 +2,17 @@
 from collections import defaultdict
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Sum, Max, Min, Avg
+from django.db.models import Q, Sum, Max, Min
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 from datetime import datetime
+import operator
+import itertools
+import pprint     # pretty print the lists
 
 
 class Temporada(models.Model):
@@ -81,8 +85,8 @@ class Plan(models.Model):
 
     def resumen_estadisticas(self, temporada=None, item=None):
         """
-        Obtiene la venta asociada a todos los items de una planificacion entre los
-        ultimos 3 años.
+        Obtiene la venta asociada a todos los items de una planificacion, de los periodos
+        de la temporada planificada, de los ultimos 3 años.
         """
         # Contiene la lista de items que seran consultados para buscar las ventas
         item_arr_definitivo = []
@@ -97,6 +101,8 @@ class Plan(models.Model):
         else:
             # Arreglo de items con todos los items hijos del item entregado como parametro
             item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable]
+        # Arreglo de periodos de la temporada de la planificacion.
+        periodos_temporada = self.temporada.periodo.all().values('nombre')
         # Se define la temporada sobre la cual se calcularan las ventas
         if temporada is None:
             temporada = self.temporada
@@ -104,8 +110,9 @@ class Plan(models.Model):
                 item__in=item_arr_definitivo,
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
+                periodo__in=periodos_temporada,
                 temporada=temporada).values(
-                'anio').annotate(
+                'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
@@ -115,8 +122,9 @@ class Plan(models.Model):
             estadisticas = Ventaperiodo.objects.filter(
                 item__in=item_arr_definitivo,
                 anio__gte=ant_anio,
-                anio__lte=act_anio).values(
-                'anio').annotate(
+                anio__lte=act_anio,
+                periodo__in=periodos_temporada).values(
+                'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
@@ -127,14 +135,39 @@ class Plan(models.Model):
                 item__in=item_arr_definitivo,
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
+                periodo__in=periodos_temporada,
                 temporada=temporada).values(
-                'anio').annotate(
+                'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
                 ctb_n=Sum('ctb_n'),
                 costo=Sum('costo')).order_by(
                 'anio')
-        return estadisticas
+
+        # Por cada año, se iteran los distintos items considerados en el resumen.
+        lista_anual = []
+        for anio, items in itertools.groupby(estadisticas, operator.itemgetter('anio')):
+            resumen_anual = defaultdict(int)
+            for item in items:
+                resumen_anual['anio'] = item['anio']
+                resumen_anual['vta_u'] += item['vta_u']
+                resumen_anual['vta_n'] += item['vta_n']
+                resumen_anual['ctb_n'] += item['ctb_n']
+                resumen_anual['costo'] += item['costo']
+                # Si corresponde al año de la planificacion, entonces se debe tomar el precio blanco
+                # del itemplan.
+                if item['anio'] == self.anio:
+                    try:
+                        itemplan_obj = Itemplan.objects.get(item__id=item['item_id'], plan=self)
+                        print itemplan_obj
+                        resumen_anual['precio_vta_u'] += item['vta_u'] * itemplan_obj.precio
+                    except ObjectDoesNotExist:
+                        resumen_anual['precio_vta_u'] += item['vta_u'] * item['item__precio']
+                else:
+                    resumen_anual['precio_vta_u'] += item['vta_u'] * item['item__precio']
+            resumen_anual['precio_blanco'] = resumen_anual['precio_vta_u'] / resumen_anual['vta_u']
+            lista_anual.append(resumen_anual)
+        return lista_anual
 
     def obtener_arbol(self, user):
         # Se obtiene la lista de items sobre los cuales el usuario es resposanble
@@ -151,12 +184,14 @@ class Plan(models.Model):
             for itemplan in itemplan_raices:
                 for branch, obj in itemplan.as_tree():
                     if obj:
+                        if obj.item.categoria.venta_arbol:
+                            data = "\"data\":{\"estado\":" + str(obj.estado) + ", \"precio\":" + str(obj.item.precio) + ", \"venta\": " + str(obj.item.get_venta_temporada(self.anio-1, self.temporada)) + "}, "
+                        else:
+                            data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.item.precio) + "}, "
                         if obj.item.categoria.planificable:
                             extraClasses = "\"extraClasses\":\"planificable\","
-                            data = "\"data\":{\"precio\":" + str(obj.item.precio) + ", \"venta\": " + str(obj.item.get_venta_anual(self.anio-1)) + "}, "
                         else:
                             extraClasses = ""
-                            data = "\"data\":{\"precio\":" + str(obj.item.precio) + ", \"venta\":0}, "
                         if branch:
                             arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"True\", \"lazy\":\"True\", \"key\":\"" + str(obj.item.id) + "\", \"expanded\":\"True\", \"children\":["
                         else:
@@ -178,12 +213,14 @@ class Plan(models.Model):
         else:
             arbol_json = "["
             for obj in items_responsable:
+                if obj.categoria.venta_arbol:
+                    data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.precio) + ", \"venta\": " + str(obj.get_venta_temporada(self.anio-1, self.temporada)) + "}, "
+                else:
+                    data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.precio) + "}, "
                 if obj.categoria.planificable:
                     extraClasses = "\"extraClasses\":\"planificable\","
-                    data = "\"data\":{\"precio\":" + str(obj.precio) + ", \"venta\": " + str(obj.get_venta_anual(self.anio-1)) + "}, "
                 else:
                     extraClasses = ""
-                    data = "\"data\":{\"precio\":" + str(obj.precio) + ", \"venta\":0}, "
                 arbol_json += "{" + data + extraClasses + "\"title\":\"" + obj.nombre + "\", \"folder\":\"False\", \"lazy\":\"True\", \"key\":\"" + str(obj.id) + "\" },"
             arbol_json = arbol_json[:-1]
             arbol_json += "]"

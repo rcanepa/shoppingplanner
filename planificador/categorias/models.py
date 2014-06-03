@@ -8,18 +8,19 @@ from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 
 
-"""
-Modelo Categoria
-"""
-
-
 class Categoria(models.Model):
+    """
+    Modelo Categoria
+    """
     nombre = models.CharField(max_length=70)
     vigencia = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(default=datetime.now, blank=True)
     categoria_padre = models.ForeignKey('self', blank=True, null=True, related_name='categorias_hijos')
     organizacion = models.ForeignKey(Organizacion)
+    # Determina si el usuario puede planificar sobre un item que pertenece a esta categoria.
     planificable = models.BooleanField(default=False)
+    # Determina si en el arbol de planificacion se mostrara la venta de itemes pertenecientes a esta categoria.
+    venta_arbol = models.BooleanField(default=False, verbose_name=u'Venta en arbol')
 
     def __unicode__(self):
         return self.nombre
@@ -76,10 +77,6 @@ class Categoria(models.Model):
 
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
-
-"""
-Modelo Item
-"""
 
 
 class VigenteManager(models.Manager):
@@ -231,13 +228,31 @@ class Item(models.Model):
                 yield next
 
     def get_venta_anual(self, anio=None):
+        """
+        Devuelve un entero con la venta del item para el año entregado como parametro.
+        """
         lista_hijos = []
 
         for hijo in self.hijos_recursivos():
             lista_hijos.append(hijo)
+        venta_anual = Ventaperiodo.objects.filter(
+            item__in=lista_hijos, anio=anio, tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n'))
+        if venta_anual.count():
+            return int(venta_anual[0]['vta_n'])
+        else:
+            return 0
 
-        venta_anual = Ventaperiodo.objects.filter(item__in=lista_hijos, anio=anio, tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n'))
-
+    def get_venta_temporada(self, anio=None, temporada=None):
+        """
+        Devuelve un entero con la venta del item para el año y temporada (periodos) entregados
+        como parametros.
+        """
+        lista_hijos = []
+        periodos = temporada.periodo.all().values('nombre')
+        for hijo in self.hijos_recursivos():
+            lista_hijos.append(hijo)
+        venta_anual = Ventaperiodo.objects.filter(
+            item__in=lista_hijos, anio=anio, periodo__in=periodos, tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n'))
         if venta_anual.count():
             return int(venta_anual[0]['vta_n'])
         else:
@@ -245,10 +260,6 @@ class Item(models.Model):
 
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
-
-"""
-Modelo Grupoitem
-"""
 
 
 class Grupoitem(models.Model):

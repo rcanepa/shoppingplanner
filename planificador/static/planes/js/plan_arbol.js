@@ -130,9 +130,9 @@ function quitarVigenciaItem(){
         type: 'post',
         success: function(data){
             var tree = $("#treetable").fancytree("getTree");
-            var nodo_padre = tree.getNodeByKey(String(data.id_item_padre));
-            nodo_padre.load(true);
+            nodo.remove();
             mostrarMensaje(data.msg, data.tipo_msg);
+            definirVisibles();
         }
     });
     $( this ).dialog( "close" );

@@ -15,6 +15,7 @@ from braces.views import LoginRequiredMixin
 from braces.views import GroupRequiredMixin
 from .models import Categoria, Item, Grupoitem
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
+from planes.models import Itemplan
 from planes.models import Plan
 from planificador.views import UserInfoMixin
 from ventas.models import Ventaperiodo
@@ -109,15 +110,23 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
             plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
-                if children.categoria.planificable:
-                    venta_anual = children.get_venta_anual(plan_obj.anio-1)
-                else:
-                    venta_anual = 0
                 nodo = {}
                 data = {}
+                if children.categoria.planificable:
+                    # Se busca si existe un itemplan asociado al item. La idea es verificar si el item fue planificado o no.
+                    try:
+                        itemplan_obj = Itemplan.objects.get(item=children, plan=plan_obj)
+                        data['estado'] = itemplan_obj.estado
+                    except ObjectDoesNotExist:
+                        data['estado'] = 0
+                if children.categoria.venta_arbol:
+                    venta_temporada_anual = children.get_venta_temporada(plan_obj.anio-1, plan_obj.temporada)
+                    # print venta_temporada_anual
+                else:
+                    venta_temporada_anual = 0
                 nodo['title'] = children.nombre
                 data['precio'] = str(children.precio)
-                data['venta'] = str(venta_anual)
+                data['venta'] = str(venta_temporada_anual)
                 nodo['key'] = children.id
                 nodo['data'] = data
                 if (children.get_children()):
@@ -321,5 +330,5 @@ class ItemQuitarVigenciaView(LoginRequiredMixin, View):
             i.save()
         data['msg'] = "El item ha sido removido exitosamente."
         data['tipo_msg'] = "msg_success"
-        data['id_item_padre'] = item.item_padre.id
+        data['id_item'] = item.id
         return HttpResponse(json.dumps(data), mimetype='application/json')

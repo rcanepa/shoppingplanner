@@ -18,6 +18,9 @@
             <li><a href="" id="btnPB">Precio Blanco</a></li>
             <li><a href="" id="btnCU">Costo Unitario</a></li>
             <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar</a></li>
+            {% if plan.get_num_planificados > 0 %}
+            <li><a href="{% url 'planes:plan_exportar_excel_detail' plan.id %}">Exportar a Excel (xlsx)</a></li>
+            {% endif %}
         </ul>
     </div>
 
@@ -120,7 +123,7 @@
         </div>
 
         <div class="pure-u-1-2">
-            <div class="titulo_chart"><h3>Precio y Costo</h3></div>
+            <div class="titulo_chart"><h3>Precio blanco, precio real, ingreso y costo unitario</h3></div>
             <div><canvas id="precio-chart" width="500" height="230">[No canvas support]</canvas></div>
         </div>
     </div>
@@ -156,7 +159,7 @@
         </div>
 
         <div class="pure-u-1-2">
-            <div class="titulo_chart"><h3>Precio y Costo</h3></div>
+            <div class="titulo_chart"><h3>Precio blanco, precio real, ingreso y costo unitario</h3></div>
             <div><canvas id="precio-chart-comp" width="500" height="230">[No canvas support]</canvas></div>
         </div>
     </div>

@@ -1,14 +1,15 @@
+# -*- coding: utf-8 -*-
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.core.context_processors import csrf
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.views.generic import View, TemplateView, ListView, DetailView
 from userprofile.forms import RegistrationForm
 from userprofile.models import UserProfile
 from braces.views import LoginRequiredMixin
+from .forms import LoginForm
 
 
 # Mixins
@@ -22,36 +23,71 @@ class UserInfoMixin(object):
         return context
 
 
-def login(request):
-    c = {}
-    c.update(csrf(request))
-    if request.user.is_authenticated():
-        return HttpResponseRedirect('/planes/plan/list/')
-    else:
-        return render_to_response('login.html', c)
+class LoginView(View):
+    """Vista para el ingreso y autenticacion de usuarios al sistema"""
+    template_name = 'login.html'
 
+    def get(self, request):
+        # Verificar que el usuario no se encuentre logueado.
+        if request.user.is_authenticated():
+            return HttpResponseRedirect('/planes/plan/list/')
+        # Generar la vista de login.
+        return render(
+            request,
+            self.template_name,
+            {
+                'form': LoginForm,
+            },
+        )
 
-def auth_view(request):
-    username = request.POST.get('username', '')
-    password = request.POST.get('password', '')
-    user = auth.authenticate(username=username, password=password)
+    def post(self, request):
+        username = ''
+        password = ''
 
-    if user is not None:
+        # Se valida que los parametros hayan sido ingresados
+        if request.POST['username'] and request.POST['password']:
+            username = request.POST['username']
+            password = request.POST['password']
+        else:
+            # Si no han sido ingresados, se redirige a la pagina de login
+            return render(
+                request,
+                self.template_name,
+                {
+                    'form': LoginForm(request.POST),
+                    'message': 'Usuario o contraseña no ingresado.'
+                }
+            )
+
+        # Validar que el usuario exista
+        user = auth.authenticate(username=username, password=password)
+
+        # Si no existe se envia un mensaje
+        if not user:
+            return render(
+                request,
+                self.template_name,
+                {
+                    'form': LoginForm(request.POST),
+                    'message': 'Combinación usuario/contraseña incorrecta.'
+                }
+            )
+
+        # Se loguea y redirige a la pagina de inicio
         auth.login(request, user)
         return HttpResponseRedirect('/planes/plan/list/')
-    else:
-        return HttpResponseRedirect('/accounts/login')
+
+
+class LogoutView(LoginRequiredMixin, View):
+    """Vista para hacer logout del usuario solicitante."""
+    def get(self, request):
+        auth.logout(request)
+        return HttpResponseRedirect('/')
 
 
 class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     """Vista para usuarios que ingresan al sistema. Los lleva al home."""
     template_name = "loggedin.html"
-
-
-@login_required()
-def logout(request):
-    auth.logout(request)
-    return HttpResponseRedirect('/accounts/login')
 
 
 class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):
