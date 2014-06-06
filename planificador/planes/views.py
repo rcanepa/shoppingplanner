@@ -1644,10 +1644,9 @@ def ExportarPlanificacionExcelView(request, pk=None):
         # Se verifica si el item planificado tiene hijos, ya que la venta siempre esta asociada a
         # nodos hijos y nunca a nodos intermedios, es decir, siempre a la ultima categoria.
         if bool(itemplan.item.categoria.get_children()):
-            hijos = []
-            for hijo in itemplan.item.get_hijos():
-                hijos.append(hijo)
-            itemplan.info_comercial = Ventaperiodo.objects.filter(item__in=hijos).values(
+            arreglo_dict_desc_id = Itemjerarquia.objects.filter(ancestro=itemplan.item).values('descendiente')
+            arreglo_desc_id = [x['descendiente'] for x in arreglo_dict_desc_id]
+            itemplan.info_comercial = Ventaperiodo.objects.filter(item__in=arreglo_desc_id).values(
                 'anio', 'periodo').annotate(
                 Sum('vta_n'), Sum('vta_u'), Sum('costo'), Sum('ctb_n')).order_by('anio', 'periodo')
 
@@ -1731,7 +1730,10 @@ def ExportarPlanificacionExcelView(request, pk=None):
                 sheet.write(numero_filas+1, numero_col_dinamicas, item.precio, fnumeros)
             else:
                 sheet.write(numero_filas+1, numero_col_dinamicas, item.item.precio, fnumeros)
-            sheet.write(numero_filas+1, numero_col_dinamicas+1, item.item.temporada.nombre)
+            if item.item.temporada is not None:
+                sheet.write(numero_filas+1, numero_col_dinamicas+1, item.item.temporada.nombre)
+            else:
+                sheet.write(numero_filas+1, numero_col_dinamicas+1, "")
             sheet.write(numero_filas+1, numero_col_dinamicas+2, venta['anio'], fnumeros)
             sheet.write(numero_filas+1, numero_col_dinamicas+3, venta['periodo'])
             sheet.write(numero_filas+1, numero_col_dinamicas+4, venta['vta_n__sum'], fnumeros)
