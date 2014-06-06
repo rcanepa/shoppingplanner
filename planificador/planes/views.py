@@ -174,9 +174,6 @@ class GuardarArbolView(LoginRequiredMixin, View):
     Vista que revise como parametros el plan y un arreglo de ID con todos los
     items que deben ser planificados.
     '''
-    def get(self, request, *args, **kwargs):
-        return HttpResponseRedirect(reverse('planes:plan_list'))
-
     def post(self, request, *args, **kwargs):
         if request.POST:
             data = json.loads(request.POST['plan'])
@@ -201,7 +198,7 @@ class GuardarArbolView(LoginRequiredMixin, View):
 
             # Se guardar los itemplan que componen el arbol de planificacion
             Itemplan.objects.bulk_create(itemplan_obj_arr)
-            print "QUERIES: " + str(len(db.connection.queries))
+            print "QUERIES PRIMERA FASE: " + str(len(db.connection.queries))
 
             # Reset queries
             db.reset_queries()
@@ -224,7 +221,7 @@ class GuardarArbolView(LoginRequiredMixin, View):
                 itemplan_obj.item_padre = itemplan_padre
                 # Se guarda la asignacion del itemplan padre
                 itemplan_obj.save()
-            print "QUERIES: " + str(len(db.connection.queries))
+            print "QUERIES SEGUNDA FASE: " + str(len(db.connection.queries))
             # Reset queries
             db.reset_queries()
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))

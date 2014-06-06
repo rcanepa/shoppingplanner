@@ -209,14 +209,16 @@ class Item(models.Model):
         """
             Devuelve el costo unitario de un item en base a la ultima venta real registrada
         """
+        arreglo_dict_desc_id = Itemjerarquia.objects.filter(ancestro=self).values('descendiente')
+        arreglo_desc_id = [x['descendiente'] for x in arreglo_dict_desc_id]
         # Se busca si el item tiene hijos
-        arreglo_items = []
-        for item in self.hijos_recursivos():
-            arreglo_items.append(item)
+        """arreglo_items = []
+                                for item in self.hijos_recursivos():
+                                    arreglo_items.append(item)"""
 
         # Obtiene el costo promedio del año entregado como parametro
         venta = Ventaperiodo.objects.filter(
-            item__in=arreglo_items, anio=anio, tipo=0).exclude(
+            item__in=arreglo_desc_id, anio=anio, tipo=0).exclude(
             vta_u=0).order_by('-anio', '-periodo').aggregate(Sum('vta_u'), Sum('costo'))
 
         if venta['costo__sum'] is not None and venta['vta_u__sum'] is not None:
