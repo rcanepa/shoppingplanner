@@ -16,7 +16,9 @@ from xlsxwriter.workbook import Workbook
 from .models import Plan, Itemplan, Temporada
 from ventas.models import Ventaperiodo, Controlventa
 from calendarios.models import Periodo
-from categorias.models import Categoria, Item
+from categorias.models import Categoria
+from categorias.models import Item
+from categorias.models import Itemjerarquia
 from forms import PlanForm, TemporadaForm
 from planificador.views import UserInfoMixin
 import json
@@ -111,6 +113,17 @@ class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     '''
     model = Plan
     template_name = "planes/plan_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PlanDetailView, self).get_context_data(**kwargs)
+        #context['plan'].get_arbol_planificacion()
+        #item = Item.objects.get(pk=76367)
+        #ij = Itemjerarquia.objects.filter(ancestro=item, distancia=item.categoria.get_distancia_hojas())
+        #for x in ij:
+            #print x.descendiente
+        #for x in item.hijos_recursivos():
+            #x.generar_relaciones(0)
+        return context
 
 
 class PlanDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):

@@ -4,6 +4,66 @@
 		"selected_items":
 		[
 			[
+				"de",
+				"descendiente	statement"
+			],
+			[
+				"a",
+				"ancestro	statement"
+			],
+			[
+				"des",
+				"descendiente"
+			],
+			[
+				"Item",
+				"Itemjerarquia	class"
+			],
+			[
+				"li",
+				"lista_hijos	statement"
+			],
+			[
+				"pla",
+				"planificador	module"
+			],
+			[
+				"ar",
+				"arbol_json	statement"
+			],
+			[
+				"nodo",
+				"nodo_raiz	param"
+			],
+			[
+				"dict",
+				"defaultdict	class"
+			],
+			[
+				"arre",
+				"arreglo_itemplan	statement"
+			],
+			[
+				"itemplan",
+				"itemplan_raiz	forflow"
+			],
+			[
+				"get",
+				"get_children"
+			],
+			[
+				"itemp",
+				"itemplan_obj	statement"
+			],
+			[
+				"precio",
+				"precio_blanco"
+			],
+			[
+				"def",
+				"defaultdict	class"
+			],
+			[
 				"ver",
 				"verbose_name"
 			],
@@ -62,10 +122,6 @@
 			[
 				"colo",
 				"color_texto"
-			],
-			[
-				"precio",
-				"precio_real_simp	statement"
 			],
 			[
 				"pre",
@@ -152,10 +208,6 @@
 				"temp_vta_n	statement"
 			],
 			[
-				"itemp",
-				"itemprecio"
-			],
-			[
 				"costo",
 				"costo_unitario"
 			],
@@ -166,10 +218,6 @@
 			[
 				"Venta",
 				"Ventaperiodo	import"
-			],
-			[
-				"nodo",
-				"nodo_padre"
 			],
 			[
 				"NUEVO",
@@ -228,10 +276,6 @@
 				"items_arr"
 			],
 			[
-				"get",
-				"getSelectedNodes"
-			],
-			[
 				"crea",
 				"crearGrupoitem"
 			],
@@ -258,10 +302,6 @@
 			[
 				"se",
 				"self	param"
-			],
-			[
-				"Item",
-				"Item	import"
 			],
 			[
 				"usuario",
@@ -388,10 +428,6 @@
 				"total_vta_u	statement"
 			],
 			[
-				"pla",
-				"planificacion"
-			],
-			[
 				"actual",
 				"actualizarPlanificacion"
 			],
@@ -478,42 +514,6 @@
 			[
 				"catego",
 				"categoria_raiz"
-			],
-			[
-				"combo",
-				"combo_categorias	statement"
-			],
-			[
-				"i",
-				"itemplan_obj	statement"
-			],
-			[
-				"tota",
-				"total_margen"
-			],
-			[
-				"form",
-				"format"
-			],
-			[
-				"item__",
-				"item__temporada__nombre"
-			],
-			[
-				"ventas",
-				"ventas2	statement"
-			],
-			[
-				"li",
-				"lista_hijos"
-			],
-			[
-				"lista",
-				"lista_hijos	statement"
-			],
-			[
-				"itempla",
-				"itemplan_obj	statement"
 			]
 		]
 	},
@@ -552,14 +552,19 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
+		"/home/rcanepa/Development/planificador/planificador/planificador/utils.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
+		"/home/rcanepa/Development/planificador/planificador/categorias/models.py",
+		"/home/rcanepa/Development/planificador/planificador/ventas/models.py",
+		"/home/rcanepa/Development/planificador/planificador/categorias/views.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_resumen.js",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_trabajo_detail.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_arbol_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_arbol.js",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/arbol.css",
-		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
-		"/home/rcanepa/Development/planificador/planificador/categorias/models.py",
-		"/home/rcanepa/Development/planificador/planificador/categorias/views.py",
 		"/home/rcanepa/Development/planificador/planificador/calendarios/models.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
 		"/home/rcanepa/Development/planificador/planificador/categorias/forms.py",
 		"/home/rcanepa/Development/planificador/planificador/templates/base.html",
 		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
@@ -581,7 +586,6 @@
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/planificacion.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/arbol.css",
-		"/home/rcanepa/Development/planificador/planificador/ventas/models.py",
 		"/home/rcanepa/Development/planificador/planificador/calendarios/views.py",
 		"/home/rcanepa/Development/planificador/planificador/administracion/templates/administracion/menu.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_list.html",
@@ -589,7 +593,6 @@
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/resumen.css",
 		"/home/rcanepa/Development/planificador/planificador/temporadas/models.py",
 		"/home/rcanepa/Development/planificador/planificador/static/css/planes/proyeccion.css",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/resumen_plan_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/userprofile/models.py",
 		"/home/rcanepa/Resources/software/Sublime Text 2/+",
@@ -669,6 +672,19 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"get_venta_temporada",
+			"Item",
+			"self",
+			"try",
+			"str",
+			"key",
+			"itertools",
+			"operator",
+			"serializer",
+			"temporada",
+			"ObjectDoesNotExist",
+			"trye",
+			"defaultdict",
 			"btnCancelar",
 			"menu-derecho",
 			"btnCancelar",
@@ -783,20 +799,7 @@
 			"testv",
 			"itemplansearchlist",
 			"BuscarVentaItemplanProyeccionView",
-			"items_categoria_raiz",
-			"combo_categorias",
-			"categorias",
-			"items",
-			"ProyeccionesView",
-			"totales",
-			"estado",
-			"LISTA_",
-			"print",
-			"prin",
-			"planificacion.ventas[temporada][x]",
-			"GuardarProyeccionView",
-			"BuscarCategoriaListProyeccionView",
-			"BuscarVentaItemplanProyeccionView"
+			"items_categoria_raiz"
 		],
 		"highlight": true,
 		"in_selection": false,

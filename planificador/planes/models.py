@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from django import db
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,11 +9,16 @@ from django.db.models import Q, Sum, Max, Min
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from organizaciones.models import Organizacion
+from planificador.utils import buscar_hijos
+from planificador.utils import Tree
+from planificador.utils import get_venta_temporada
 from ventas.models import Ventaperiodo
 from datetime import datetime
-import operator
+#import json
 import itertools
-import pprint     # pretty print the lists
+import operator
+import pprint
+import time
 
 
 class Temporada(models.Model):
@@ -185,7 +191,8 @@ class Plan(models.Model):
                 for branch, obj in itemplan.as_tree():
                     if obj:
                         if obj.item.categoria.venta_arbol:
-                            data = "\"data\":{\"estado\":" + str(obj.estado) + ", \"precio\":" + str(obj.item.precio) + ", \"venta\": " + str(obj.item.get_venta_temporada(self.anio-1, self.temporada)) + "}, "
+                            venta = obj.item.get_venta_temporada(self.anio-1, self.temporada)
+                            data = "\"data\":{\"estado\":" + str(obj.estado) + ", \"precio\":" + str(obj.item.precio) + ", \"venta_t\": " + str(venta[2]) + ", \"venta_t1\": " + str(venta[1]) + ", \"venta_t2\": " + str(venta[0]) + "}, "
                         else:
                             data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.item.precio) + "}, "
                         if obj.item.categoria.planificable:
@@ -214,7 +221,8 @@ class Plan(models.Model):
             arbol_json = "["
             for obj in items_responsable:
                 if obj.categoria.venta_arbol:
-                    data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.precio) + ", \"venta\": " + str(obj.get_venta_temporada(self.anio-1, self.temporada)) + "}, "
+                    venta = obj.get_venta_temporada(self.anio-1, self.temporada)
+                    data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.precio) + ", \"venta_t\": " + str(venta[2]) + " \"venta_t1\": " + str(venta[1]) + " \"venta_t2\": " + str(venta[0]) + "}, "
                 else:
                     data = "\"data\":{\"estado\": 0, \"precio\":" + str(obj.precio) + "}, "
                 if obj.categoria.planificable:
@@ -225,6 +233,44 @@ class Plan(models.Model):
             arbol_json = arbol_json[:-1]
             arbol_json += "]"
         return arbol_json
+
+    def get_arbol_planificacion(self):
+        db.reset_queries()
+        (_ROOT, _DEPTH, _BREADTH) = range(3)
+
+        tree = Tree()
+
+        itemplan_raices = []
+        # Arreglo de todos los itemplan del arbol.
+        arreglo_itemplan = Itemplan.objects.filter(plan=self).values().order_by('item_padre', 'nombre')
+
+        start_time = time.time()
+        for itemplan in arreglo_itemplan:
+            if len([x for x in arreglo_itemplan if x['item_padre_id'] == itemplan['id']]) > 0:
+                itemplan['es_padre'] = True
+            else:
+                itemplan['es_padre'] = False
+                itemplan['venta'] = get_venta_temporada(itemplan['item_id'], self.anio-1, self.temporada)
+                print itemplan['nombre'], itemplan['venta']
+        print time.time() - start_time, "seconds"
+        # Se busca la lista de itemplan padres (raices).
+        for itemplan in arreglo_itemplan:
+            if itemplan['item_padre_id'] is None:
+                itemplan_raices.append(itemplan)
+
+        for itemplan_raiz in itemplan_raices:
+            for x in buscar_hijos(itemplan_raiz, arreglo_itemplan):
+                tree.add_node(x['id'], x['nombre'], x['item_padre_id'])
+        tree.display(16397)
+        print("***** DEPTH-FIRST ITERATION *****")
+        for node in tree.traverse(16397):
+            print node
+        print("***** BREADTH-FIRST ITERATION *****")
+        for node in tree.traverse(16397, mode=_BREADTH):
+            print node
+
+        print "QUERIES: " + str(len(db.connection.queries))
+        return False
 
     def resumen_plan_item(self):
         """

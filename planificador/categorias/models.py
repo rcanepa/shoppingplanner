@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django import db
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
@@ -75,6 +76,12 @@ class Categoria(models.Model):
             for next in child.hijos_recursivos():
                 yield next
 
+    def get_distancia_hojas(self):
+        nivel_self = self.get_nivel()
+        for categoria_hija in self.hijos_recursivos():
+            nivel_hoja = categoria_hija.get_nivel()
+        return nivel_hoja - nivel_self
+
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
 
@@ -106,7 +113,7 @@ class Item(models.Model):
         Devuelve la lista de items hijos vigente del item. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre) filtrando los items no vigentes.
         """
-        return self.items_hijos.all().filter(vigencia=True).prefetch_related('categoria').order_by('nombre', 'precio')
+        return self.items_hijos.all().filter(vigencia=True).prefetch_related('item_padre', 'categoria').order_by('nombre', 'precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})
@@ -244,22 +251,66 @@ class Item(models.Model):
 
     def get_venta_temporada(self, anio=None, temporada=None):
         """
-        Devuelve un entero con la venta del item para el año y temporada (periodos) entregados
-        como parametros.
+        Devuelve un arreglo con la venta de los ultimos 3 años. La venta esta restringida a los
+        periodos de la temporada entregada como parametro.
         """
-        lista_hijos = []
         periodos = temporada.periodo.all().values('nombre')
-        for hijo in self.hijos_recursivos():
-            lista_hijos.append(hijo)
-        venta_anual = Ventaperiodo.objects.filter(
-            item__in=lista_hijos, anio=anio, periodo__in=periodos, tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n'))
-        if venta_anual.count():
-            return int(venta_anual[0]['vta_n'])
-        else:
-            return 0
+        arreglo_dict_id = Itemjerarquia.objects.filter(ancestro=self).values('descendiente')
+        arreglo_id = [x['descendiente'] for x in arreglo_dict_id]
+        venta_por_anio = Ventaperiodo.objects.filter(
+            item__in=arreglo_id,
+            anio__in=range(anio-2, anio+1),
+            periodo__in=periodos,
+            tipo__in=[0, 1]).values('anio').annotate(vta_n=Sum('vta_n')).order_by('anio')
+        venta_anual_arr = [0, 0, 0]
+        for indice, anio in enumerate(range(anio-2, anio+1)):
+            for venta in venta_por_anio:
+                if venta['anio'] == anio:
+                    venta_anual_arr[indice] = venta['vta_n']
+        return venta_anual_arr
+
+    def generar_relaciones(self, tipo=0):
+        """
+        Crea los registros de Itemrelaciones para si mismo. Se asume que el item ya cuenta con un
+        padre definido, con excepción del item raiz.
+        Tipo 0 implica que se eliminan las relaciones existentes para el nodo y se crean desde cero.
+        Tipo 1 implica que se cuenta la cantidad de relaciones existentes. Si existe en número la cantidad
+        correcta, entonces no se hace nada.
+        """
+        if tipo == 1:
+            if self.categoria.get_nivel() == Itemjerarquia.objects.filter(descendiente=self.id).count():
+                return False
+        Itemjerarquia.objects.filter(descendiente=self.id).delete()
+        arr_itemjerarquia = []
+        nodo = self
+        distancia = 0
+        itemjerarquia = Itemjerarquia(ancestro=self, descendiente=self, distancia=distancia)
+        arr_itemjerarquia.append(itemjerarquia)
+        #print itemjerarquia
+        while nodo.item_padre is not None:
+            distancia = distancia + 1
+            itemjerarquia = Itemjerarquia(ancestro=nodo.item_padre, descendiente=self, distancia=distancia)
+            #print itemjerarquia
+            nodo = nodo.item_padre
+            arr_itemjerarquia.append(itemjerarquia)
+        if bool(arr_itemjerarquia):
+            Itemjerarquia.objects.bulk_create(arr_itemjerarquia)
 
     get_nivel.short_description = 'Nivel'
     get_nivel.admin_order_field = 'id'
+
+
+class Itemjerarquia(models.Model):
+    """
+    Tabla de clausura para mantener las relaciones/caminos del arbol de items.
+    Documentación al respecto: http://www.slideshare.net/billkarwin/models-for-hierarchical-data
+    """
+    ancestro = models.ForeignKey(Item, related_name='descendientes')
+    descendiente = models.ForeignKey(Item, related_name='ancestros')
+    distancia = models.PositiveIntegerField(default=0)
+
+    def __unicode__(self):
+        return str(self.ancestro) + " " + str(self.descendiente) + " " + str(self.distancia)
 
 
 class Grupoitem(models.Model):

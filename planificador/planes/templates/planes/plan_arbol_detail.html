@@ -55,13 +55,15 @@
             <col width="*"></col>
             <col width="100px"></col>
             <col width="100px"></col>
+            <col width="100px"></col>
+            <col width="100px"></col>
             <col width="70px"></col>
         </colgroup>
         <thead>
-          <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO BLANCO</th> <th>VENTA</th> <th>ESTADO</th> </tr>
+          <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO BLANCO</th> <th>VENTA 2011</th> <th>VENTA 2012</th> <th>VENTA 2013</th> <th>ESTADO</th> </tr>
         </thead>
         <tbody>
-          <tr> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
+          <tr> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
         </tbody>
     </table>
 </div>
@@ -197,17 +199,31 @@ $(function() {
                 $tdList.eq(3).text(numeral(node.data['precio']).format('0,0')).addClass("alignRight");
             else
                 $tdList.eq(3).text("").addClass("alignRight");
-            /* Se verifica que el item tenga venta */
-            if(typeof node.data['venta'] === "undefined")
+            
+            /* Se verifica que el item tenga venta_t */
+            if(typeof node.data['venta_t'] === "undefined")
+                $tdList.eq(6).text("").addClass("alignRight");
+            else
+                $tdList.eq(6).text(numeral(node.data['venta_t']).format('0,0')).addClass("alignRight");
+            
+            /* Se verifica que el item tenga venta_t1 */
+            if(typeof node.data['venta_t1'] === "undefined")
+                $tdList.eq(5).text("").addClass("alignRight");
+            else
+                $tdList.eq(5).text(numeral(node.data['venta_t1']).format('0,0')).addClass("alignRight");
+            
+            /* Se verifica que el item tenga venta_t2 */
+            if(typeof node.data['venta_t2'] === "undefined")
                 $tdList.eq(4).text("").addClass("alignRight");
             else
-                $tdList.eq(4).text(numeral(node.data['venta']).format('0,0')).addClass("alignRight");
+                $tdList.eq(4).text(numeral(node.data['venta_t2']).format('0,0')).addClass("alignRight");
+            
             /* Se agrega un icono dependiendo del estado de planificacion */
             if ( node['extraClasses'] == "planificable" ){
                 if ( node.data['estado'] == 2 )
-                    $tdList.eq(5).html("").addClass("icono-planificado");
+                    $tdList.eq(7).html("").addClass("icono-planificado");
                 else
-                    $tdList.eq(5).html("").addClass("icono-pendiente");    
+                    $tdList.eq(7).html("").addClass("icono-pendiente");    
             }
             
         }   

@@ -121,12 +121,13 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
                         data['estado'] = 0
                 if children.categoria.venta_arbol:
                     venta_temporada_anual = children.get_venta_temporada(plan_obj.anio-1, plan_obj.temporada)
-                    # print venta_temporada_anual
                 else:
-                    venta_temporada_anual = 0
+                    venta_temporada_anual = [0, 0, 0]
                 nodo['title'] = children.nombre
                 data['precio'] = str(children.precio)
-                data['venta'] = str(venta_temporada_anual)
+                data['venta_t'] = venta_temporada_anual[2]
+                data['venta_t1'] = venta_temporada_anual[1]
+                data['venta_t2'] = venta_temporada_anual[0]
                 nodo['key'] = children.id
                 nodo['data'] = data
                 if (children.get_children()):
