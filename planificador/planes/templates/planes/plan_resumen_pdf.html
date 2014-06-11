@@ -1,0 +1,290 @@
+{% load static %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<head>
+    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+
+    <!-- Rgraph -->
+    <script src="{% static "js/rgraph/RGraph.common.core.js" %}"></script>
+    <script src="{% static "js/rgraph/RGraph.common.key.js" %}"></script>
+    <script src="{% static "js/rgraph/RGraph.common.annotate.js" %}"></script>  <!-- Just needed for annotating -->
+    <script src="{% static "js/rgraph/RGraph.drawing.rect.js" %}"></script>
+    <script src="{% static "js/rgraph/RGraph.bar.js" %}"></script>              <!-- Just needed for Bar charts -->
+    <script src="{% static "js/rgraph/RGraph.line.js" %}"></script>             <!-- Just needed for Line charts -->
+    <!-- JQuery -->
+    <script src="{% static "js/jquery-1.10.2.min.js" %}"></script>
+    <!-- Numeral.js A javascript library for formatting and manipulating numbers.-->
+    <script src="{% static "js/numeral.js/1.4.5/numeral.min.js" %}" type="text/javascript"></script>
+    <style>
+
+        h4{
+            color: #ef4929;
+        }
+
+        .accordion
+        {
+            font-size: 11px;
+            padding-left: 5px;
+            padding-right: 5px;
+            padding-bottom: 5px;
+            margin-bottom: 5px; 
+            background-color: white;
+            border: 1px solid #ef4929;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .titulo_chart
+        {
+            text-align: center;
+        }
+        
+        #tab_item_resumen{
+            width: 100%;
+            float: left;
+        }
+
+        .pure-u-1-2
+        {
+            text-align: center;
+            width: 50%;
+            float: left;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="accordion">
+    <h4>Item {{ plan.id }}</h4>
+    <div id="tab_item_resumen" >
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Ingresos por Ventas</h3></div>
+            <div><canvas id="venta-chart" width="435" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Contribuci&oacute;n y Margen</h3></div>            
+            <div><canvas id="margen-chart" width="435" height="100">[No canvas support]</canvas></div>
+            <div><canvas id="contribucion-chart" width="430" height="130">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Unidades de Venta</h3></div>
+            <div><canvas id="unidades-chart" width="435" height="230">[No canvas support]</canvas></div>
+        </div>
+
+        <div class="pure-u-1-2">
+            <div class="titulo_chart"><h3>Precio blanco, precio real, ingreso y costo unitario</h3></div>
+            <div><canvas id="precio-chart" width="435" height="230">[No canvas support]</canvas></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+$(function() {
+
+    /*
+    Objeto que mantiene informacion y principales estados del trabajo que el usuario
+    se encuentra realizando en la pagina.
+    */
+    obj_trabajo = function(){
+        // ID de la planificacion sobre la cual se esta trabajando
+        var id_plan = parseInt({{ plan.id }});
+        var datos = null;
+
+        function getPlan(){return id_plan;}
+
+        function getDatos(){return datos;}
+        function setDatos(x){datos = x;}
+
+        return{
+            getPlan:getPlan,
+            getDatos:getDatos,
+            setDatos:setDatos
+        }
+    }();
+
+    /*
+    Construye los graficos de resumen asociados al elemento escogido por
+    el usuario.
+    */
+    function busquedaResumen(data){
+        console.log(data);
+        var data_unidades = data.estadisticas.unidades;
+        var data_venta = data.estadisticas.venta;
+        var data_contribucion = data.estadisticas.contribucion;
+        var data_margen = data.estadisticas.margen;
+        var data_costo = data.estadisticas.costo;
+        var data_dcto_precio = data.estadisticas.dcto_precio;
+
+        var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
+        var color_linea_margen = ['#0055bb'];
+        var color_texto = 'black';
+        var tipo_letra = "Sans-Serif";
+        var tamano_letra = 10;
+
+        // Reset the canvas
+        RGraph.Reset(document.getElementById("venta-chart"));
+        RGraph.Reset(document.getElementById("unidades-chart"));
+        RGraph.Reset(document.getElementById("contribucion-chart"));
+        RGraph.Reset(document.getElementById("margen-chart"));
+        RGraph.Reset(document.getElementById("precio-chart"));
+
+        var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)
+            .Set('text.color', color_texto)
+            /*.Set('text.font', tipo_letra)*/
+            .Set('labels', data_venta.cols)
+            .Set('labels.above', true)
+            .Set('labels.above.size', tamano_letra)
+            .Set('colors', colores_arr)
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            .Set('gutter.left', 10)
+            .Set('gutter.right', 10)
+            .Set('background.grid', false)
+            .Set('labels.ingraph', data_venta.ingraph)
+            .Draw();
+
+        var bar_unidades = new RGraph.Bar('unidades-chart', data_unidades.rows)
+            .Set('text.color', color_texto)
+            .Set('labels', data_unidades.cols)
+            .Set('labels.above', true)
+            .Set('labels.above.size', tamano_letra)
+            .Set('colors', colores_arr)
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            .Set('gutter.left', 10)
+            .Set('gutter.right', 10)
+            .Set('background.grid', false)
+            .Set('labels.ingraph', data_unidades.ingraph)
+            .Draw();
+
+        var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
+            .Set('text.color', color_texto)
+            /*.Set('tooltips', data_contribucion.tooltips)
+            .Set('tooltips.event','onmousemove')*/
+            .Set('labels', data_contribucion.cols)
+            .Set('labels.above', true)
+            .Set('labels.above.size', tamano_letra)
+            .Set('colors', colores_arr)
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            .Set('gutter.left', 10)
+            .Set('gutter.right', 10)
+            .Set('background.grid', false)
+            .Set('labels.ingraph', data_contribucion.ingraph)
+
+        var line_margen = new RGraph.Line('margen-chart', data_margen.rows)
+            /*.Set('tooltips', data_margen.tooltips)
+            .Set('tooltips.hotspot.size', 20)*/
+            .Set('text.color', color_texto)
+            /*.Set('labels.above', true)
+            .Set('labels.above.size', tamano_letra)*/
+            .Set('colors', color_linea_margen)
+            .Set('tickmarks', 'circle')
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            .Set('linewidth', 2)
+            .Set('units.post', '%')
+            .Set('gutter.left', 10)
+            .Set('gutter.right', 10)
+            .Set('background.grid', false)
+            .Set('outofbounds', true) // Para valores negativos
+            .Set('labels.ingraph', data_margen.ingraph)
+        var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
+        combo.Draw();
+
+        var bar_precio_dcto = new RGraph.Bar('precio-chart', data_dcto_precio.rows)
+            .Set('text.color', color_texto)
+            .Set('colors', colores_arr)
+            .Set('labels', data_dcto_precio.cols)
+            .Set('hmargin', 20)
+            .Set('grouping', 'stacked')
+            .Set('noyaxis', true)
+            .Set('background.grid', false)
+            .Set('ylabels', false)
+            .Set('linewidth', 2)
+            .Set('strokestyle', 'white');
+            
+        bar_precio_dcto.ondraw = function (obj)
+            {  
+                /* Se agregan los valores por el costado izquierdo de cada barra. */
+                for (var i=0; i<obj.coords.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords[i][0] - 2,
+                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                               'text':numeral(obj.data_arr[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'right'
+                                              });
+                }
+                /* Se agregan los totales de cada barra por sobre la barra completa. */
+                for (var i=0; i<obj.coords2.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords2[i][0][0] + (obj.coords2[i][0][2] / 2),
+                                               'y':obj.coords2[i][0][1] - 7,
+                                               'text':numeral(data_dcto_precio.labels[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'center'
+                                              });
+                }
+            };
+        bar_precio_dcto.Draw();
+        
+
+        var bar_costo = new RGraph.Bar('precio-chart', data_costo.rows)
+            .Set('text.color', color_texto)
+            .Set('ymax', bar_precio_dcto.scale2.max)
+            .Set('colors', color_linea_margen)
+            .Set('noaxes', true)
+            .Set('hmargin', 25)
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            .Set('background.grid', false);
+        bar_costo.ondraw = function (obj)
+            {
+                for (var i=0; i<obj.coords.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                               'text':numeral(obj.data_arr[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'center'
+                                              });
+                }
+            };
+        bar_costo.Draw();
+            
+    }
+    //data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan'};
+    data = {'id_item':76367, 'id_plan':{{ plan.id }}, 'id_temporada':0, 'tipo_obj_item':'item'};
+    url = '/planes/plan/buscar-datos-resumen/';
+    
+    var request = $.ajax({
+        data: data,
+        url: url,
+        type: 'get'
+    });
+
+    request.done(busquedaResumen);
+    
+
+});
+
+</script>
+</body>
+</html>

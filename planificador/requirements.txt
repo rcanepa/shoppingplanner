@@ -6,6 +6,7 @@ diff-match-patch==20110725.1
 django-braces==1.2.2
 django-debug-toolbar==1.1
 django-uuidfield==0.5.0
+django-wkhtmltopdf==1.2.2
 gunicorn==18.0
 psycopg2==2.5.1
 reportlab==2.7

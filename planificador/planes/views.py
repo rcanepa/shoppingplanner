@@ -13,6 +13,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import View, TemplateView, ListView, DetailView
 from braces.views import LoginRequiredMixin, GroupRequiredMixin
 from xlsxwriter.workbook import Workbook
+from wkhtmltopdf.views import PDFTemplateResponse
 from .models import Plan, Itemplan, Temporada
 from ventas.models import Ventaperiodo, Controlventa
 from calendarios.models import Periodo
@@ -1405,7 +1406,8 @@ class ResumenDataGraficosView(View):
             resumen = {}
             data = {}
 
-            color_texto_ingraph = "#777"
+            #color_texto_ingraph = "#777"
+            color_texto_ingraph = "black"
             color_fondo_ingraph = "#f5f5ed"
 
             # Label para todos los graficos (años)
@@ -1426,6 +1428,7 @@ class ResumenDataGraficosView(View):
             rows_margen_ingraph = []
 
             rows_dcto_precio_imp = []
+            rows_dcto_precio_imp_label = []
             rows_dcto_precio_imp_tooltip = []
             rows_costo = []
 
@@ -1553,6 +1556,7 @@ class ResumenDataGraficosView(View):
                 row_precio_dcto_imp.append(descuento)
                 row_precio_dcto_imp.append(impuesto)
                 row_precio_dcto_imp.append(precio_real_simp)
+                rows_dcto_precio_imp_label.append(impuesto+descuento+precio_real_simp)
 
                 # Se agregan los valores al arreglo que contiene todos los valores por año
                 rows_venta.append(row_venta)
@@ -1607,6 +1611,7 @@ class ResumenDataGraficosView(View):
 
             JSONDctoPrecio['cols'] = rows_label
             JSONDctoPrecio['rows'] = rows_dcto_precio_imp
+            JSONDctoPrecio['labels'] = rows_dcto_precio_imp_label
             JSONDctoPrecio['tooltips'] = rows_dcto_precio_imp_tooltip
 
             JSONCosto['rows'] = rows_costo
@@ -1757,3 +1762,23 @@ def ExportarPlanificacionExcelView(request, pk=None):
     response['Content-Disposition'] = "attachment; filename=" + nombre_archivo
 
     return response
+
+
+class ResumenPDFView(DetailView):
+
+    template_name = 'planes/plan_resumen_pdf.html'
+    model = Plan
+    """
+    def get(self, request, *args, **kwargs):
+        self.context['plan'] = self.get_object()
+
+        response = PDFTemplateResponse(
+            request=request,
+            template=self.template_name,
+            filename=str(self.context['plan'].anio) + "-" + str(self.context['plan'].temporada.nombre) + ".pdf",
+            context=self.context,
+            show_content_in_browser=True,
+            cmd_options={'margin-top': 10, }
+        )
+        return response
+    """

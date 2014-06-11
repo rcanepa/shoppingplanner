@@ -13,7 +13,7 @@ function busquedaResumen(data){
 
     var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
     var color_linea_margen = ['#0055bb'];
-    var color_texto = '#777';
+    var color_texto = 'black';
     var tipo_letra = "Sans-Serif";
     var tamano_letra = 10;
 
@@ -89,54 +89,77 @@ function busquedaResumen(data){
 	combo.Draw();
 
     var bar_precio_dcto = new RGraph.Bar('precio-chart', data_dcto_precio.rows)
-        .Set('text.color', color_texto)
-        .Set('colors', colores_arr)
-        .Set('labels', data_dcto_precio.cols)
-        .Set('labels.above', true)
-        .Set('labels.above.size', tamano_letra)
-        .Set('grouping', 'stacked')
-        .Set('noyaxis', true)
-        .Set('gutter.left', 10)
-        .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('ylabels', false)
-        .Set('linewidth', 2)
-		.Set('strokestyle', 'white')
-        .Draw();
+            .Set('text.color', color_texto)
+            .Set('colors', colores_arr)
+            .Set('labels', data_dcto_precio.cols)
+            .Set('hmargin', 30)
+            .Set('grouping', 'stacked')
+            .Set('noyaxis', true)          
+            .Set('background.grid', false)
+            .Set('ylabels', false)
+            .Set('linewidth', 2)
+            .Set('strokestyle', 'white');
+            
+        bar_precio_dcto.ondraw = function (obj)
+            {
+                /* Se agregan los valores por el costado izquierdo de cada barra. */
+                for (var i=0; i<obj.coords.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords[i][0] - 5,
+                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                               'text':numeral(obj.data_arr[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'right'
+                                              });
+                }
+                /* Se agregan los totales de cada barra por sobre la barra completa. */
+                for (var i=0; i<obj.coords2.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords2[i][0][0] + (obj.coords2[i][0][2] / 2),
+                                               'y':obj.coords2[i][0][1] - 7,
+                                               'text':numeral(data_dcto_precio.labels[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'center'
+                                              });
+                }
+            };
+        bar_precio_dcto.Draw();
+        
 
-    // Esta funcion se utiliza para unificar los pedazos de cada barra, con el objetivo de que
-    // los tooltips se muestren al pasar el mouse sobre cualquiera de ellos
-    RGraph.each (bar_precio_dcto.coords2, function (key, value)
-    {
-        var x = value[0][0];
-        var y = value[0][1];
-        var w = value[0][2];
-        var h = value[0][3] + value[1][3] + value[2][3]; // Sum up the heights of the bar segments
-
-        var rect = new RGraph.Drawing.Rect('precio-chart', x, y, w, h)
-            .Set('strokestyle', 'rgba(0,0,0,0)')
-            .Set('fillstyle', 'rgba(0,0,0,0)')
-            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')*/
-            .Set('highlight.stroke', 'rgba(0,0,0,0)')
-            .Draw();
-    }, bar_precio_dcto);
-
-    var bar_costo = new RGraph.Bar('precio-chart', data_costo.rows)
-        .Set('text.color', color_texto)
-        .Set('ymax', bar_precio_dcto.scale2.max)
-        .Set('gutter.left', bar_precio_dcto.Get('gutter.left'))
-        .Set('colors', color_linea_margen)
-        .Set('noaxes', true)
-        .Set('labels.above', true)
-        .Set('labels.above.size', tamano_letra)
-        .Set('hmargin', 20)
-        .Set('ylabels', false)
-        .Set('noyaxis', true)
-        .Set('gutter.left', 10)
-        .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Draw();
+        var bar_costo = new RGraph.Bar('precio-chart', data_costo.rows)
+            .Set('text.color', color_texto)
+            .Set('ymax', bar_precio_dcto.scale2.max)
+            
+            .Set('colors', color_linea_margen)
+            .Set('noaxes', true)
+            .Set('hmargin', 35)
+            .Set('ylabels', false)
+            .Set('noyaxis', true)
+            
+            
+            .Set('background.grid', false);
+        bar_costo.ondraw = function (obj)
+            {
+                for (var i=0; i<obj.coords.length; ++i) {
+                    obj.context.fillStyle = color_texto;
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                               'text':numeral(obj.data_arr[i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'center'
+                                              });
+                }
+            };
+        bar_costo.Draw();
 }
 
 /*
@@ -154,7 +177,7 @@ function busquedaResumenComp(data){
 
     var colores_arr = ['#44bbcc','#88dddd','#bbeeff'];
     var color_linea_margen = ['#0055bb'];
-    var color_texto = '#777';
+    var color_texto = 'black';
     var tipo_letra = "Sans-Serif";
     var tamano_letra = 10;
 
@@ -224,54 +247,73 @@ function busquedaResumenComp(data){
         .Set('labels.ingraph', data_margen.ingraph)
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
-
+    
     var bar_precio_dcto = new RGraph.Bar('precio-chart-comp', data_dcto_precio.rows)
         .Set('text.color', color_texto)
         .Set('colors', colores_arr)
         .Set('labels', data_dcto_precio.cols)
-        .Set('labels.above', true)
-        .Set('labels.above.size', tamano_letra)
+        .Set('hmargin', 30)
         .Set('grouping', 'stacked')
         .Set('noyaxis', true)
-        .Set('gutter.left', 10)
-        .Set('gutter.right', 10)
         .Set('background.grid', false)
         .Set('ylabels', false)
         .Set('linewidth', 2)
-		.Set('strokestyle', 'white')
-        .Draw();
-
-    // Esta funcion se utiliza para unificar los pedazos de cada barra, con el objetivo de que
-    // los tooltips se muestren al pasar el mouse sobre cualquiera de ellos
-    RGraph.each (bar_precio_dcto.coords2, function (key, value)
-    {
-        var x = value[0][0];
-        var y = value[0][1];
-        var w = value[0][2];
-        var h = value[0][3] + value[1][3] + value[2][3]; // Sum up the heights of the bar segments
-
-        var rect = new RGraph.Drawing.Rect('precio-chart-comp', x, y, w, h)
-            .Set('strokestyle', 'rgba(0,0,0,0)')
-            .Set('fillstyle', 'rgba(0,0,0,0)')
-            /*.Set('tooltips', [data_dcto_precio.tooltips[key]])
-            .Set('tooltips.event','onmousemove')*/
-            .Set('highlight.stroke', 'rgba(0,0,0,0)')
-            .Draw();
-    }, bar_precio_dcto);
-
+        .Set('strokestyle', 'white');
+        
+    bar_precio_dcto.ondraw = function (obj)
+        {
+            /* Se agregan los valores por el costado izquierdo de cada barra. */
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                RGraph.Text2(obj.context, {
+                                           /*'font':tipo_letra,
+                                           'size':tamano_letra,*/
+                                           'x':obj.coords[i][0] - 5,
+                                           'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                           'text':numeral(obj.data_arr[i]).format('0,0'),
+                                           'valign':'center',
+                                           'halign':'right'
+                                          });
+            }
+            /* Se agregan los totales de cada barra por sobre la barra completa. */
+            for (var i=0; i<obj.coords2.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                RGraph.Text2(obj.context, {
+                                           /*font:tipo_letra,
+                                           'size':tamano_letra,*/
+                                           'x':obj.coords2[i][0][0] + (obj.coords2[i][0][2] / 2),
+                                           'y':obj.coords2[i][0][1] - 7,
+                                           'text':numeral(data_dcto_precio.labels[i]).format('0,0'),
+                                           'valign':'center',
+                                           'halign':'center'
+                                          });
+            }
+        };
+    bar_precio_dcto.Draw();
+    
     var bar_costo = new RGraph.Bar('precio-chart-comp', data_costo.rows)
         .Set('text.color', color_texto)
         .Set('ymax', bar_precio_dcto.scale2.max)
-        .Set('gutter.left', bar_precio_dcto.Get('gutter.left'))
         .Set('colors', color_linea_margen)
         .Set('noaxes', true)
-        .Set('labels.above', true)
-        .Set('labels.above.size', tamano_letra)
-        .Set('hmargin', 20)
+        .Set('hmargin', 35)
         .Set('ylabels', false)
         .Set('noyaxis', true)
-        .Set('gutter.left', 10)
-        .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Draw();
+        .Set('background.grid', false);
+    bar_costo.ondraw = function (obj)
+        {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                RGraph.Text2(obj.context, {
+                                           /*font:tipo_letra,
+                                           'size':tamano_letra,*/
+                                           'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                                           'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                                           'text':numeral(obj.data_arr[i]).format('0,0'),
+                                           'valign':'center',
+                                           'halign':'center'
+                                          });
+            }
+        };
+    bar_costo.Draw();
 }

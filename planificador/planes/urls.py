@@ -1,4 +1,5 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns
+from django.conf.urls import url
 
 from planes import views
 
@@ -37,6 +38,8 @@ urlpatterns = patterns('',
     url(r'^plan/guardar-planificacion-as/$', views.GuardarSaldosAvancesView.as_view()),
     url(r'^plan/actualizar-precio-costo/$', views.GuardarPrecioCostoView.as_view()),
 
-    # Vistas para la generacion de un informe XLSX de planificacion
+    # Vista para la generacion de un informe XLSX de planificacion
     url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarPlanificacionExcelView', name='plan_exportar_excel_detail'),
+    # Vista para la generacion de un informe PDF de planificacion
+    url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
 )

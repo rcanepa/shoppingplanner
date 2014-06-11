@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django.contrib.humanize',
+    'wkhtmltopdf',
     'south',
     'categorias',
     'administracion',
@@ -186,6 +187,8 @@ LOGGING = {
         },
     }
 }
+
+WKHTMLTOPDF_CMD = '/usr/bin/wkhtmltopdf'
 
 # Para django-debug-toolbar
 #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
