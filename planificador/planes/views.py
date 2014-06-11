@@ -1430,6 +1430,7 @@ class ResumenDataGraficosView(View):
             rows_dcto_precio_imp = []
             rows_dcto_precio_imp_label = []
             rows_dcto_precio_imp_tooltip = []
+            rows_dcto_precio_imp_label_aux = []
             rows_costo = []
 
             JSONVenta = OrderedDict()
@@ -1557,6 +1558,7 @@ class ResumenDataGraficosView(View):
                 row_precio_dcto_imp.append(impuesto)
                 row_precio_dcto_imp.append(precio_real_simp)
                 rows_dcto_precio_imp_label.append(impuesto+descuento+precio_real_simp)
+                rows_dcto_precio_imp_label_aux.append([precio_real_cimp, precio_real_simp])
 
                 # Se agregan los valores al arreglo que contiene todos los valores por año
                 rows_venta.append(row_venta)
@@ -1612,6 +1614,7 @@ class ResumenDataGraficosView(View):
             JSONDctoPrecio['cols'] = rows_label
             JSONDctoPrecio['rows'] = rows_dcto_precio_imp
             JSONDctoPrecio['labels'] = rows_dcto_precio_imp_label
+            JSONDctoPrecio['labels_aux'] = rows_dcto_precio_imp_label_aux
             JSONDctoPrecio['tooltips'] = rows_dcto_precio_imp_tooltip
 
             JSONCosto['rows'] = rows_costo

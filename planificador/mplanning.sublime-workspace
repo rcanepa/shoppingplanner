@@ -528,26 +528,18 @@
 			}
 		},
 		{
+			"file": "planes/templates/planes/plan_detail.html",
+			"settings":
+			{
+				"buffer_size": 2002,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "planes/templates/planes/plan_resumen_pdf.html",
 			"settings":
 			{
-				"buffer_size": 10703,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "templates/base.html",
-			"settings":
-			{
-				"buffer_size": 3899,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "planes/static/planes/js/plan_trabajo_detail_resumen.js",
-			"settings":
-			{
-				"buffer_size": 12023,
+				"buffer_size": 11559,
 				"line_ending": "Unix"
 			}
 		}
@@ -584,6 +576,7 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_resumen.js",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_planificacion_tv.js",
 		"/home/rcanepa/Development/planificador/planificador/planificador/static/css/default.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_pdf.html",
@@ -594,7 +587,6 @@
 		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_general.js",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_detail.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_resumen.js",
 		"/home/rcanepa/Development/planificador/planificador/planificador/settings.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_arbol.js",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_arbol_detail.html",
@@ -915,49 +907,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "planes/templates/planes/plan_resumen_pdf.html",
+					"file": "planes/templates/planes/plan_detail.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10703,
+						"buffer_size": 2002,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7682,
-								7682
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Djaneiro/Syntaxes/HTML (Django).tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2748.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "templates/base.html",
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 3899,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1102,
-								1102
+								1735,
+								1735
 							]
 						],
 						"settings":
@@ -966,40 +928,40 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 405.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "planes/static/planes/js/plan_trabajo_detail_resumen.js",
+					"buffer": 2,
+					"file": "planes/templates/planes/plan_resumen_pdf.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12023,
+						"buffer_size": 11559,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3637,
-								3637
+								8140,
+								8140
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"syntax": "Packages/Djaneiro/Syntaxes/HTML (Django).tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1170.0,
+						"translation.y": 922.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 2,
 					"type": "text"
 				}
 			]

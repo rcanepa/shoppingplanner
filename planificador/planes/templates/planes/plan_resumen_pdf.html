@@ -146,9 +146,24 @@ $(function() {
             .Set('noyaxis', true)
             .Set('gutter.left', 10)
             .Set('gutter.right', 10)
-            .Set('background.grid', false)
-            .Set('labels.ingraph', data_venta.ingraph)
-            .Draw();
+            .Set('background.grid', false);
+        bar_venta.ondraw = function (obj) {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_venta.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_venta.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+        bar_venta.Draw();
 
         var bar_unidades = new RGraph.Bar('unidades-chart', data_unidades.rows)
             .Set('text.color', color_texto)
@@ -160,9 +175,24 @@ $(function() {
             .Set('noyaxis', true)
             .Set('gutter.left', 10)
             .Set('gutter.right', 10)
-            .Set('background.grid', false)
-            .Set('labels.ingraph', data_unidades.ingraph)
-            .Draw();
+            .Set('background.grid', false);
+        bar_unidades.ondraw = function (obj) {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_unidades.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_unidades.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+        bar_unidades.Draw();
 
         var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
             .Set('text.color', color_texto)
@@ -176,8 +206,23 @@ $(function() {
             .Set('noyaxis', true)
             .Set('gutter.left', 10)
             .Set('gutter.right', 10)
-            .Set('background.grid', false)
-            .Set('labels.ingraph', data_contribucion.ingraph)
+            .Set('background.grid', false);
+        bar_contribucion.ondraw = function (obj) {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_contribucion.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_contribucion.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
 
         var line_margen = new RGraph.Line('margen-chart', data_margen.rows)
             /*.Set('tooltips', data_margen.tooltips)
@@ -194,8 +239,23 @@ $(function() {
             .Set('gutter.left', 10)
             .Set('gutter.right', 10)
             .Set('background.grid', false)
-            .Set('outofbounds', true) // Para valores negativos
-            .Set('labels.ingraph', data_margen.ingraph)
+            .Set('outofbounds', true);
+        line_margen.ondraw = function (obj) {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_margen.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0],
+                       'y':obj.coords[i][1] - 10,
+                       'text':data_margen.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
         var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
         combo.Draw();
 
@@ -214,17 +274,19 @@ $(function() {
         bar_precio_dcto.ondraw = function (obj)
             {  
                 /* Se agregan los valores por el costado izquierdo de cada barra. */
-                for (var i=0; i<obj.coords.length; ++i) {
+                for (var j=0; j<data_dcto_precio.labels_aux.length; ++j) {
                     obj.context.fillStyle = color_texto;
-                    RGraph.Text2(obj.context, {
-                                               /*font:tipo_letra,
-                                               'size':tamano_letra,*/
-                                               'x':obj.coords[i][0] - 2,
-                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
-                                               'text':numeral(obj.data_arr[i]).format('0,0'),
-                                               'valign':'center',
-                                               'halign':'right'
-                                              });
+                    for (var i=0; i<data_dcto_precio.labels_aux[j].length; ++i) {
+                        RGraph.Text2(obj.context, {
+                                                   /*font:tipo_letra,
+                                                   'size':tamano_letra,*/
+                                                   'x':obj.coords2[j][i+1][0] + obj.coords2[j][i+1][2],
+                                                   'y':obj.coords2[j][i+1][1],
+                                                   'text':numeral(data_dcto_precio.labels_aux[j][i]).format('0,0'),
+                                                   'valign':'center',
+                                                   'halign':'left'
+                                                  });
+                    }
                 }
                 /* Se agregan los totales de cada barra por sobre la barra completa. */
                 for (var i=0; i<obj.coords2.length; ++i) {

@@ -35,9 +35,25 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_venta.ingraph)
-        .Draw();
+        .Set('background.grid', false);
+    bar_venta.ondraw = function (obj)
+        {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_venta.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_venta.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+    bar_venta.Draw();
 
     var bar_unidades = new RGraph.Bar('unidades-chart', data_unidades.rows)
         .Set('text.color', color_texto)
@@ -49,9 +65,25 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_unidades.ingraph)
-        .Draw();
+        .Set('background.grid', false);
+    bar_unidades.ondraw = function (obj)
+        {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_unidades.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_unidades.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+    bar_unidades.Draw();
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
         .Set('text.color', color_texto)
@@ -65,8 +97,23 @@ function busquedaResumen(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_contribucion.ingraph)
+        .Set('background.grid', false);
+    bar_contribucion.ondraw = function (obj) {
+        for (var i=0; i<obj.coords.length; ++i) {
+            obj.context.fillStyle = color_texto;
+            if ( data_contribucion.ingraph[i] != null ) {
+                RGraph.Text2(obj.context, {
+                   //font:tipo_letra,
+                   //'size':tamano_letra,
+                   'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                   'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                   'text':data_contribucion.ingraph[i][0],
+                   'valign':'center',
+                   'halign':'center'
+                });    
+            }
+        }
+    };
 
     var line_margen = new RGraph.Line('margen-chart', data_margen.rows)
         /*.Set('tooltips', data_margen.tooltips)
@@ -83,8 +130,23 @@ function busquedaResumen(data){
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
         .Set('background.grid', false)
-		.Set('outofbounds', true) // Para valores negativos
-        .Set('labels.ingraph', data_margen.ingraph)
+		.Set('outofbounds', true);
+    line_margen.ondraw = function (obj) {
+        for (var i=0; i<obj.coords.length; ++i) {
+            obj.context.fillStyle = color_texto;
+            if ( data_margen.ingraph[i] != null ) {
+                RGraph.Text2(obj.context, {
+                   //font:tipo_letra,
+                   //'size':tamano_letra,
+                   'x':obj.coords[i][0],
+                   'y':obj.coords[i][1] - 10,
+                   'text':data_margen.ingraph[i][0],
+                   'valign':'center',
+                   'halign':'center'
+                });    
+            }
+        }
+    };
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
 
@@ -92,7 +154,7 @@ function busquedaResumen(data){
             .Set('text.color', color_texto)
             .Set('colors', colores_arr)
             .Set('labels', data_dcto_precio.cols)
-            .Set('hmargin', 30)
+            .Set('hmargin', 20)
             .Set('grouping', 'stacked')
             .Set('noyaxis', true)          
             .Set('background.grid', false)
@@ -103,17 +165,19 @@ function busquedaResumen(data){
         bar_precio_dcto.ondraw = function (obj)
             {
                 /* Se agregan los valores por el costado izquierdo de cada barra. */
-                for (var i=0; i<obj.coords.length; ++i) {
+                for (var j=0; j<data_dcto_precio.labels_aux.length; ++j) {
                     obj.context.fillStyle = color_texto;
-                    RGraph.Text2(obj.context, {
-                                               /*font:tipo_letra,
-                                               'size':tamano_letra,*/
-                                               'x':obj.coords[i][0] - 5,
-                                               'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
-                                               'text':numeral(obj.data_arr[i]).format('0,0'),
-                                               'valign':'center',
-                                               'halign':'right'
-                                              });
+                    for (var i=0; i<data_dcto_precio.labels_aux[j].length; ++i) {
+                        RGraph.Text2(obj.context, {
+                                                   /*font:tipo_letra,
+                                                   'size':tamano_letra,*/
+                                                   'x':obj.coords2[j][i+1][0] + obj.coords2[j][i+1][2],
+                                                   'y':obj.coords2[j][i+1][1],
+                                                   'text':numeral(data_dcto_precio.labels_aux[j][i]).format('0,0'),
+                                                   'valign':'center',
+                                                   'halign':'left'
+                                                  });
+                    }
                 }
                 /* Se agregan los totales de cada barra por sobre la barra completa. */
                 for (var i=0; i<obj.coords2.length; ++i) {
@@ -138,7 +202,7 @@ function busquedaResumen(data){
             
             .Set('colors', color_linea_margen)
             .Set('noaxes', true)
-            .Set('hmargin', 35)
+            .Set('hmargin', 32)
             .Set('ylabels', false)
             .Set('noyaxis', true)
             
@@ -199,9 +263,25 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_venta.ingraph)
-        .Draw();
+        .Set('background.grid', false);
+    bar_venta.ondraw = function (obj)
+        {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_venta.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_venta.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+    bar_venta.Draw();
 
     var bar_unidades = new RGraph.Bar('unidades-chart-comp', data_unidades.rows)
         .Set('text.color', color_texto)
@@ -213,9 +293,25 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_unidades.ingraph)
-        .Draw();
+        .Set('background.grid', false);
+    bar_unidades.ondraw = function (obj)
+        {
+            for (var i=0; i<obj.coords.length; ++i) {
+                obj.context.fillStyle = color_texto;
+                if ( data_unidades.ingraph[i] != null ) {
+                    RGraph.Text2(obj.context, {
+                       //font:tipo_letra,
+                       //'size':tamano_letra,
+                       'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                       'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                       'text':data_unidades.ingraph[i][0],
+                       'valign':'center',
+                       'halign':'center'
+                    });    
+                }
+            }
+        };
+    bar_unidades.Draw();
 
     var bar_contribucion = new RGraph.Bar('contribucion-chart-comp', data_contribucion.rows)
         .Set('text.color', color_texto)
@@ -229,8 +325,23 @@ function busquedaResumenComp(data){
         .Set('noyaxis', true)
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-        .Set('background.grid', false)
-        .Set('labels.ingraph', data_contribucion.ingraph)
+        .Set('background.grid', false);
+    bar_contribucion.ondraw = function (obj) {
+        for (var i=0; i<obj.coords.length; ++i) {
+            obj.context.fillStyle = color_texto;
+            if ( data_contribucion.ingraph[i] != null ) {
+                RGraph.Text2(obj.context, {
+                   //font:tipo_letra,
+                   //'size':tamano_letra,
+                   'x':obj.coords[i][0] + (obj.coords[i][2] / 2),
+                   'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
+                   'text':data_contribucion.ingraph[i][0],
+                   'valign':'center',
+                   'halign':'center'
+                });    
+            }
+        }
+    };
 
     var line_margen = new RGraph.Line('margen-chart-comp', data_margen.rows)
         /*.Set('tooltips', data_margen.tooltips)
@@ -243,8 +354,23 @@ function busquedaResumenComp(data){
         .Set('units.post', '%')
         .Set('gutter.left', 10)
         .Set('gutter.right', 10)
-		.Set('outofbounds', true) // Para valores negativos
-        .Set('labels.ingraph', data_margen.ingraph)
+		.Set('outofbounds', true);
+    line_margen.ondraw = function (obj) {
+        for (var i=0; i<obj.coords.length; ++i) {
+            obj.context.fillStyle = color_texto;
+            if ( data_margen.ingraph[i] != null ) {
+                RGraph.Text2(obj.context, {
+                   //font:tipo_letra,
+                   //'size':tamano_letra,
+                   'x':obj.coords[i][0],
+                   'y':obj.coords[i][1] - 10,
+                   'text':data_margen.ingraph[i][0],
+                   'valign':'center',
+                   'halign':'center'
+                });    
+            }
+        }
+    };
     var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
 	combo.Draw();
     
@@ -252,7 +378,7 @@ function busquedaResumenComp(data){
         .Set('text.color', color_texto)
         .Set('colors', colores_arr)
         .Set('labels', data_dcto_precio.cols)
-        .Set('hmargin', 30)
+        .Set('hmargin', 20)
         .Set('grouping', 'stacked')
         .Set('noyaxis', true)
         .Set('background.grid', false)
@@ -263,17 +389,19 @@ function busquedaResumenComp(data){
     bar_precio_dcto.ondraw = function (obj)
         {
             /* Se agregan los valores por el costado izquierdo de cada barra. */
-            for (var i=0; i<obj.coords.length; ++i) {
+            for (var j=0; j<data_dcto_precio.labels_aux.length; ++j) {
                 obj.context.fillStyle = color_texto;
-                RGraph.Text2(obj.context, {
-                                           /*'font':tipo_letra,
-                                           'size':tamano_letra,*/
-                                           'x':obj.coords[i][0] - 5,
-                                           'y':obj.coords[i][1] + (obj.coords[i][3] / 2),
-                                           'text':numeral(obj.data_arr[i]).format('0,0'),
-                                           'valign':'center',
-                                           'halign':'right'
-                                          });
+                for (var i=0; i<data_dcto_precio.labels_aux[j].length; ++i) {
+                    RGraph.Text2(obj.context, {
+                                               /*font:tipo_letra,
+                                               'size':tamano_letra,*/
+                                               'x':obj.coords2[j][i+1][0] + obj.coords2[j][i+1][2],
+                                               'y':obj.coords2[j][i+1][1],
+                                               'text':numeral(data_dcto_precio.labels_aux[j][i]).format('0,0'),
+                                               'valign':'center',
+                                               'halign':'left'
+                                              });
+                }
             }
             /* Se agregan los totales de cada barra por sobre la barra completa. */
             for (var i=0; i<obj.coords2.length; ++i) {
@@ -296,7 +424,7 @@ function busquedaResumenComp(data){
         .Set('ymax', bar_precio_dcto.scale2.max)
         .Set('colors', color_linea_margen)
         .Set('noaxes', true)
-        .Set('hmargin', 35)
+        .Set('hmargin', 32)
         .Set('ylabels', false)
         .Set('noyaxis', true)
         .Set('background.grid', false);
