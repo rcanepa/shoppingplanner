@@ -28,3 +28,14 @@
 <h3>{{ categoria.nombre }}</h3>
 
 {% endblock %}
+
+{% block js %}
+
+<script>    
+
+$(function() {
+    $( "#enlace_categorias_list" ).addClass( "opcion-seleccionada" );
+});
+
+</script>
+{% endblock %}

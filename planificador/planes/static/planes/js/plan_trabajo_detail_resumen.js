@@ -18,10 +18,10 @@ function busquedaResumen(data){
     var tamano_letra = 10;
 
     // Reset the canvas
-	RGraph.Reset(document.getElementById("venta-chart"));
+  RGraph.Reset(document.getElementById("venta-chart"));
 	RGraph.Reset(document.getElementById("unidades-chart"));
 	RGraph.Reset(document.getElementById("contribucion-chart"));
-    RGraph.Reset(document.getElementById("margen-chart"));
+  RGraph.Reset(document.getElementById("margen-chart"));
 	RGraph.Reset(document.getElementById("precio-chart"));
 
     var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)

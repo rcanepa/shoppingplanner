@@ -96,7 +96,7 @@
 {% else %}
 
 <div class="accordion">
-    <h4>Item</h4>
+    <h4>ITEM | <a id="exportar-pdf-trabajo" href="#">PDF</a></h4>
     <!-- div general para trabajo -->    
     <div id="tab_trabajo">
         <div style="width:100%; float:left;">
@@ -129,7 +129,7 @@
     </div>
 </div>
 <div class="accordion">
-    <h4>Comparativo</h4>
+    <h4>COMPARATIVO | <a id="exportar-pdf-comparativo" href="#">PDF</a></h4>
     <!-- div general para comparativo -->
     <div id="tab_comparativo">
         <div id="nombre_item_comp"></div>
@@ -234,6 +234,9 @@ $(function() {
         var datos_comp = null;
 
         var celda_editada = null;
+
+        var url_item_trabajo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "1/";
+        var url_item_comparativo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "2/";
         
         function setItem(id){id_item = id;}
         function getItem(){return id_item;}
@@ -263,6 +266,12 @@ $(function() {
 
         function getCeldaEditada(){return celda_editada;}
         function setCeldaEditada(elemento){celda_editada = elemento;}
+
+        function getURLItemTrabajo(){return url_item_trabajo;}
+        function setURLItemTrabajo(url){url_item_trabajo = url;}
+
+        function getURLItemComparativo(){return url_item_comparativo;}
+        function setURLItemComparativo(url){url_item_comparativo = url;}
 
         function limpiarItem(){
             datos = null;
@@ -296,7 +305,11 @@ $(function() {
             getCeldaEditada:getCeldaEditada,
             setCeldaEditada:setCeldaEditada,
             limpiarItem:limpiarItem,
-            limpiarItemComparativo:limpiarItemComparativo
+            limpiarItemComparativo:limpiarItemComparativo,
+            getURLItemTrabajo:getURLItemTrabajo,
+            setURLItemTrabajo:setURLItemTrabajo,
+            getURLItemComparativo:getURLItemComparativo,
+            setURLItemComparativo:setURLItemComparativo
         }
     }();
 

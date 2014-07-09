@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<div class="pure-menu pure-menu-open">
+<!--div class="pure-menu pure-menu-open">
     <a class="pure-menu-heading">M&oacute;dulos</a>
     <ul>
         {% if admin %}
@@ -24,14 +24,23 @@
         <li><a href="{% url 'calendarios:calendario_list' %}">Calendario</a></li>
         <li><a href="{% url 'ventas:controlventa_list' %}">Ventas</a></li>
     </ul>
-</div>
+</div-->
 
 {% endblock %}
 
 {% block content %}
 
 <h3>M&oacute;dulo de Administraci&oacute;n</h3>
-
+<p>
+Bienvenido al m&oacute;dulo de administraci&oacute;n. Desde esta pantalla usted puede controlar los siguientes aspectos de la aplicacici&oacute;n:
+</p>
+<ul>
+    <li>Creaci&oacute;n de usuarios</li>
+    <li>Configuraci&oacute;n de categor&iacute;as</li>
+    <li>Asignaci&oacute;n de usuarios responsables</li>
+    <li>Configuraci&oacute;n de temporadas y calendarios</li>
+    <li>Configuraci&oacute;n de &uacute;ltima carga de ventas</li>
+</ul>
 {% endblock %}
 
 {% block js %}
@@ -39,7 +48,7 @@
 
 $(function() {
 
-    $( "#administracion_index" ).addClass( "opcion-seleccionada" );
+    $( "#enlace_administracion_index" ).addClass( "opcion-seleccionada" );
 });
 
 </script>

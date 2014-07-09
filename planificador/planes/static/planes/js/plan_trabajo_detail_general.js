@@ -179,9 +179,10 @@ function busquedaAJAXdatos(){
                 busqueda = busquedaPlanificacionAS;
                 break;
             case 4:
-                data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan'};
+                data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan', 'tipo_response':'json'};
                 url = '/planes/plan/buscar-datos-resumen/';
                 busqueda = busquedaResumen;
+                $( "#exportar-pdf-trabajo" ).attr('href', obj_trabajo.getURLItemTrabajo() + "" + obj_trabajo.getItem() + "/");
                 break;
         }
         
@@ -221,9 +222,10 @@ function busquedaAJAXdatosComp(id_item){
             busqueda = busquedaPlanificacionASComp;
             break;
         case 4:
-            data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item'};
+            data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item', 'tipo_response':'json'};
             url = '/planes/plan/buscar-datos-resumen/';
             busqueda = busquedaResumenComp;
+            $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemComparativo() + "" + obj_trabajo.getItemComp() + "/");
             break;
     }
 

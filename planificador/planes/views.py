@@ -115,17 +115,6 @@ class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     model = Plan
     template_name = "planes/plan_detail.html"
 
-    def get_context_data(self, **kwargs):
-        context = super(PlanDetailView, self).get_context_data(**kwargs)
-        #context['plan'].get_arbol_planificacion()
-        #item = Item.objects.get(pk=76367)
-        #ij = Itemjerarquia.objects.filter(ancestro=item, distancia=item.categoria.get_distancia_hojas())
-        #for x in ij:
-            #print x.descendiente
-        #for x in item.hijos_recursivos():
-            #x.generar_relaciones(0)
-        return context
-
 
 class PlanDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):
     '''
@@ -1401,10 +1390,12 @@ class ResumenDataGraficosView(View):
     # PRECIO REAL: venta.vta_n / venta.vta_u * 1.19
     # COSTO: venta.costo / venta.vta_u
     # DESCUENTO: precio_blanco - precio_real
+
     def get(self, request, *args, **kwargs):
         if request.GET:
             resumen = {}
-            data = {}
+            data_json = {}
+            data_jsonp = {}
 
             #color_texto_ingraph = "#777"
             color_texto_ingraph = "black"
@@ -1442,6 +1433,7 @@ class ResumenDataGraficosView(View):
 
             JSON = {}
 
+            tipo_response = request.GET['tipo_response']
             id_plan = request.GET['id_plan']
             id_temporada = request.GET['id_temporada']
             id_item = request.GET['id_item']
@@ -1627,9 +1619,12 @@ class ResumenDataGraficosView(View):
             JSON['costo'] = JSONCosto
 
             resumen['estadisticas'] = JSON
-
-            data = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
-            return HttpResponse(data, mimetype='application/json')
+            data_json = simplejson.dumps(resumen, cls=DjangoJSONEncoder)
+            if tipo_response == 'json':
+                return HttpResponse(data_json, mimetype='application/json')
+            else:
+                data_jsonp = "busquedaResumen(" + str(data_json) + ");"
+                return HttpResponse(data_jsonp, mimetype='application/json')
 
 
 def ExportarPlanificacionExcelView(request, pk=None):
@@ -1771,17 +1766,39 @@ class ResumenPDFView(DetailView):
 
     template_name = 'planes/plan_resumen_pdf.html'
     model = Plan
-    """
+    context = {}
+
     def get(self, request, *args, **kwargs):
         self.context['plan'] = self.get_object()
+        # slug1 contiene el ID del item o itemplan
+        # slug2 indica si el ID de slug1 es de un item (valor 1) o itemplan (valor 2)
+        if 'slug1' in self.kwargs and 'slug2' in self.kwargs:
+            tipo_obj = self.kwargs['slug1']
+            self.context['id_item'] = self.kwargs['slug2']
+        else:
+            self.context['id_item'] = 999
+            tipo_obj = 1000
+        if tipo_obj == "1":  # es un objeto Itemplan
+            self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], pk=self.context['id_item'])
+        else:  # es un objeto Item
+            self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], item__id=self.context['id_item'])
+        print self.context['id_item'], tipo_obj
+        cmd_options = {
+            'quiet': True,
+            'encoding': 'utf8',
+            'margin-bottom': '10mm',
+            'margin-left': '10mm',
+            'margin-right': '10mm',
+            'margin-top': '10mm',
+            'orientation': 'landscape',
+        }
 
         response = PDFTemplateResponse(
             request=request,
             template=self.template_name,
             filename=str(self.context['plan'].anio) + "-" + str(self.context['plan'].temporada.nombre) + ".pdf",
             context=self.context,
-            show_content_in_browser=True,
-            cmd_options={'margin-top': 10, }
+            show_content_in_browser=False,
+            cmd_options=cmd_options
         )
         return response
-    """

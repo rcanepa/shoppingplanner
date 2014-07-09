@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from collections import OrderedDict
 from django import db
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum, Max, Min
+from django.utils import simplejson
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
+from categorias.models import Itemjerarquia
 from organizaciones.models import Organizacion
-from planificador.utils import buscar_hijos
-from planificador.utils import Tree
-from planificador.utils import get_venta_temporada
 from ventas.models import Ventaperiodo
 from datetime import datetime
 #import json
@@ -106,7 +107,7 @@ class Plan(models.Model):
                 'item__categoria') if itemplan.item.categoria.planificable]
         else:
             # Arreglo de items con todos los items hijos del item entregado como parametro
-            item_arr_definitivo = [x for x in item.get_hijos() if x.categoria.planificable]
+            item_arr_definitivo = Itemjerarquia.objects.filter(ancestro=item).values('descendiente')
         # Arreglo de periodos de la temporada de la planificacion.
         periodos_temporada = self.temporada.periodo.all().values('nombre')
         # Se define la temporada sobre la cual se calcularan las ventas
@@ -234,43 +235,6 @@ class Plan(models.Model):
             arbol_json += "]"
         return arbol_json
 
-    def get_arbol_planificacion(self):
-        db.reset_queries()
-        (_ROOT, _DEPTH, _BREADTH) = range(3)
-
-        tree = Tree()
-
-        itemplan_raices = []
-        # Arreglo de todos los itemplan del arbol.
-        arreglo_itemplan = Itemplan.objects.filter(plan=self).values().order_by('item_padre', 'nombre')
-
-        start_time = time.time()
-        for itemplan in arreglo_itemplan:
-            if len([x for x in arreglo_itemplan if x['item_padre_id'] == itemplan['id']]) > 0:
-                itemplan['es_padre'] = True
-            else:
-                itemplan['es_padre'] = False
-                itemplan['venta'] = get_venta_temporada(itemplan['item_id'], self.anio-1, self.temporada)
-                print itemplan['nombre'], itemplan['venta']
-        print time.time() - start_time, "seconds"
-        # Se busca la lista de itemplan padres (raices).
-        for itemplan in arreglo_itemplan:
-            if itemplan['item_padre_id'] is None:
-                itemplan_raices.append(itemplan)
-
-        for itemplan_raiz in itemplan_raices:
-            for x in buscar_hijos(itemplan_raiz, arreglo_itemplan):
-                tree.add_node(x['id'], x['nombre'], x['item_padre_id'])
-        tree.display(16397)
-        print("***** DEPTH-FIRST ITERATION *****")
-        for node in tree.traverse(16397):
-            print node
-        print("***** BREADTH-FIRST ITERATION *****")
-        for node in tree.traverse(16397, mode=_BREADTH):
-            print node
-
-        print "QUERIES: " + str(len(db.connection.queries))
-        return False
 
     def resumen_plan_item(self):
         """

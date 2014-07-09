@@ -9,6 +9,7 @@ from django.views.generic import View, TemplateView, ListView, DetailView
 from userprofile.forms import RegistrationForm
 from userprofile.models import UserProfile
 from braces.views import LoginRequiredMixin
+from braces.views import GroupRequiredMixin
 from .forms import LoginForm
 
 
@@ -30,7 +31,10 @@ class LoginView(View):
     def get(self, request):
         # Verificar que el usuario no se encuentre logueado.
         if request.user.is_authenticated():
-            return HttpResponseRedirect('/planes/plan/list/')
+            if request.user.is_staff:
+                return HttpResponseRedirect('/administracion/')
+            else:
+                return HttpResponseRedirect('/planes/plan/list/')
         # Generar la vista de login.
         return render(
             request,
@@ -75,7 +79,10 @@ class LoginView(View):
 
         # Se loguea y redirige a la pagina de inicio
         auth.login(request, user)
-        return HttpResponseRedirect('/planes/plan/list/')
+        if user.is_staff:
+            return HttpResponseRedirect('/administracion/')
+        else:
+            return HttpResponseRedirect('/planes/plan/list/')
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -90,10 +97,11 @@ class LoggedInView(LoginRequiredMixin, UserInfoMixin, TemplateView):
     template_name = "loggedin.html"
 
 
-class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):
+class RegisterUserView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, View):
     """Vista para el registro de nuevos usuarios"""
     form_class = RegistrationForm
     template_name = 'register.html'
+    group_required = u'Administrador'
 
     def get(self, request, *args, **kwargs):
         ''' user is not submitting the form, show them a blank registration form '''
@@ -118,15 +126,17 @@ class RegisterUserView(LoginRequiredMixin, UserInfoMixin, View):
             return render_to_response('register.html', {'form': form}, context_instance=RequestContext(request))
 
 
-class RegisterSuccessView(LoginRequiredMixin, UserInfoMixin, TemplateView):
+class RegisterSuccessView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, TemplateView):
     """Vista utilizada """
+    group_required = u'Administrador'
     template_name = "register_success.html"
 
 
-class UserListView(LoginRequiredMixin, UserInfoMixin, ListView):
+class UserListView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, ListView):
     """Lista los usuarios de la organizacion"""
     model = User
     template_name = "user_list.html"
+    group_required = u'Administrador'
 
     def get_context_data(self, **kwargs):
         context = super(UserListView, self).get_context_data(**kwargs)
@@ -134,8 +144,9 @@ class UserListView(LoginRequiredMixin, UserInfoMixin, ListView):
         return context
 
 
-class UserDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
+class UserDetailView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, DetailView):
     """Vista para la ficha de un usuario"""
     model = User
     template_name = "user_detail.html"
     context_object_name = "usuario"
+    group_required = u'Administrador'

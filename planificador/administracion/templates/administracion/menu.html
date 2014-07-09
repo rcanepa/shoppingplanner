@@ -1,6 +1,11 @@
 <div class="pure-menu pure-menu-open pure-menu-horizontal">
     <ul>
-        <li><a href="{% url 'home' %}">INICIO</a></li>
-		<li class="pure-menu-selected"><a id="administracion_index" href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
+        <li><a id="enlace_administracion_index" href="{% url 'administracion:index' %}">ADMINISTRACI&Oacute;N</a></li>
+        <li><a id="enlace_user_list" href="{% url 'user_list' %}">| USUARIOS |</a></li>
+        <li><a id="enlace_categorias_list" href="{% url 'categorias:categoria_list' %}">| CATEGOR&Iacute;AS |</a></li>
+        <li><a id="enlace_items_list" href="{% url 'categorias:item_responsables' %}">| ITEMS |</a></li>
+        <li><a id="enlace_temporada_list" href="{% url 'planes:temporada_list' %}">| TEMPORADAS |</a></li>
+        <li><a id="enlace_calendario_list" href="{% url 'calendarios:calendario_list' %}">| CALENDARIO |</a></li>
+        <li><a id="enlace_controlventa_list" href="{% url 'ventas:controlventa_list' %}">| VENTAS |</a></li>
     </ul>
 </div>

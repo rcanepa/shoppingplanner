@@ -78,7 +78,7 @@ td.icono-planificado{
 	background: url("../images/smile.png");
 	background-repeat: no-repeat;
 	background-position: right;
-	background-size: auto 70%;
+	background-size: auto 95%;
 	/*background-color: #99FF66;*/
 }
 
@@ -86,5 +86,5 @@ td.icono-pendiente{
 	background: url("../images/sad.png");
 	background-repeat: no-repeat;
 	background-position: center;
-	background-size: auto 70%;
+	background-size: auto 95%;
 }
