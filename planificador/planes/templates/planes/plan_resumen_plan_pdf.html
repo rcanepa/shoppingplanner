@@ -8,36 +8,8 @@
 </head>
 
 <body>
-    <div class="accordion">
-        <h4 id="titulo_test">
-            {% for padre in id_item.get_padre %}
-                {{ padre.nombre }} >
-            {% endfor %}
-            {{ id_item.nombre }}
-        </h4>
-        <div class="pure-g" style="text-align:center">
-            <div class="pure-u-1-2">
-                <div class="titulo-chart"><h3>Ingresos por Ventas</h3></div>
-                <div><canvas id="venta-chart" width="625" height="365">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo-chart"><h3>Contribuci&oacute;n y Margen</h3></div>            
-                <div><canvas id="margen-chart" width="625" height="100">[No canvas support]</canvas></div>
-                <div><canvas id="contribucion-chart" width="625" height="265">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo-chart"><h3>Unidades de Venta</h3></div>
-                <div><canvas id="unidades-chart" width="625" height="365">[No canvas support]</canvas></div>
-            </div>
-
-            <div class="pure-u-1-2">
-                <div class="titulo-chart"><h3>Precio blanco, precio real, ingreso y costo unitario</h3></div>
-                <div><canvas id="precio-chart" width="625" height="365">[No canvas support]</canvas></div>
-            </div>
-        </div>
-    </div>
+    {% autoescape off %}{{ html_indice }}{% endautoescape %}
+    {% autoescape off %}{{ html }}{% endautoescape %}
     <!-- Rgraph -->
     <script type="text/javascript" src="{{STATIC_URL}}js/rgraph/RGraph.common.core.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}js/rgraph/RGraph.common.key.js"></script>
@@ -49,6 +21,27 @@
     <!-- Numeral.js A javascript library for formatting and manipulating numbers.-->
     <script type="text/javascript" src="{{STATIC_URL}}js/numeral.js/1.4.5/numeral.min.js"></script>
     <script type="text/javascript">
+    
+    // right padding s with c to a total of n chars
+    function padding_right(s, c, n) {
+        if (! s || ! c || s.length >= n) {
+            return s;
+        }
+        var max = (n - s.length)/c.length;
+        for (var i = 0; i < max; i++) {
+            s += c;
+        }
+        return s;
+    }
+
+    function reemplaza(a, b, texto){
+        /*
+        a: texto a reemplazar
+        b: texto de reemplazo
+        texto: texto a modificar
+        */
+        return texto.replace(a, b);
+    }
 
     $(function() {
         /*
@@ -56,9 +49,7 @@
         se encuentra realizando en la pagina.
         */
         obj_trabajo = (function(){
-            // ID de la planificacion sobre la cual se esta trabajando
             var id_plan = parseInt({{ plan.id }});
-            var id_item = parseInt({{ id_item.item_id }})
             var datos = null;
 
             function getPlan(){return id_plan;}
@@ -66,15 +57,30 @@
             function getDatos(){return datos;}
             function setDatos(x){datos = x;}
 
-            function getItem(){return id_item;}
-            function setItem(x){id_item = x;}
+            function getTitulo(x){
+                var titulo = "";
+                switch(x){
+                    case 0:
+                        titulo = "Ingresos por Ventas";
+                        break;
+                    case 1:
+                        titulo = "Contribuci&oacute;n y Margen";
+                        break;
+                    case 2:
+                        titulo = "Unidades de Venta";
+                        break;
+                    case 3:
+                        titulo = "Precio blanco, precio real, ingreso y costo unitario";
+                        break;
+                }
+                return titulo;
+            }
 
             return{
                 getPlan:getPlan,
                 getDatos:getDatos,
                 setDatos:setDatos,
-                getItem:getItem,
-                setItem:setItem
+                getTitulo:getTitulo
             }
         })();
 
@@ -82,8 +88,17 @@
         Construye los graficos de resumen asociados al elemento escogido por
         el usuario.
         */
-        busquedaResumen = function (data){
+        generarContenedores = function (data){
             console.log(data);
+            $.each( data, function( key, value ) {
+                cargarGraficos(key, value);
+            });
+
+            return false;
+        };
+
+        function cargarGraficos(key, data){
+            //console.log(key, data);
             var data_unidades = data.estadisticas.unidades;
             var data_venta = data.estadisticas.venta;
             var data_contribucion = data.estadisticas.contribucion;
@@ -97,14 +112,20 @@
             var tipo_letra = "Sans-Serif";
             var tamano_letra = 10;
 
-            // Reset the canvas
-            RGraph.Reset(document.getElementById("venta-chart"));
-            RGraph.Reset(document.getElementById("unidades-chart"));
-            RGraph.Reset(document.getElementById("contribucion-chart"));
-            RGraph.Reset(document.getElementById("margen-chart"));
-            RGraph.Reset(document.getElementById("precio-chart"));
+            var id_div_venta_chart = key + "-0-chart";
+            var id_div_margen_chart = key + "-1a-chart";
+            var id_div_contribucion_chart = key + "-1b-chart";
+            var id_div_unidades_chart = key + "-2-chart";
+            var id_div_precio_chart = key + "-3-chart";
 
-            var bar_venta = new RGraph.Bar('venta-chart', data_venta.rows)
+            // Reset the canvas
+            RGraph.Reset(document.getElementById(id_div_venta_chart));
+            RGraph.Reset(document.getElementById(id_div_margen_chart));
+            RGraph.Reset(document.getElementById(id_div_contribucion_chart));
+            RGraph.Reset(document.getElementById(id_div_unidades_chart));
+            RGraph.Reset(document.getElementById(id_div_precio_chart));
+
+            var bar_venta = new RGraph.Bar(id_div_venta_chart, data_venta.rows)
                 .Set('text.color', color_texto)
                 /*.Set('text.font', tipo_letra)*/
                 .Set('labels', data_venta.cols)
@@ -134,7 +155,7 @@
             };
             bar_venta.Draw();
 
-            var bar_unidades = new RGraph.Bar('unidades-chart', data_unidades.rows)
+            var bar_unidades = new RGraph.Bar(id_div_unidades_chart, data_unidades.rows)
                 .Set('text.color', color_texto)
                 .Set('labels', data_unidades.cols)
                 .Set('labels.above', true)
@@ -163,7 +184,7 @@
             };
             bar_unidades.Draw();
 
-            var bar_contribucion = new RGraph.Bar('contribucion-chart', data_contribucion.rows)
+            var bar_contribucion = new RGraph.Bar(id_div_contribucion_chart, data_contribucion.rows)
                 .Set('text.color', color_texto)
                 /*.Set('tooltips', data_contribucion.tooltips)
                 .Set('tooltips.event','onmousemove')*/
@@ -193,7 +214,7 @@
                 }
             };
 
-            var line_margen = new RGraph.Line('margen-chart', data_margen.rows)
+            var line_margen = new RGraph.Line(id_div_margen_chart, data_margen.rows)
                 /*.Set('tooltips', data_margen.tooltips)
                 .Set('tooltips.hotspot.size', 20)*/
                 .Set('text.color', color_texto)
@@ -228,7 +249,7 @@
             var combo = new RGraph.CombinedChart(bar_contribucion, line_margen);
             combo.Draw();
 
-            var bar_precio_dcto = new RGraph.Bar('precio-chart', data_dcto_precio.rows)
+            var bar_precio_dcto = new RGraph.Bar(id_div_precio_chart, data_dcto_precio.rows)
                 .Set('text.color', color_texto)
                 .Set('colors', colores_arr)
                 .Set('labels', data_dcto_precio.cols)
@@ -274,7 +295,7 @@
             bar_precio_dcto.Draw();
             
 
-            var bar_costo = new RGraph.Bar('precio-chart', data_costo.rows)
+            var bar_costo = new RGraph.Bar(id_div_precio_chart, data_costo.rows)
                 .Set('text.color', color_texto)
                 .Set('ymax', bar_precio_dcto.scale2.max)
                 .Set('colors', color_linea_margen)
@@ -301,18 +322,21 @@
             bar_costo.Draw();
                 
         }
+
+        responseDummy = function(data){
+            console.log(data);
+        }
         
-        //data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan'};
-        data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item', 'tipo_response':'jsonp'};
-        url = 'http://localhost:8000/planes/plan/buscar-datos-resumen/';
+        data = {'id_plan':obj_trabajo.getPlan()};
+        url = 'http://localhost:8000/planes/plan/buscar-datos-resumen-planificacion/';
         
-        $.ajax({                                                                        
-            type: 'GET',                                                                     
+        $.ajax({
+            type: 'GET',
             url: url,
             data: data,
             dataType: 'jsonp',
-            jsonp: 'busquedaResumen',
-            success: function() { console.log('Success!'); }                                                     
+            jsonp: 'generarContenedores',
+            success: function() { console.log('Success!'); }
         });
         
     });

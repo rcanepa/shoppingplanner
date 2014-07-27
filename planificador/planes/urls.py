@@ -32,6 +32,7 @@ urlpatterns = patterns('',
     url(r'^plan/buscar-datos-planificacion-tv/$', views.BuscarDatosPlanificacionView.as_view()),
     url(r'^plan/buscar-datos-planificacion-tv-comp/$', views.BuscarDatosPlanificacionCompView.as_view()),
     url(r'^plan/buscar-datos-resumen/$', views.ResumenDataGraficosView.as_view()),
+    url(r'^plan/buscar-datos-resumen-planificacion/$', views.ResumenPlanDataGraficosView.as_view()),
     url(r'^plan/buscar-datos-planificacion-as/$', views.BuscarSaldosAvancesView.as_view()),
     url(r'^plan/buscar-datos-planificacion-as-comp/$', views.BuscarSaldosAvancesCompView.as_view()),
     url(r'^plan/guardar-planificacion-as/$', views.GuardarSaldosAvancesView.as_view()),
@@ -40,6 +41,7 @@ urlpatterns = patterns('',
     # Vista para la generacion de un informe XLSX de planificacion
     url(r'^plan/plan_exportar_excel/(?P<pk>\d+)/$', 'planes.views.ExportarPlanificacionExcelView', name='plan_exportar_excel_detail'),
     # Vista para la generacion de un informe PDF de planificacion
+    url(r'^plan/plan_exportar_plan_pdf/(?P<pk>\d+)/$', views.ResumenPlanificacionPDFView.as_view(), name='plan_exportar_plan_pdf_detail'),
     url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
     url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/(?P<slug1>[0-9]+)/(?P<slug2>[0-9]+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
 )

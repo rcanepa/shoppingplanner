@@ -4,6 +4,94 @@
 		"selected_items":
 		[
 			[
+				"html",
+				"html_indice	statement"
+			],
+			[
+				"tex",
+				"text-align"
+			],
+			[
+				"item",
+				"itemplan	forflow"
+			],
+			[
+				"T",
+				"True	class"
+			],
+			[
+				"valu",
+				"values_list"
+			],
+			[
+				"id",
+				"id_div_precio_chart"
+			],
+			[
+				"id_p",
+				"id_div_precio_chart"
+			],
+			[
+				"id_",
+				"id_div_venta_chart"
+			],
+			[
+				"he",
+				"height_con"
+			],
+			[
+				"wi",
+				"width"
+			],
+			[
+				"vent",
+				"ventas_item"
+			],
+			[
+				"esta",
+				"estadisticas"
+			],
+			[
+				"resum",
+				"resumen_item"
+			],
+			[
+				"des",
+				"descendientes	statement"
+			],
+			[
+				"excep",
+				"Exception	class"
+			],
+			[
+				"ven",
+				"venta	forflow"
+			],
+			[
+				"ve",
+				"venta	forflow"
+			],
+			[
+				"lista",
+				"lista_anual	statement"
+			],
+			[
+				"desce",
+				"descendiente"
+			],
+			[
+				"venta",
+				"venta_planificacion	statement"
+			],
+			[
+				"itemplan",
+				"itemplan_raices	statement"
+			],
+			[
+				"itempla",
+				"itemplan_raices	statement"
+			],
+			[
 				"getItem",
 				"getItemComp"
 			],
@@ -68,10 +156,6 @@
 				"ancestro	statement"
 			],
 			[
-				"des",
-				"descendiente"
-			],
-			[
 				"Item",
 				"Itemjerarquia	class"
 			],
@@ -98,10 +182,6 @@
 			[
 				"arre",
 				"arreglo_itemplan	statement"
-			],
-			[
-				"itemplan",
-				"itemplan_raiz	forflow"
 			],
 			[
 				"itemp",
@@ -264,10 +344,6 @@
 				"costo_unitario"
 			],
 			[
-				"ven",
-				"venta_items_list	statement"
-			],
-			[
 				"Venta",
 				"Ventaperiodo	import"
 			],
@@ -309,10 +385,6 @@
 			],
 			[
 				"ie",
-				"items_arr"
-			],
-			[
-				"item",
 				"items_arr"
 			],
 			[
@@ -368,10 +440,6 @@
 				"item_obj"
 			],
 			[
-				"id_",
-				"id_item"
-			],
-			[
 				"da",
 				"data_table_contribucion"
 			],
@@ -396,20 +464,8 @@
 				"OrderedDict	import"
 			],
 			[
-				"esta",
-				"estadisticas"
-			],
-			[
 				"tempora",
 				"temporada_obj"
-			],
-			[
-				"resum",
-				"resumen_venta"
-			],
-			[
-				"id",
-				"id_temporada	statement"
 			],
 			[
 				"tempor",
@@ -458,96 +514,24 @@
 			[
 				"com",
 				"combo_categorias_comp	statement"
-			],
-			[
-				"context",
-				"context	statement"
-			],
-			[
-				"total",
-				"total_vta_u"
-			],
-			[
-				"g",
-				"get_profile"
-			],
-			[
-				"num_",
-				"num_items_tot"
-			],
-			[
-				"to",
-				"total_vta_u	statement"
-			],
-			[
-				"actual",
-				"actualizarPlanificacion"
-			],
-			[
-				"para",
-				"parametros"
-			],
-			[
-				"lo",
-				"log"
-			],
-			[
-				"html",
-				"html_anio"
-			],
-			[
-				"la",
-				"layoutdims"
-			],
-			[
-				"tiempo",
-				"tiempo__anio__lte"
-			],
-			[
-				"du",
-				"dumps	function"
-			],
-			[
-				"pro",
-				"proyeccion"
-			],
-			[
-				"tempo",
-				"temporada_new	forflow"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
+			"file": "planes/templates/planes/plan_resumen_plan_pdf.html",
+			"settings":
+			{
+				"buffer_size": 15354,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "planes/views.py",
 			"settings":
 			{
-				"buffer_size": 88509,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "planes/static/planes/js/plan_trabajo_detail_resumen.js",
-			"settings":
-			{
-				"buffer_size": 18902,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "planes/static/planes/js/plan_trabajo_detail_general.js",
-			"settings":
-			{
-				"buffer_size": 25933,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "planes/templates/planes/plan_trabajo_detail.html",
-			"settings":
-			{
-				"buffer_size": 17882,
+				"buffer_size": 105541,
 				"line_ending": "Unix"
 			}
 		}
@@ -584,16 +568,25 @@
 	},
 	"file_history":
 	[
-		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_pdf.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu_plan_trabajo_detail.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_general.js",
-		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/trabajo.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/resumen_plan_pdf.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_arbol_detail.html",
-		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_resumen.js",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_pdf.html",
+		"/home/rcanepa/Development/planificador/planificador/planificador/static/css/default.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/trabajo.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_plan_pdf_test.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_plan_pdf.html",
+		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_detail.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_trabajo_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/resumen_pdf.css",
+		"/home/rcanepa/Development/planificador/planificador/templates/base.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_general.js",
+		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_resumen.js",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu.html",
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/menu_plan_trabajo_detail.html",
 		"/usr/share/applications/sublime_text.desktop",
 		"/home/rcanepa/Development/planificador/planificador/administracion/templates/administracion/index.html",
 		"/home/rcanepa/Development/planificador/planificador/administracion/templates/administracion/menu.html",
@@ -614,25 +607,19 @@
 		"/home/rcanepa/Development/planificador/planificador/planificador/urls.py",
 		"/home/rcanepa/Development/planificador/planificador/administracion/urls.py",
 		"/home/rcanepa/Development/planificador/planificador/planificador/settings.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
 		"/home/rcanepa/Development/planificador/planificador/planificador/static/planes/css/resumen_pdf.css",
 		"/home/rcanepa/Development/planificador/planificador/categorias/models.py",
 		"/home/rcanepa/Development/planificador/planificador/planificador/utils.py",
 		"/home/rcanepa/Development/planificador/planificador/planificador/settings_test.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/test.html",
 		"/home/rcanepa/Development/planificador/planificador/planificador/middleware.py",
-		"/home/rcanepa/Development/planificador/planificador/templates/base.html",
 		"/home/rcanepa/Downloads/sampledb.sql",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_trabajo_detail_planificacion_tv.js",
-		"/home/rcanepa/Development/planificador/planificador/planificador/static/css/default.css",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_trabajo_detail.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/js/plan_arbol.js",
 		"/home/rcanepa/Development/planificador/planificador/ventas/models.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/arbol.css",
 		"/home/rcanepa/Development/planificador/planificador/calendarios/models.py",
 		"/home/rcanepa/Development/planificador/planificador/categorias/forms.py",
-		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
 		"/home/rcanepa/Development/planificador/planificador/templates/login.html",
 		"/home/rcanepa/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
 		"/home/rcanepa/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
@@ -718,6 +705,27 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"contador",
+			"def get(",
+			"def get ",
+			"def get",
+			"html_indice",
+			"print",
+			"titulo_chart",
+			"data_costo",
+			"print",
+			"defaultdict",
+			"setDatos",
+			"getDatos",
+			"DetailV",
+			"resumen_estadisticas(",
+			"tipo_response",
+			"print",
+			"pure-u-1-2",
+			"h3",
+			"generar_resumen_plan(",
+			"getItemComp",
+			"getItem",
 			"setItemComp",
 			"busquedaResumen",
 			"buscar_hijos",
@@ -824,28 +832,7 @@
 			"Q",
 			"width: 7%;",
 			"style=\\\"width:16%;\\\"",
-			"guardar",
-			"dialo",
-			"precio_bl",
-			"dateti",
-			"iso",
-			"item-planificacion",
-			"item-proyeccion",
-			"estadisticas-proyeccion",
-			"BuscarItemplanProyeccionView",
-			"print",
-			"__planificable",
-			"items a pla",
-			"itemplan_ob",
-			"id_item",
-			"BuscarVentaItemplanProyeccionView",
-			"buscarCategoriaComparacion",
-			"combo_cat_",
-			"BuscarCategoriaListProyeccionView",
-			"itemplanventasearch",
-			"split",
-			"BuscarCategoriaListProyeccionView",
-			"select"
+			"guardar"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -853,6 +840,8 @@
 		"regex": false,
 		"replace_history":
 		[
+			"titulo-chart",
+			"graficos_pdf",
 			"\"430\"",
 			"",
 			"rows_dcto_precio_imp",
@@ -889,114 +878,24 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "planes/views.py",
+					"file": "planes/templates/planes/plan_resumen_plan_pdf.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 88509,
+						"buffer_size": 15354,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								87701,
-								87701
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Djaneiro/Syntaxes/Python Django.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": -0.0,
-						"translation.y": 26434.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "planes/static/planes/js/plan_trabajo_detail_resumen.js",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 18902,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								96,
-								96
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": -0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "planes/static/planes/js/plan_trabajo_detail_general.js",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 25933,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								9649,
-								9649
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2945.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "planes/templates/planes/plan_trabajo_detail.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 17882,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								11860,
-								11860
+								3493,
+								3493
 							]
 						],
 						"settings":
@@ -1006,10 +905,40 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3155.0,
+						"translation.y": 1290.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "planes/views.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 105541,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								102269,
+								102269
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Djaneiro/Syntaxes/Python Django.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 14.0,
+						"translation.y": 31024.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -1087,7 +1016,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 352.0,
+	"side_bar_width": 225.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
-from collections import OrderedDict
 from django import db
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum, Max, Min
-from django.utils import simplejson
+
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from categorias.models import Itemjerarquia
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
-from datetime import datetime
+
 #import json
+from collections import defaultdict
+from datetime import datetime
+
 import itertools
 import operator
 import pprint
@@ -90,7 +90,63 @@ class Plan(models.Model):
     usuario_creador = models.ForeignKey(User)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
 
-    def resumen_estadisticas(self, temporada=None, item=None):
+    def resumen_venta_planificacion(self):
+        """
+        Devuelve un diccionario con la venta de todos los items de una planificacion. Cada key corresponde
+        al ID de un Item, y esta asociada a un arreglo de objetos que contiene la venta, contribucion, costos
+        y otras metricas.
+        Ejemplo:
+        {
+            185895:
+                    [
+                        {'anio': 2013, 'vta_n': Decimal('8127332.000'), 'ctb_n': Decimal('5210608.000'), 'costo': Decimal('2916723.000'), 
+                        'vta_u': Decimal('227.000'), 'item__precio': 49990, 'item_id': 185895}, 
+                        {'anio': 2014, 'vta_n': Decimal('2835566.000'), 'ctb_n': Decimal('1807646.000'), 'costo': Decimal('1027920.000'),
+                        'vta_u': Decimal('80.000'), 'item__precio': 49990, 'item_id': 185895}
+                    ]
+        }
+        """
+        dict_venta = defaultdict(list)
+        act_anio = self.anio
+        ant_anio = self.anio - 3
+        # Lista de ID de los posibles nodos raices del arbol de planificacion
+        item_raices_id = Itemplan.objects.filter(plan=self, item_padre=None).values_list('item_id', flat=True)
+        # Se buscan todos los descendientes de los nodos raiz
+        descendientes = Itemjerarquia.objects.filter(ancestro__id=item_raices_id).values_list('descendiente', flat=True)
+        # Se buscan los periodos asociados a la planificacion
+        periodos_temporada = self.temporada.periodo.all().values('nombre')
+        # Se busca la venta asociada a los descendientes (recordar que la venta solo existe en nodos hoja)
+        venta_planificacion = Ventaperiodo.objects.filter(
+            item__in=descendientes,
+            anio__gte=ant_anio,
+            anio__lte=act_anio,
+            periodo__in=periodos_temporada,
+            temporada=self.temporada,
+            vta_u__gt=0
+            ).values(
+            'anio', 'item_id', 'item__precio').annotate(
+            vta_n=Sum('vta_n'),
+            vta_u=Sum('vta_u'),
+            ctb_n=Sum('ctb_n'),
+            costo=Sum('costo')).order_by(
+            'item__id', 'anio')
+        # Diccionario con los ID como llave y un arreglo de ventas
+        for venta in venta_planificacion:
+            venta['precio_vta_u'] = 0
+            if venta['anio'] == act_anio:
+                try:
+                    itemplan_obj = Itemplan.objects.get(item__id=venta['item_id'], plan=self)
+                    venta['precio_vta_u'] += venta['vta_u'] * itemplan_obj.precio
+                except ObjectDoesNotExist:
+                    venta['precio_vta_u'] += venta['vta_u'] * venta['item__precio']
+            else:
+                venta['precio_vta_u'] += venta['vta_u'] * venta['item__precio']
+            # Se calcula el precio blanco "promedio ponderado" para cada item
+            # venta['precio_blanco'] = venta['precio_vta_u'] / venta['vta_u']
+            dict_venta[venta['item_id']].append(venta)
+        return dict_venta
+
+    def resumen_estadisticas_item(self, temporada=None, item=None):
         """
         Obtiene la venta asociada a todos los items de una planificacion, de los periodos
         de la temporada planificada, de los ultimos 3 años.
@@ -107,7 +163,7 @@ class Plan(models.Model):
                 'item__categoria') if itemplan.item.categoria.planificable]
         else:
             # Arreglo de items con todos los items hijos del item entregado como parametro
-            item_arr_definitivo = Itemjerarquia.objects.filter(ancestro=item).values('descendiente')
+            item_arr_definitivo = Itemjerarquia.objects.filter(ancestro=item).values_list('descendiente', flat=True)
         # Arreglo de periodos de la temporada de la planificacion.
         periodos_temporada = self.temporada.periodo.all().values('nombre')
         # Se define la temporada sobre la cual se calcularan las ventas
@@ -358,6 +414,17 @@ class Itemplan(models.Model):
         padre = self.item_padre
         while padre is not None:
             arreglo_padres.append(padre)
+            padre = padre.item_padre
+        return arreglo_padres
+
+    def get_padre_nombre(self):
+        """
+        Devuelve un arreglo con todos los nombres itemplan padres de self.
+        """
+        arreglo_padres = []
+        padre = self.item_padre
+        while padre is not None:
+            arreglo_padres.append(padre.nombre)
             padre = padre.item_padre
         return arreglo_padres
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 from collections import OrderedDict
 from decimal import Decimal
 from django import db
@@ -22,8 +23,10 @@ from categorias.models import Item
 from categorias.models import Itemjerarquia
 from forms import PlanForm, TemporadaForm
 from planificador.views import UserInfoMixin
-import json
 import cStringIO as StringIO
+import json
+import math
+import time
 
 
 class TemporadaListView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -167,9 +170,6 @@ class GuardarArbolView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         if request.POST:
             data = json.loads(request.POST['plan'])
-            # Campo obtenido para guardar la relacion padre-hijo entre nodos
-            # obj_arr_item_padres = data['items_padres']
-            # print obj_arr_item_padres
             # Reset queries
             db.reset_queries()
             # Si el arbol existe, debe ser eliminado
@@ -1005,7 +1005,6 @@ class GuardarPlanificacionView(View):
                 for periodo, venta in periodos.iteritems():
                     # Se seleccionan las ventas que no son reales (proyectadas o por proyectar)
                     if venta['tipo'] == 3:
-                        print venta
                         defaults = {
                             'vta_n': venta['vta_n'],
                             'ctb_n': venta['ctb_n'],
@@ -1382,15 +1381,276 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
+class ResumenPlanDataGraficosView(View):
+    '''
+    Devuelve un objeto JSON con toda la informacion necesaria para la construccion del resumen PDF de la planificacion. Esto
+    incluye a todos los itemplan existentes para el plan.
+    '''
+
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            response = defaultdict()
+            data_json = {}
+            data_jsonp = {}
+
+            #color_texto_ingraph = "#777"
+            color_texto_ingraph = "black"
+            color_fondo_ingraph = "#f5f5ed"
+
+            id_plan = request.GET['id_plan']
+            plan_obj = Plan.objects.get(pk=id_plan)
+
+            # Variables con los años de inicio y termino del resumen
+            act_anio = plan_obj.anio
+            ant_anio = plan_obj.anio - 3
+
+            venta_planificacion = plan_obj.resumen_venta_planificacion()
+
+            resumen_item = defaultdict()
+            # Por cada itemplan de la planificacion almacena un arreglo con los itemplan padres
+            padres_dict = defaultdict()
+            itemplan_planificados = plan_obj.item_planificados.all()
+            for itemplan in itemplan_planificados:
+                lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
+                padres_dict[itemplan.item_id] = lista_nombres_padres[::-1]
+                # Lista con los ID de todos los descendientes del Itemplan
+                descendientes = Itemjerarquia.objects.filter(ancestro=itemplan.item).values_list('descendiente', flat=True)
+                arr_venta_anual_item = []
+                for anio_plan in range(ant_anio, act_anio + 1):
+                    venta_anual_item = defaultdict(int)
+                    venta_anual_item['anio'] = anio_plan
+                    venta_anual_item['item_id'] = itemplan.item.id
+                    # Se busca la venta de los Item descendientes
+                    ventas_item = [venta_planificacion[x] for x in descendientes]
+                    # Se eliminan de la lista los Item sin venta
+                    ventas_item = [x for x in ventas_item if x]
+                    # Se itera por cada item (cada item contiene un arreglo de ventas anuales)
+                    for item in ventas_item:
+                        # Se itera por cada año de venta de cada item
+                        for anio in item:
+                            if anio['anio'] == anio_plan:
+                                venta_anual_item['vta_n'] += anio['vta_n']
+                                venta_anual_item['vta_u'] += anio['vta_u']
+                                venta_anual_item['ctb_n'] += anio['ctb_n']
+                                venta_anual_item['costo'] += anio['costo']
+                                venta_anual_item['precio_vta_u'] += anio['precio_vta_u']
+                    if venta_anual_item['vta_u'] != 0:  # Se calcula el precio blanco promedio
+                        venta_anual_item['precio_blanco'] = venta_anual_item['precio_vta_u'] / venta_anual_item['vta_u']
+                    else:
+                        venta_anual_item['precio_blanco'] = 0
+                    arr_venta_anual_item.append(venta_anual_item)
+                resumen_item[itemplan.item.id] = arr_venta_anual_item
+
+            for item, estadisticas in resumen_item.iteritems():
+                resumen = {}
+                # Label para todos los graficos (años)
+                rows_label = []
+
+                rows_venta = []
+                rows_crecimiento_venta = []
+
+                rows_unidades = []
+                rows_crecimiento_unidades = []
+
+                rows_contribucion = []
+                rows_crecimiento_contribucion = []
+                rows_contribucion_tooltip = []
+
+                rows_margen = []
+                rows_margen_tooltip = []
+                rows_margen_ingraph = []
+
+                rows_dcto_precio_imp = []
+                rows_dcto_precio_imp_label = []
+                rows_dcto_precio_imp_tooltip = []
+                rows_dcto_precio_imp_label_aux = []
+                rows_costo = []
+
+                JSONVenta = OrderedDict()
+                JSONUnidades = OrderedDict()
+                JSONContribucion = OrderedDict()
+                JSONMargen = OrderedDict()
+                JSONDctoPrecio = OrderedDict()
+                JSONCosto = OrderedDict()
+
+                JSON = {}
+
+                temp_vta_n, temp_vta_u, temp_ctb_n = 0, 0, 0
+
+                # Se itera sobre el resultado de la busqueda para generar un objeto con el formato requerido
+                # por los graficos
+                for x in estadisticas:
+
+                    row_venta = []
+                    row_crecimiento_venta = []
+
+                    row_unidades = []
+                    row_crecimiento_unidades = []
+
+                    row_contribucion = []
+                    row_crecimiento_contribucion = []
+
+                    row_margen = []
+
+                    row_precio_dcto_imp = []
+
+                    vta_n, vta_u, ctb_n, precio_blanco = int(x['vta_n']), int(x['vta_u']), int(x['ctb_n']), int(x['precio_blanco'])
+                    costo = int(x['costo'])
+
+                    anio = str(x['anio'])
+                    # Calculo de margen
+                    if vta_n != 0:
+                        margen = float(ctb_n) / vta_n
+                    else:
+                        margen = 0
+
+                    # Calculos para el grafico de precio blanco
+                    if x['vta_u'] != 0:
+                        precio_real_cimp = int(vta_n / vta_u * 1.19)
+                        precio_real_simp = int(vta_n / vta_u)
+                        impuesto = precio_real_cimp - precio_real_simp
+                        costo_unitario = int(costo / vta_u)
+                    else:
+                        costo_unitario, precio_real_simp, precio_real_cimp, impuesto = 0, 0, 0, 0
+                    #descuento = precio_real_cimp - precio_real_simp  # precio blanco promedio - precio real
+                    descuento = precio_blanco - precio_real_cimp
+
+                    # Se genera el arreglo que contiene las etiquetas de cada categoria (años)
+                    rows_label.append(anio)
+
+                    if x > 0 and temp_vta_n != 0 and temp_vta_u != 0 and temp_ctb_n != 0:
+                        crecimiento_vta_n = float((vta_n - temp_vta_n)) / temp_vta_n
+                        crecimiento_vta_u = float((vta_u - temp_vta_u)) / temp_vta_u
+                        crecimiento_ctb_n = float((ctb_n - temp_ctb_n)) / temp_ctb_n
+
+                    else:
+                        crecimiento_vta_n, crecimiento_vta_u, crecimiento_ctb_n = 0, 0, 0
+
+                    # Se agrega el crecimiento por año a la lista
+                    if crecimiento_vta_n != 0:
+                        row_crecimiento_venta.append('{:.1%}'.format(crecimiento_vta_n))
+                        row_crecimiento_venta.append(color_texto_ingraph)
+                        row_crecimiento_venta.append(color_fondo_ingraph)
+                        row_crecimiento_venta.append(-1)
+                        row_crecimiento_venta.append(-10)
+                        rows_crecimiento_venta.append(row_crecimiento_venta)
+                    else:
+                        rows_crecimiento_venta.append(None)
+                    if crecimiento_vta_u != 0:
+                        row_crecimiento_unidades.append('{:.1%}'.format(crecimiento_vta_u))
+                        row_crecimiento_unidades.append(color_texto_ingraph)
+                        row_crecimiento_unidades.append(color_fondo_ingraph)
+                        row_crecimiento_unidades.append(-1)
+                        row_crecimiento_unidades.append(-10)
+                        rows_crecimiento_unidades.append(row_crecimiento_unidades)
+                    else:
+                        rows_crecimiento_unidades.append(None)
+                    if crecimiento_ctb_n != 0:
+                        row_crecimiento_contribucion.append('{:.1%}'.format(crecimiento_ctb_n))
+                        row_crecimiento_contribucion.append(color_texto_ingraph)
+                        row_crecimiento_contribucion.append(color_fondo_ingraph)
+                        row_crecimiento_contribucion.append(-1)
+                        row_crecimiento_contribucion.append(-10)
+                        rows_crecimiento_contribucion.append(row_crecimiento_contribucion)
+                    else:
+                        rows_crecimiento_contribucion.append(None)
+
+                    row_margen.append('{:.1%}'.format(margen))
+                    row_margen.append(color_texto_ingraph)
+                    row_margen.append(color_fondo_ingraph)
+                    row_margen.append(1)
+                    row_margen.append(5)
+                    rows_margen_ingraph.append(row_margen)
+
+                    # Se genera el arreglo que contiene los valores de cada categoria (años)
+                    row_venta.append(vta_n)
+                    row_unidades.append(vta_u)
+                    row_contribucion.append(ctb_n)
+                    row_precio_dcto_imp.append(descuento)
+                    row_precio_dcto_imp.append(impuesto)
+                    row_precio_dcto_imp.append(precio_real_simp)
+                    rows_dcto_precio_imp_label.append(impuesto+descuento+precio_real_simp)
+                    rows_dcto_precio_imp_label_aux.append([precio_real_cimp, precio_real_simp])
+
+                    # Se agregan los valores al arreglo que contiene todos los valores por año
+                    rows_venta.append(row_venta)
+                    rows_unidades.append(row_unidades)
+                    rows_contribucion.append(row_contribucion)
+                    rows_margen.append(round(margen, 2))
+                    rows_dcto_precio_imp.append(row_precio_dcto_imp)
+                    rows_costo.append(costo_unitario)
+
+                    contribucion_tooltip_msg = (
+                        "<p><b>Año: </b>" + anio
+                        + "</p><p><b>Contribución: </b>" + '{:,}'.format(ctb_n)
+                        + "</p><p><b>Margen: </b>" + '{:.1%}'.format(margen)
+                        + "</p><p><b>Crecimiento: </b>" + '{:.1%}'.format(crecimiento_ctb_n)
+                        + "</p>")
+
+                    margen_tooltip_msg = contribucion_tooltip_msg
+
+                    dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio +
+                        "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_real_cimp)  +
+                        "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) +
+                        "</p><p><b>Impuesto (19%): </b>" + '{:,}'.format(impuesto) +
+                        "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) +
+                        "</p><p><b>Costo: </b>" + '{:,}'.format(costo_unitario) +
+                        "</p>")
+
+                    rows_margen_tooltip.append(margen_tooltip_msg)
+                    rows_contribucion_tooltip.append(contribucion_tooltip_msg)
+                    rows_dcto_precio_imp_tooltip.append(dcto_precio_tooltip_msg)
+
+                    temp_vta_n = vta_n
+                    temp_vta_u = vta_u
+                    temp_ctb_n = ctb_n
+
+                JSONVenta['cols'] = rows_label
+                JSONVenta['rows'] = rows_venta
+                JSONVenta['ingraph'] = rows_crecimiento_venta
+
+                JSONUnidades['cols'] = rows_label
+                JSONUnidades['rows'] = rows_unidades
+                JSONUnidades['ingraph'] = rows_crecimiento_unidades
+
+                JSONContribucion['cols'] = rows_label
+                JSONContribucion['rows'] = rows_contribucion
+                JSONContribucion['ingraph'] = rows_crecimiento_contribucion
+                JSONContribucion['tooltips'] = rows_contribucion_tooltip
+
+                JSONMargen['cols'] = rows_label
+                JSONMargen['rows'] = rows_margen
+                JSONMargen['ingraph'] = rows_margen_ingraph
+                JSONMargen['tooltips'] = rows_margen_tooltip
+
+                JSONDctoPrecio['cols'] = rows_label
+                JSONDctoPrecio['rows'] = rows_dcto_precio_imp
+                JSONDctoPrecio['labels'] = rows_dcto_precio_imp_label
+                JSONDctoPrecio['labels_aux'] = rows_dcto_precio_imp_label_aux
+                JSONDctoPrecio['tooltips'] = rows_dcto_precio_imp_tooltip
+
+                JSONCosto['rows'] = rows_costo
+
+                JSON['venta'] = JSONVenta
+                JSON['unidades'] = JSONUnidades
+                JSON['contribucion'] = JSONContribucion
+                JSON['margen'] = JSONMargen
+                JSON['dcto_precio'] = JSONDctoPrecio
+                JSON['costo'] = JSONCosto
+
+                resumen['estadisticas'] = JSON
+                response[item] = resumen
+            response['items'] = padres_dict
+            data_json = simplejson.dumps(response, cls=DjangoJSONEncoder)
+            data_jsonp = "generarContenedores(" + str(data_json) + ");"
+            return HttpResponse(data_jsonp, mimetype='application/json')
+
+
 class ResumenDataGraficosView(View):
     '''
     Recibe un ID de plan, un ID de temporada y un ID de item. Devuelve la venta total
     de los ultimos 3 años asociadas al plan, temporada e item.
     '''
-    # PRECIO REAL: venta.vta_n / venta.vta_u * 1.19
-    # COSTO: venta.costo / venta.vta_u
-    # DESCUENTO: precio_blanco - precio_real
-
     def get(self, request, *args, **kwargs):
         if request.GET:
             resumen = {}
@@ -1449,11 +1709,11 @@ class ResumenDataGraficosView(View):
             # a nivel de base de datos.
             try:
                 temporada_obj = Temporada.objects.get(pk=id_temporada)
-                estadisticas = plan_obj.resumen_estadisticas(temporada_obj, item_obj)
+                estadisticas = plan_obj.resumen_estadisticas_item(temporada_obj, item_obj)
             # Si la temporada no existe, se asume que se trata de la temporada TOTAL, y por lo tanto,
             # se llama al metodo resumen_estadisticas con el parametro TT
             except ObjectDoesNotExist:
-                estadisticas = plan_obj.resumen_estadisticas("TT", item_obj)
+                estadisticas = plan_obj.resumen_estadisticas_item("TT", item_obj)
 
             temp_vta_n, temp_vta_u, temp_ctb_n = 0, 0, 0
 
@@ -1762,8 +2022,10 @@ def ExportarPlanificacionExcelView(request, pk=None):
     return response
 
 
-class ResumenPDFView(DetailView):
-
+class ResumenPDFView(LoginRequiredMixin, DetailView):
+    """
+    Vista para generar el resumen PDF de un item en particular.
+    """
     template_name = 'planes/plan_resumen_pdf.html'
     model = Plan
     context = {}
@@ -1782,7 +2044,6 @@ class ResumenPDFView(DetailView):
             self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], pk=self.context['id_item'])
         else:  # es un objeto Item
             self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], item__id=self.context['id_item'])
-        print self.context['id_item'], tipo_obj
         cmd_options = {
             'quiet': True,
             'encoding': 'utf8',
@@ -1802,3 +2063,91 @@ class ResumenPDFView(DetailView):
             cmd_options=cmd_options
         )
         return response
+
+
+class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
+    """
+    Vista para generar el resumen completo de la planificacion en formato PDF.
+    """
+    template_name = 'planes/plan_resumen_plan_pdf.html'
+    model = Plan
+    context = {}
+
+    def get(self, request, *args, **kwargs):
+        plan_obj = self.get_object()
+        self.context['plan'] = plan_obj
+        self.context['usuario'] = request.user
+        # Lista de itemplan de la planificacion
+        itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria')
+        padres_dict = defaultdict()
+        # Variables para configurar el tamaño de los graficos
+        height_mar = str(100)
+        height_con = str(265)
+        height = str(int(height_mar) + int(height_con))
+        width = str(625)
+        # Aproximadamente caben 50 lineas en la tabla de contenidos
+        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 50.0))
+        print cant_paginas_indice
+        html, html_indice = "", ""
+        html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"
+        html_indice += "Creado por " + request.user.first_name + " " + request.user.last_name + ", " + time.strftime("%d/%m/%Y")
+        html_indice += "<h4>TABLA DE CONTENIDOS</h4>"
+        html_indice += "<table id=\"tabla-contenidos\"><tr><th class=\"col-item\">ITEM</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
+        for contador, itemplan in enumerate(itemplan_planificados):
+            key = itemplan.item_id
+            lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
+            padres_dict[itemplan.item_id] = lista_nombres_padres[::-1]
+            html_indice += "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + 1) + "</td></tr>"
+            html += "<div id=\"" + str(key) + "\" class=\"accordion\">"
+            html += "<h4 id=\"" + str(key) + "-titulo-item\">" + str(1 + contador) + ") " + " | ".join(reversed(lista_nombres_padres)) + "</h4>"
+            html += "<div class=\"pure-g\" style=\"text-align:center\">"
+            for i in range(0, 4):
+                html += "<div class=\"pure-u-1-2\">"
+                html += "<div class=\"titulo-chart\"><h3>" + getTitulo(i) + "</h3></div>"
+                if i != 1:
+                    html += "<div><canvas id=\"" + str(key) + "-" + str(i) + "-chart\" width=\"" + width + "\" height=\"" + height + "\">[No canvas support]</canvas></div>"
+                else:
+                    html += "<div><canvas id=\"" + str(key) + "-1a-chart\" width=\"" + width + "\" height=\"" + height_mar + "\">[No canvas support]</canvas></div>"
+                    html += "<div><canvas id=\"" + str(key) + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
+                html += "</div>"
+            html += "</div>"
+            html += "</div>"
+        html_indice += "</table></div>"
+
+        self.context['html'] = html
+        self.context['html_indice'] = html_indice
+
+        cmd_options = {
+            'quiet': True,
+            'encoding': 'utf8',
+            'margin-bottom': '10mm',
+            'margin-left': '10mm',
+            'margin-right': '10mm',
+            'margin-top': '10mm',
+            'orientation': 'landscape',
+        }
+        #return self.render_to_response(self.context)
+
+        response = PDFTemplateResponse(
+            request=request,
+            template=self.template_name,
+            filename=str(self.context['plan'].anio) + "-" + str(self.context['plan'].temporada.nombre) + ".pdf",
+            context=self.context,
+            show_content_in_browser=True,
+            cmd_options=cmd_options
+        )
+        return response
+
+
+def getTitulo(x):
+    """
+    Funcion utilizada definir el titulo de los graficos del resumen de la planificacion en PDF
+    """
+    if x == 0:
+        return "Ingresos por Ventas"
+    elif x == 1:
+        return "Contribuci&oacute;n y Margen"
+    elif x == 2:
+        return "Unidades de Venta"
+    else:
+        return "Precio blanco, precio real, ingreso y costo unitario"

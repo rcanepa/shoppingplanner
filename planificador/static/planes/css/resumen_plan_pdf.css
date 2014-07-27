@@ -1,0 +1,53 @@
+/*
+    COLORES DEL TEMA (http://www.cloudberrycreative.com/)
+
+    ROJO: #ef4929;
+    CAFE LETRAS: #9B9181A;
+    GRIS CLARO (FONDO): #f5f5ed;
+    CAFE OSCURO (FONDO): #554E44;
+
+*/
+
+h4{
+    color: #ef4929;
+}
+
+.accordion
+{
+    font-size: 11px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 5px; 
+    background-color: white;
+    border: 1px solid white;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    overflow: hidden;
+    page-break-after: always;
+}
+
+.titulo-chart
+{
+    text-align: center;
+}
+
+.pure-g
+{
+    text-align: center;
+}
+.pure-u-1-2
+{
+    text-align: center;
+}
+
+.col-item
+{
+    text-align: left;
+}
+
+.col-pagina
+{
+    text-align: right;
+}
