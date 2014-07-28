@@ -528,10 +528,26 @@
 			}
 		},
 		{
+			"file": "planes/static/planes/css/resumen_plan_pdf.css",
+			"settings":
+			{
+				"buffer_size": 735,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "planificador/settings.py",
+			"settings":
+			{
+				"buffer_size": 6060,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "planes/views.py",
 			"settings":
 			{
-				"buffer_size": 105541,
+				"buffer_size": 105660,
 				"line_ending": "Unix"
 			}
 		}
@@ -878,7 +894,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -894,8 +910,8 @@
 						"selection":
 						[
 							[
-								3493,
-								3493
+								0,
+								0
 							]
 						],
 						"settings":
@@ -905,27 +921,57 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1290.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "planes/views.py",
+					"file": "planes/static/planes/css/resumen_plan_pdf.css",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 105541,
+						"buffer_size": 735,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								101571,
-								101571
+								506,
+								506
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": -0.0,
+						"translation.y": 154.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "planificador/settings.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6060,
+								6060
 							]
 						],
 						"settings":
@@ -934,11 +980,41 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 14.0,
-						"translation.y": 31024.0,
+						"translation.x": 0.0,
+						"translation.y": 2209.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "planes/views.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 105660,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								102097,
+								102097
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Djaneiro/Syntaxes/Python Django.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 30889.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
