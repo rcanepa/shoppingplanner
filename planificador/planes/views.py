@@ -2052,6 +2052,8 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             'margin-right': '10mm',
             'margin-top': '10mm',
             'orientation': 'landscape',
+            'page-size': 'Letter',
+            'dpi': '300'
         }
 
         response = PDFTemplateResponse(
@@ -2125,6 +2127,8 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             'margin-right': '10mm',
             'margin-top': '10mm',
             'orientation': 'landscape',
+            'page-size': 'Letter',
+            'dpi': '300'
         }
         #return self.render_to_response(self.context)
 

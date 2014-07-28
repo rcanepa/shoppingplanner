@@ -568,6 +568,7 @@
 	},
 	"file_history":
 	[
+		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_plan_pdf_test.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/models.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/resumen_plan_pdf.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_arbol_detail.html",
@@ -575,7 +576,6 @@
 		"/home/rcanepa/Development/planificador/planificador/planificador/static/css/default.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/static/planes/css/trabajo.css",
 		"/home/rcanepa/Development/planificador/planificador/planes/urls.py",
-		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_plan_pdf_test.html",
 		"/home/rcanepa/Development/planificador/planificador/planes/views.py",
 		"/home/rcanepa/Development/planificador/planificador/planes/templates/planes/plan_resumen_plan_pdf.html",
 		"/home/rcanepa/Development/planificador/planificador/static/css/default.css",
@@ -924,8 +924,8 @@
 						"selection":
 						[
 							[
-								102269,
-								102269
+								101571,
+								101571
 							]
 						],
 						"settings":
@@ -1016,7 +1016,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 225.0,
+	"side_bar_width": 434.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
