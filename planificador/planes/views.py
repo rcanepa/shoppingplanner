@@ -2083,12 +2083,12 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria')
         padres_dict = defaultdict()
         # Variables para configurar el tamaño de los graficos
-        height_mar = str(100)
-        height_con = str(265)
+        height_mar = str(80)
+        height_con = str(175)
         height = str(int(height_mar) + int(height_con))
-        width = str(625)
+        width = str(470)
         # Aproximadamente caben 50 lineas en la tabla de contenidos
-        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 50.0))
+        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 35.0))
         print cant_paginas_indice
         html, html_indice = "", ""
         html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"

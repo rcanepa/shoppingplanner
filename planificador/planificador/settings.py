@@ -185,5 +185,5 @@ LOGGING = {
     }
 }
 
-WKHTMLTOPDF_CMD = '/usr/bin/wkhtmltopdf'
-#WKHTMLTOPDF_CMD = '/home/rcanepa/Downloads/wkhtmltox/bin/wkhtmltopdf'
+#WKHTMLTOPDF_CMD = '/usr/bin/wkhtmltopdf'
+WKHTMLTOPDF_CMD = '/home/rcanepa/Development/resources/wkhtmltopdf_test'
