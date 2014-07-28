@@ -20,6 +20,7 @@
             <li class="pure-menu-disabled" id="panel-acciones"><a href="" id="btnSave">Guardar</a></li>
             {% if plan.get_num_planificados > 0 %}
             <li><a href="{% url 'planes:plan_exportar_excel_detail' plan.id %}">Exportar a Excel (xlsx)</a></li>
+            <li><a href="{% url 'planes:plan_exportar_plan_pdf_detail' plan.id %}">Exportar a PDF</a></li>
             {% endif %}
         </ul>
     </div>
