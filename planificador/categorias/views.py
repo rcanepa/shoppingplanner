@@ -279,6 +279,8 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                     venta.item = nuevo_item
                     venta_items_list.append(venta)
                 Ventaperiodo.objects.bulk_create(venta_items_list)
+                # Se crean los objetos Itemjerarquia asociados al nuevo Item
+                nuevo_item.generar_relaciones()
 
             data = {}
             data['msg'] = "El grupo ha sido creado exitosamente."
@@ -306,6 +308,9 @@ class ItemCreateAjaxView(LoginRequiredMixin, View):
             nombre=nombre_nuevo_item, item_padre=item_padre,
             categoria=item_padre.categoria.get_children()[0], temporada=item_padre.temporada, precio=precio_nuevo_item)
         nuevo_item.save()
+        # Se crean los objetos Itemjerarquia asociados al nuevo Item
+        if bool(nuevo_item.id):
+            nuevo_item.generar_relaciones()
         data['msg'] = "El item ha sido creado exitosamente."
         data['id_item_padre'] = id_item_padre
         return HttpResponse(json.dumps(data), mimetype='application/json')

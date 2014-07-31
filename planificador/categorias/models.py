@@ -273,7 +273,7 @@ class Item(models.Model):
 
     def generar_relaciones(self, tipo=0):
         """
-        Crea los registros de Itemrelaciones para si mismo. Se asume que el item ya cuenta con un
+        Crea los registros de Itemjerarquia para si mismo. Se asume que el item ya cuenta con un
         padre definido, con excepción del item raiz.
         Tipo 0 implica que se eliminan las relaciones existentes para el nodo y se crean desde cero.
         Tipo 1 implica que se cuenta la cantidad de relaciones existentes. Si existe en número la cantidad

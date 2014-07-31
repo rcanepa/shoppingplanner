@@ -304,7 +304,7 @@
         
         //data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan'};
         data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item', 'tipo_response':'jsonp'};
-        url = 'http://localhost:8000/planes/plan/buscar-datos-resumen/';
+        url = 'http://{{ server_name }}:{{ server_port }}/planes/plan/buscar-datos-resumen/';
         
         $.ajax({                                                                        
             type: 'GET',                                                                     

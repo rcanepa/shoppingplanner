@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
-from django import db
+#from django import db
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum, Max, Min
-
 from calendarios.models import Periodo, Tiempo
 from categorias.models import Item
 from categorias.models import Itemjerarquia
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
-
-#import json
 from collections import defaultdict
 from datetime import datetime
-
 import itertools
 import operator
-import pprint
-import time
 
 
 class Temporada(models.Model):
@@ -174,7 +168,8 @@ class Plan(models.Model):
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
                 periodo__in=periodos_temporada,
-                temporada=temporada).values(
+                temporada=temporada,
+                vta_u__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -186,7 +181,8 @@ class Plan(models.Model):
                 item__in=item_arr_definitivo,
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
-                periodo__in=periodos_temporada).values(
+                periodo__in=periodos_temporada,
+                vta_u__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -199,7 +195,8 @@ class Plan(models.Model):
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
                 periodo__in=periodos_temporada,
-                temporada=temporada).values(
+                temporada=temporada,
+                vta_u__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -222,7 +219,6 @@ class Plan(models.Model):
                 if item['anio'] == self.anio:
                     try:
                         itemplan_obj = Itemplan.objects.get(item__id=item['item_id'], plan=self)
-                        print itemplan_obj
                         resumen_anual['precio_vta_u'] += item['vta_u'] * itemplan_obj.precio
                     except ObjectDoesNotExist:
                         resumen_anual['precio_vta_u'] += item['vta_u'] * item['item__precio']

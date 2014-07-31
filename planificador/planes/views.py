@@ -1454,15 +1454,12 @@ class ResumenPlanDataGraficosView(View):
 
                 rows_contribucion = []
                 rows_crecimiento_contribucion = []
-                rows_contribucion_tooltip = []
 
                 rows_margen = []
-                rows_margen_tooltip = []
                 rows_margen_ingraph = []
 
                 rows_dcto_precio_imp = []
                 rows_dcto_precio_imp_label = []
-                rows_dcto_precio_imp_tooltip = []
                 rows_dcto_precio_imp_label_aux = []
                 rows_costo = []
 
@@ -1580,27 +1577,6 @@ class ResumenPlanDataGraficosView(View):
                     rows_dcto_precio_imp.append(row_precio_dcto_imp)
                     rows_costo.append(costo_unitario)
 
-                    contribucion_tooltip_msg = (
-                        "<p><b>Año: </b>" + anio
-                        + "</p><p><b>Contribución: </b>" + '{:,}'.format(ctb_n)
-                        + "</p><p><b>Margen: </b>" + '{:.1%}'.format(margen)
-                        + "</p><p><b>Crecimiento: </b>" + '{:.1%}'.format(crecimiento_ctb_n)
-                        + "</p>")
-
-                    margen_tooltip_msg = contribucion_tooltip_msg
-
-                    dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio +
-                        "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_real_cimp)  +
-                        "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) +
-                        "</p><p><b>Impuesto (19%): </b>" + '{:,}'.format(impuesto) +
-                        "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) +
-                        "</p><p><b>Costo: </b>" + '{:,}'.format(costo_unitario) +
-                        "</p>")
-
-                    rows_margen_tooltip.append(margen_tooltip_msg)
-                    rows_contribucion_tooltip.append(contribucion_tooltip_msg)
-                    rows_dcto_precio_imp_tooltip.append(dcto_precio_tooltip_msg)
-
                     temp_vta_n = vta_n
                     temp_vta_u = vta_u
                     temp_ctb_n = ctb_n
@@ -1616,18 +1592,15 @@ class ResumenPlanDataGraficosView(View):
                 JSONContribucion['cols'] = rows_label
                 JSONContribucion['rows'] = rows_contribucion
                 JSONContribucion['ingraph'] = rows_crecimiento_contribucion
-                JSONContribucion['tooltips'] = rows_contribucion_tooltip
 
                 JSONMargen['cols'] = rows_label
                 JSONMargen['rows'] = rows_margen
                 JSONMargen['ingraph'] = rows_margen_ingraph
-                JSONMargen['tooltips'] = rows_margen_tooltip
 
                 JSONDctoPrecio['cols'] = rows_label
                 JSONDctoPrecio['rows'] = rows_dcto_precio_imp
                 JSONDctoPrecio['labels'] = rows_dcto_precio_imp_label
                 JSONDctoPrecio['labels_aux'] = rows_dcto_precio_imp_label_aux
-                JSONDctoPrecio['tooltips'] = rows_dcto_precio_imp_tooltip
 
                 JSONCosto['rows'] = rows_costo
 
@@ -1672,15 +1645,12 @@ class ResumenDataGraficosView(View):
 
             rows_contribucion = []
             rows_crecimiento_contribucion = []
-            rows_contribucion_tooltip = []
 
             rows_margen = []
-            rows_margen_tooltip = []
             rows_margen_ingraph = []
 
             rows_dcto_precio_imp = []
             rows_dcto_precio_imp_label = []
-            rows_dcto_precio_imp_tooltip = []
             rows_dcto_precio_imp_label_aux = []
             rows_costo = []
 
@@ -1714,7 +1684,6 @@ class ResumenDataGraficosView(View):
             # se llama al metodo resumen_estadisticas con el parametro TT
             except ObjectDoesNotExist:
                 estadisticas = plan_obj.resumen_estadisticas_item("TT", item_obj)
-
             temp_vta_n, temp_vta_u, temp_ctb_n = 0, 0, 0
 
             # Se itera sobre el resultado de la busqueda para generar un objeto con el formato requerido
@@ -1820,27 +1789,6 @@ class ResumenDataGraficosView(View):
                 rows_dcto_precio_imp.append(row_precio_dcto_imp)
                 rows_costo.append(costo_unitario)
 
-                contribucion_tooltip_msg = (
-                    "<p><b>Año: </b>" + anio
-                    + "</p><p><b>Contribución: </b>" + '{:,}'.format(ctb_n)
-                    + "</p><p><b>Margen: </b>" + '{:.1%}'.format(margen)
-                    + "</p><p><b>Crecimiento: </b>" + '{:.1%}'.format(crecimiento_ctb_n)
-                    + "</p>")
-
-                margen_tooltip_msg = contribucion_tooltip_msg
-
-                dcto_precio_tooltip_msg = ("<p><b>Año: </b>" + anio +
-                    "</p><p><b>Precio Blanco: </b>" + '{:,}'.format(precio_real_cimp)  +
-                    "</p><p><b>Precio Real: </b>" + '{:,}'.format(precio_real_simp) +
-                    "</p><p><b>Impuesto (19%): </b>" + '{:,}'.format(impuesto) +
-                    "</p><p><b>Descuento: </b>" + '{:,}'.format(descuento) +
-                    "</p><p><b>Costo: </b>" + '{:,}'.format(costo_unitario) +
-                    "</p>")
-
-                rows_margen_tooltip.append(margen_tooltip_msg)
-                rows_contribucion_tooltip.append(contribucion_tooltip_msg)
-                rows_dcto_precio_imp_tooltip.append(dcto_precio_tooltip_msg)
-
                 temp_vta_n = vta_n
                 temp_vta_u = vta_u
                 temp_ctb_n = ctb_n
@@ -1856,18 +1804,15 @@ class ResumenDataGraficosView(View):
             JSONContribucion['cols'] = rows_label
             JSONContribucion['rows'] = rows_contribucion
             JSONContribucion['ingraph'] = rows_crecimiento_contribucion
-            JSONContribucion['tooltips'] = rows_contribucion_tooltip
 
             JSONMargen['cols'] = rows_label
             JSONMargen['rows'] = rows_margen
             JSONMargen['ingraph'] = rows_margen_ingraph
-            JSONMargen['tooltips'] = rows_margen_tooltip
 
             JSONDctoPrecio['cols'] = rows_label
             JSONDctoPrecio['rows'] = rows_dcto_precio_imp
             JSONDctoPrecio['labels'] = rows_dcto_precio_imp_label
             JSONDctoPrecio['labels_aux'] = rows_dcto_precio_imp_label_aux
-            JSONDctoPrecio['tooltips'] = rows_dcto_precio_imp_tooltip
 
             JSONCosto['rows'] = rows_costo
 
@@ -2031,6 +1976,8 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
     context = {}
 
     def get(self, request, *args, **kwargs):
+        self.context['server_name'] = request.META['SERVER_NAME']
+        self.context['server_port'] = request.META['SERVER_PORT']
         self.context['plan'] = self.get_object()
         # slug1 contiene el ID del item o itemplan
         # slug2 indica si el ID de slug1 es de un item (valor 1) o itemplan (valor 2)
@@ -2076,6 +2023,8 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
     context = {}
 
     def get(self, request, *args, **kwargs):
+        self.context['server_name'] = request.META['SERVER_NAME']
+        self.context['server_port'] = request.META['SERVER_PORT']
         plan_obj = self.get_object()
         self.context['plan'] = plan_obj
         self.context['usuario'] = request.user
@@ -2088,8 +2037,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         height = str(int(height_mar) + int(height_con))
         width = str(470)
         # Aproximadamente caben 50 lineas en la tabla de contenidos
-        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 35.0))
-        print cant_paginas_indice
+        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 30.0))
         html, html_indice = "", ""
         html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"
         html_indice += "Creado por " + request.user.first_name + " " + request.user.last_name + ", " + time.strftime("%d/%m/%Y")
@@ -2127,8 +2075,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             'margin-right': '10mm',
             'margin-top': '10mm',
             'orientation': 'landscape',
-            'page-size': 'Letter',
-            'dpi': '300'
+            'page-size': 'Letter'
         }
         #return self.render_to_response(self.context)
 

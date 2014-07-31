@@ -91,9 +91,9 @@
         generarContenedores = function (data){
             console.log(data);
             $.each( data, function( key, value ) {
-                cargarGraficos(key, value);
+                if ( key != "items" )
+                    cargarGraficos(key, value);
             });
-
             return false;
         };
 
@@ -328,7 +328,7 @@
         }
         
         data = {'id_plan':obj_trabajo.getPlan()};
-        url = 'http://localhost:8000/planes/plan/buscar-datos-resumen-planificacion/';
+        url = 'http://{{ server_name }}:{{ server_port }}/planes/plan/buscar-datos-resumen-planificacion/';
         
         $.ajax({
             type: 'GET',
@@ -340,7 +340,6 @@
         });
         
     });
-
     </script>
 
 </body>
