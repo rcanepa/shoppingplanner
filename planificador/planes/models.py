@@ -142,8 +142,9 @@ class Plan(models.Model):
 
     def resumen_estadisticas_item(self, temporada=None, item=None):
         """
-        Obtiene la venta asociada a todos los items de una planificacion, de los periodos
-        de la temporada planificada, de los ultimos 3 años.
+        Obtiene la venta asociada a un item o grupo de items de una planificacion, de los periodos
+        de la temporada planificada, de los ultimos 3 años. El parametro item puede ser un arreglo de objetos Item
+        o un objeto Item.
         """
         # Contiene la lista de items que seran consultados para buscar las ventas
         item_arr_definitivo = []
@@ -156,8 +157,17 @@ class Plan(models.Model):
             item_arr_definitivo = [itemplan.item for itemplan in self.item_planificados.all().prefetch_related(
                 'item__categoria') if itemplan.item.categoria.planificable]
         else:
-            # Arreglo de items con todos los items hijos del item entregado como parametro
-            item_arr_definitivo = Itemjerarquia.objects.filter(ancestro=item).values_list('descendiente', flat=True)
+            # Se revisa si la variable item contiene un objeto Item o un arreglo de objetos Item
+            try:
+                iter(item)
+            except TypeError:
+                # No es iterable, es decir, item solo contiene un objeto
+                # Arreglo de items con todos los items hijos del item entregado como parametro
+                item_arr_definitivo = Itemjerarquia.objects.filter(ancestro=item).values_list('descendiente', flat=True)
+            else:
+                # Es iterable, item contiene un arreglo de objetos
+                # Arreglo de items con todos los items hijos del item entregado como parametro
+                item_arr_definitivo = Itemjerarquia.objects.filter(ancestro__in=item).values_list('descendiente', flat=True)
         # Arreglo de periodos de la temporada de la planificacion.
         periodos_temporada = self.temporada.periodo.all().values('nombre')
         # Se define la temporada sobre la cual se calcularan las ventas

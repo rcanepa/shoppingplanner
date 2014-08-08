@@ -164,7 +164,7 @@ class BuscarEstructuraArbolView(LoginRequiredMixin, View):
 
 class GuardarArbolView(LoginRequiredMixin, View):
     '''
-    Vista que revise como parametros el plan y un arreglo de ID con todos los
+    Vista que recibe como parametros el plan y un arreglo de ID con todos los
     items que deben ser planificados.
     '''
     def post(self, request, *args, **kwargs):
@@ -266,6 +266,15 @@ class TrabajarPlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
             context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
             context['items_categoria_raiz'] = items_categoria_raiz
 
+            # Si la organizacion cuenta con una categoria con jerarquia independiente (ver modelo), entonces
+            # se debe generar un buscador por esa categoria
+            try:
+                context['categoria_independiente'] = Categoria.objects.get(
+                    organizacion=self.request.user.get_profile().organizacion,
+                    jerarquia_independiente=True)
+                context['categoria_raiz'] = categoria_raiz
+            except ObjectDoesNotExist:
+                context['categoria_independiente'] = None
         return context
 
 
@@ -340,7 +349,7 @@ class GuardarProyeccionView(UserInfoMixin, View):
 
 class BuscarListaItemView(View):
     '''
-    Revise como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
+    Recibe como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
     puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
     '''
     def get(self, request, *args, **kwargs):
@@ -379,7 +388,7 @@ class BuscarListaItemView(View):
 
 class BuscarListaItemCompView(View):
     '''
-    Revise como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
+    Recibe como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
     puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
     '''
     def get(self, request, *args, **kwargs):
@@ -1667,12 +1676,16 @@ class ResumenDataGraficosView(View):
             id_plan = request.GET['id_plan']
             id_temporada = request.GET['id_temporada']
             id_item = request.GET['id_item']
+            print "ID ITEM, ", id_item
             tipo_obj_item = request.GET['tipo_obj_item']
             if tipo_obj_item == 'item':  # Se revisa si el ID corresponde a un Item o a un Itemplan
                 item_obj = Item.objects.get(pk=id_item)
-            else:
+            elif tipo_obj_item == 'itemplan':
                 itemplan_obj = Itemplan.objects.get(pk=id_item)
                 item_obj = itemplan_obj.item
+            else:  # tipo_obj_item == 'arr_item'
+                item_obj = Item.objects.filter(pk__in=map(int, id_item.split(',')))
+
             plan_obj = Plan.objects.get(pk=id_plan)
 
             # Se verifica la existencia de la temporada, ya que la opcion temporada = TOTAL no existe
@@ -1989,8 +2002,14 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             tipo_obj = 1000
         if tipo_obj == "1":  # es un objeto Itemplan
             self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], pk=self.context['id_item'])
-        else:  # es un objeto Item
+            self.context['id_items'] = ""
+        elif tipo_obj == "2":  # es un objeto Item
             self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], item__id=self.context['id_item'])
+            self.context['id_items'] = ""
+        else:  # es un arreglo de objetos Item (tipo_obj == 3)
+            self.context['id_items'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split(','))).values_list('item_id', flat=True)
+            self.context['id_item'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split(',')))[0]
+        self.context['tipo_obj'] = tipo_obj
         cmd_options = {
             'quiet': True,
             'encoding': 'utf8',
@@ -2002,7 +2021,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             'page-size': 'Letter',
             'dpi': '300'
         }
-
+        #return self.render_to_response(self.context)
         response = PDFTemplateResponse(
             request=request,
             template=self.template_name,
@@ -2102,3 +2121,38 @@ def getTitulo(x):
         return "Unidades de Venta"
     else:
         return "Precio blanco, precio real, ingreso y costo unitario"
+
+
+class BuscarItemIndependientesView(View):
+    '''
+    Recibe como parametro el ID de un Item y devuelve una lista de Items pertenecientes a la Categoria con jerarquia
+    independiente.
+    '''
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            dict_item = defaultdict(list)
+            dict_ordenado = OrderedDict()
+            # Se almacena el ID del Item recibido como parametro
+            id_item = json.loads(request.GET['id_item'])
+            # Se busca el objeto Item asociado al ID
+            item_seleccionado = Item.objects.get(pk=id_item)
+            # Se busca el nivel de la Categoria con jerarquia independiente para encontrar
+            # la distancia entre la Categoria del Item y la Categoria mencionada
+            nivel_cat_independiente = Categoria.objects.get(
+                organizacion=self.request.user.get_profile().organizacion,
+                jerarquia_independiente=True).get_nivel()
+            # Distancia para ser utilizada en la busqueda de los objetos Itemjerarquia
+            distancia = nivel_cat_independiente - item_seleccionado.categoria.get_nivel()
+            # Lista de ID de los Item hijos del Item pasado como parametro y que son de categoria con jerarquia independiente
+            id_item_independientes = Itemjerarquia.objects.filter(
+                ancestro=item_seleccionado,
+                distancia=distancia).values_list('descendiente', flat=True)
+            # Se buscan los objetos Item asociados a la lista de ID
+            items = Item.objects.filter(id__in=id_item_independientes)
+            # Se construye un diccionario con el nombre de cada Item como llave, y todos los ID que llevan ese nombre.
+            # Por ejemplo, todas las instancias de la marca PIETROVANNI se asocian a una llave.
+            for item in items:
+                dict_item[item.nombre].append(item.id)
+            # Se devuelve un diccionario ordenado por el nombre del item
+            dict_ordenado = OrderedDict(sorted(dict_item.items(), key=lambda t: t[0]))
+            return HttpResponse(json.dumps(dict_ordenado), mimetype='application/json')

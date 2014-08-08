@@ -10,10 +10,14 @@
 <body>
     <div class="accordion">
         <h4 id="titulo_test">
-            {% for padre in id_item.get_padre %}
-                {{ padre.nombre }} >
-            {% endfor %}
-            {{ id_item.nombre }}
+            {% if tipo_obj != "3" %}
+                {% for padre in id_item.get_padre %}
+                    {{ padre.nombre }} |
+                {% endfor %}
+                {{ id_item.nombre }}
+            {% else %}
+                {{ id_item.item.categoria.nombre }} {{ id_item.nombre }}
+            {% endif %}
         </h4>
         <div class="pure-g" style="text-align:center">
             <div class="pure-u-1-2">
@@ -58,7 +62,9 @@
         obj_trabajo = (function(){
             // ID de la planificacion sobre la cual se esta trabajando
             var id_plan = parseInt({{ plan.id }});
-            var id_item = parseInt({{ id_item.item_id }})
+            var id_item = parseInt({{ id_item.id }});
+            var id_items = {{ id_items }} + ""; // Usado en el caso tipo_obj == 3 
+            var tipo_obj = parseInt({{ tipo_obj }});
             var datos = null;
 
             function getPlan(){return id_plan;}
@@ -69,12 +75,22 @@
             function getItem(){return id_item;}
             function setItem(x){id_item = x;}
 
+            function getItems(){return id_items;}
+            function setItems(x){id_items = x;}
+
+            function getTipoObj(){return tipo_obj;}
+            function setTipoObj(x){tipo_obj = x;}
+
             return{
                 getPlan:getPlan,
                 getDatos:getDatos,
                 setDatos:setDatos,
                 getItem:getItem,
-                setItem:setItem
+                setItem:setItem,
+                getItems:getItems,
+                setItems:setItems,
+                getTipoObj:getTipoObj,
+                setTipoObj:setTipoObj,
             }
         })();
 
@@ -302,8 +318,10 @@
                 
         }
         
-        //data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan'};
-        data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item', 'tipo_response':'jsonp'};
+        if( obj_trabajo.getTipoObj() != 3 )
+            data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan', 'tipo_response':'jsonp'};
+        else  // Caso analisis Categoria con jerarquia independiente (arreglo de Item)
+            data = {'id_item':obj_trabajo.getItems(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'jsonp'};
         url = 'http://{{ server_name }}:{{ server_port }}/planes/plan/buscar-datos-resumen/';
         
         $.ajax({                                                                        

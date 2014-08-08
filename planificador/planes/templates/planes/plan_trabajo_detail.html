@@ -28,7 +28,7 @@
     <!-- Seccion con parametros de busqueda del item a proyectar  -->
     <div class="caja_bordes" style="padding: 0px 0px; float:left; width:100%;">
         <a class="caja-header">Proyecci&oacute;n</a>
-        <table style="width:100%;">
+        <table id="combos-proyeccion" style="width:100%;">
             {% for categoria in combo_categorias %}
             <tr>
                 <td><label>{{ categoria.nombre }}</label></td>
@@ -57,7 +57,7 @@
             </tr>
         </table>
         <a class="caja-header">Comparativo</a>
-        <table style="width:100%;">
+        <table id="combos-comparativo" style="width:100%;">
             {% for categoria in combo_categorias_comp %}
             <tr>
                 <td style="width:80%">
@@ -82,6 +82,41 @@
             </tr>
             {% endfor %}
         </table>
+        <!-- 
+            Se genera el buscador por Categoria con jerarquia_independiente (ver modelo).
+        -->
+        {% if categoria_independiente %}
+        <a class="caja-header cat-independiente">POR {{ categoria_independiente.nombre }}</a>
+        <table id="combos-independiente" style="width:100%;" class="cat-independiente">
+            <tr>
+                <td>
+                    <label>{{ categoria_raiz.categoria.nombre }}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select id="combo_cat_independiente_busqueda" class="buscador">
+                        <option value="-1" selected></option>
+                        {% for item in items_categoria_raiz %}
+                        <option value="{{ item.id }}">{{ item.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>{{ categoria_independiente.nombre }}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select id="combo_cat_independiente_resultado" class="buscador">
+                        <option value="-1" selected></option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        {% endif %}
     </div>
 </div>
 
@@ -212,6 +247,8 @@ $(function() {
         var id_item = -1;
         /* ID del item sobre el cual esta comparando */
         var id_item_comp = -1;
+        /* ID del item sobre el cual esta comparando (tipo independiente) */
+        var id_item_independiente = -1;
         var precio_item = 0;
         var costo_item = 0;
         /*
@@ -233,17 +270,22 @@ $(function() {
 
         var datos = null;
         var datos_comp = null;
+        var datos_independiente = null;
 
         var celda_editada = null;
 
         var url_item_trabajo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "1/";
         var url_item_comparativo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "2/";
+        var url_item_independiente = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "3/";
         
         function setItem(id){id_item = id;}
         function getItem(){return id_item;}
 
         function setItemComp(id){id_item_comp = id;}
         function getItemComp(){return id_item_comp;}
+
+        function setItemIndependiente(id){id_item_independiente = id;}
+        function getItemIndependiente(){return id_item_independiente;}
 
         function setPrecioItem(precio){precio_item = precio;}
         function getPrecioItem(){return precio_item;}
@@ -274,6 +316,9 @@ $(function() {
         function getURLItemComparativo(){return url_item_comparativo;}
         function setURLItemComparativo(url){url_item_comparativo = url;}
 
+        function getURLItemIndependiente(){return url_item_independiente;}
+        function setURLItemIndependiente(url){url_item_independiente = url;}
+
         function limpiarItem(){
             datos = null;
             id_item = -1;
@@ -285,11 +330,18 @@ $(function() {
             id_item_comp = -1;
         }
 
+        function limpiarItemIndependiente(){
+            datos_independiente = null;
+            id_item_independiente = -1;
+        }
+
         return{
             setItem:setItem,
             getItem:getItem,
             setItemComp:setItemComp,
             getItemComp:getItemComp,
+            setItemIndependiente:setItemIndependiente,
+            getItemIndependiente:getItemIndependiente,
             setPrecioItem:setPrecioItem,
             getPrecioItem:getPrecioItem,
             setCostoItem:setCostoItem,
@@ -307,10 +359,13 @@ $(function() {
             setCeldaEditada:setCeldaEditada,
             limpiarItem:limpiarItem,
             limpiarItemComparativo:limpiarItemComparativo,
+            limpiarItemIndependiente:limpiarItemIndependiente,
             getURLItemTrabajo:getURLItemTrabajo,
             setURLItemTrabajo:setURLItemTrabajo,
             getURLItemComparativo:getURLItemComparativo,
-            setURLItemComparativo:setURLItemComparativo
+            setURLItemComparativo:setURLItemComparativo,
+            getURLItemIndependiente:getURLItemIndependiente,
+            setURLItemIndependiente:setURLItemIndependiente,
         }
     }();
 
@@ -443,8 +498,10 @@ $(function() {
         }
         busquedaAJAXdatosComp(id_item);
     });
-    $("[id^=combo_cat_proy_]").change(buscarCategoria);
-    $("[id^=combo_cat_comp_]").change(buscarCategoriaComparacion);
+    $( "[id^=combo_cat_proy_]" ).change(buscarCategoria);
+    $( "[id^=combo_cat_comp_]" ).change(buscarCategoriaComparacion);
+    $( "#combo_cat_independiente_busqueda" ).change(buscarCategoriaIndependiente);
+    $( "#combo_cat_independiente_resultado" ).change(busquedaAJAXdatosIndependiente);
     actualizarActividad();
 
 });

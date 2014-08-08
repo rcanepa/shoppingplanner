@@ -22,6 +22,10 @@ class Categoria(models.Model):
     planificable = models.BooleanField(default=False)
     # Determina si en el arbol de planificacion se mostrara la venta de itemes pertenecientes a esta categoria.
     venta_arbol = models.BooleanField(default=False, verbose_name=u'Venta en arbol')
+    # Se utiliza para marcar una Categoria sobre la cual se pueden generar resumenes y busquedas independiente de la estructura
+    # jerarquica a la que pertenece. Por ejemplo, para generar un resumen a nivel de Marca, sin considerar al departamento al 
+    # que pertenece.
+    jerarquia_independiente = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.nombre

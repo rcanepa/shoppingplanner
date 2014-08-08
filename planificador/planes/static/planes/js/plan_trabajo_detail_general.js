@@ -14,6 +14,7 @@ function actualizarActividad(){
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
             $( "#btnCU" ).hide();
+            $( ".cat-independiente" ).hide();
             break;
         case 2:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -25,7 +26,8 @@ function actualizarActividad(){
             if ( obj_trabajo.getItem() != -1 ){
                 $( "#btnPB" ).show();
                 $( "#btnCU" ).show();
-            }                
+            }
+            $( ".cat-independiente" ).hide();
             break;
         case 3:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -36,6 +38,7 @@ function actualizarActividad(){
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
             $( "#btnCU" ).hide();
+            $( ".cat-independiente" ).hide();
             break;
         case 4:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -78,13 +81,16 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
+                $( ".cat-independiente" ).hide();
                 RGraph.Reset(document.getElementById("venta-chart"));
                 RGraph.Reset(document.getElementById("unidades-chart"));
                 RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("margen-chart"));
                 RGraph.Reset(document.getElementById("precio-chart"));
                 RGraph.Reset(document.getElementById("venta-chart-comp"));
                 RGraph.Reset(document.getElementById("unidades-chart-comp"));
                 RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("margen-chart-comp"));
                 RGraph.Reset(document.getElementById("precio-chart-comp"));
                 break;
             case 'enlace-planificacion-tv':
@@ -95,6 +101,7 @@ function controlActividades(event){
                 $( "#tab_comparativo" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
+                $( ".cat-independiente" ).hide();
                 if ( obj_trabajo.getItem() != -1 ){
                     $( "#btnPB" ).show();
                     $( "#btnCU" ).show();
@@ -102,10 +109,12 @@ function controlActividades(event){
                 RGraph.Reset(document.getElementById("venta-chart"));
                 RGraph.Reset(document.getElementById("unidades-chart"));
                 RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("margen-chart"));
                 RGraph.Reset(document.getElementById("precio-chart"));
                 RGraph.Reset(document.getElementById("venta-chart-comp"));
                 RGraph.Reset(document.getElementById("unidades-chart-comp"));
                 RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("margen-chart-comp"));
                 RGraph.Reset(document.getElementById("precio-chart-comp"));           
                 break;
             case 'enlace-planificacion-as':
@@ -118,13 +127,16 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
+                $( ".cat-independiente" ).hide();
                 RGraph.Reset(document.getElementById("venta-chart"));
                 RGraph.Reset(document.getElementById("unidades-chart"));
                 RGraph.Reset(document.getElementById("contribucion-chart"));
+                RGraph.Reset(document.getElementById("margen-chart"));
                 RGraph.Reset(document.getElementById("precio-chart"));
                 RGraph.Reset(document.getElementById("venta-chart-comp"));
                 RGraph.Reset(document.getElementById("unidades-chart-comp"));
                 RGraph.Reset(document.getElementById("contribucion-chart-comp"));
+                RGraph.Reset(document.getElementById("margen-chart-comp"));
                 RGraph.Reset(document.getElementById("precio-chart-comp"));
                 break;
             case 'enlace-resumen':
@@ -137,6 +149,7 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).show();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
+                $( ".cat-independiente" ).show();
                 break;
             default:
                 alert("No se ha escogido ninguna actividad!");
@@ -146,7 +159,9 @@ function controlActividades(event){
         if ( obj_trabajo.getItem() != -1 )
             $( "#combo_resultado" ).trigger( "change" );
         if ( obj_trabajo.getItemComp() != -1 )
-            busquedaAJAXdatosComp(obj_trabajo.getItemComp());    
+            busquedaAJAXdatosComp(obj_trabajo.getItemComp());
+        if ( obj_trabajo.getItemIndependiente() != -1)
+            $( "#combo_cat_independiente_resultado" ).trigger( "change" );
     }
 }
 
@@ -197,8 +212,8 @@ function busquedaAJAXdatos(){
 }
 
 /*
-    Controla los cambios hechos sobre el combobox de itemplan de comparacion.
-    Gatilla una busqueda sobre la informacion comercial del itemplan
+    Controla los cambios hechos sobre el combobox de Item de comparacion.
+    Gatilla una busqueda sobre la informacion comercial del Item
     seleccionado.
 */
 function busquedaAJAXdatosComp(id_item){
@@ -236,6 +251,61 @@ function busquedaAJAXdatosComp(id_item){
     });
 
     request.done(busqueda);
+    limpiarCombos("combos-independiente");
+    obj_trabajo.setItemIndependiente(-1);
+}
+
+/*
+    Controla los cambios hechos sobre el combobox de Item de comparacion independiente.
+    Gatilla una busqueda sobre la informacion comercial del Item seleccionado.
+*/
+function busquedaAJAXdatosIndependiente(){
+    /* Se determina el tipo de tarea que esta realizando el usuario para
+    buscar la informacion necesaria (proyeccion, planificacion o resumen) */
+    id_items = $(this).val();
+    obj_trabajo.setItemIndependiente(id_items);
+    switch(obj_trabajo.getActividad()){
+        case 1:
+            break;
+            /*
+            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
+            url = '/planes/plan/buscar-datos-proyeccion-comp/';
+            busqueda = busquedaProyeccionComp;
+            break;
+            */
+        case 2:
+            break;
+            /*data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
+            url = '/planes/plan/buscar-datos-planificacion-tv-comp/';
+            busqueda = busquedaPlanificacionTVComp;
+            break;
+            */
+        case 3:
+            break;
+            /*
+            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
+            url = '/planes/plan/buscar-datos-planificacion-as-comp/';
+            busqueda = busquedaPlanificacionASComp;
+            break;
+            */
+        case 4:
+            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'json'};
+            url = '/planes/plan/buscar-datos-resumen/';
+            busqueda = busquedaResumenComp;
+            $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemIndependiente() + "" + obj_trabajo.getItemIndependiente() + "/");
+            break;
+    }
+
+    var request = $.ajax({
+        data: data,
+        url: url,
+        type: 'get'
+    });
+
+    request.done(busqueda);
+    limpiarCombos("combos-comparativo");
+    obj_trabajo.limpiarItemComparativo();
+    limpiarHTML(1);
 }
 
 /*
@@ -312,6 +382,34 @@ function buscarCategoriaComparacion(){
                 }
             }
         });
+    }
+}
+
+/*
+Se preocupa de cargar los elementos SELECT para la seleccion del item comparativo independiente.
+*/
+function buscarCategoriaIndependiente(){
+    var id_this = $(this).attr("id");
+    var id_item = $(this).val();
+    var id_plan = obj_trabajo.getPlan();
+    if(id_item != -1){
+        $.ajax({
+            data: {'id_item':id_item, 'id_plan':id_plan},
+            url: '/planes/plan/buscar-lista-items-independientes/',
+            type: 'get',
+            success: function(data){
+                limpiarHTML(2);
+                obj_trabajo.limpiarItemIndependiente();
+                html = "";
+                html += "<option value=\"-1\"></option>"
+                $.each( data, function( key, value ) {
+                    html += '<option value="' + value + "" + '">' + key + '</option>';
+                });
+                $( "#combo_cat_independiente_resultado" ).html(html);
+            }
+        });
+    }
+    else{
     }
 }
 
@@ -394,6 +492,9 @@ function limpiarHTML(tipo){
             break;
         case 1:  /* Cambio en el combobox de comparativo */
             $( ".tabla_datos_actividad_comp" ).html("");
+            break;
+        case 2:  /* Cambio en el combobox de comparativo independiente */
+            $( ".tabla_datos_actividad_independiente" ).html("");
             break;
     }
 }
@@ -639,4 +740,17 @@ function saveAJAXDone(data){
     
     if ( obj_trabajo.getItemComp() != -1 )
         busquedaAJAXdatosComp(obj_trabajo.getItemComp());
+}
+
+function limpiarCombos(id){
+    //$( "#"+ id ).find( "option[value!=-1]" ).remove();
+    var combos = $( "#"+ id ).find( "select" );
+
+    combos.each(function( index ) {
+        console.log(index);
+        if( index > 0 )
+            $( this ).find( "option[value!=-1]" ).remove();
+        else
+            $( this ).val("-1");
+    });
 }

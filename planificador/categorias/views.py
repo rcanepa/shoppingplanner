@@ -65,6 +65,10 @@ class CategoriaUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
         context = super(CategoriaUpdateView, self).get_context_data(**kwargs)
         return context
 
+    def get_initial(self):
+        self.initial.update({'usuario': self.request.user})
+        return self.initial
+
 
 class CategoriaCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, CreateView):
     model = Categoria
@@ -79,6 +83,10 @@ class CategoriaCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
     def get_context_data(self, **kwargs):
         context = super(CategoriaCreateView, self).get_context_data(**kwargs)
         return context
+
+    def get_initial(self):
+        self.initial.update({'usuario': self.request.user})
+        return self.initial
 
 
 class CategoriaDeleteView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, DeleteView):
