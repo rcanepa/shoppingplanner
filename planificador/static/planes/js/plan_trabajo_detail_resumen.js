@@ -4,6 +4,16 @@ el usuario.
 */
 function busquedaResumen(data){
 	console.log(data);
+  for(x=0; x<data.estadisticas.contribucion.rows.length; x++){
+      if ( data.estadisticas.contribucion.rows[x][0] < 0 )
+          data.estadisticas.contribucion.rows[x][0] = 0;
+      if ( data.estadisticas.costo.rows[x] < 0 )
+          data.estadisticas.costo.rows[x] = [0];
+      for(k=0; k<data.estadisticas.dcto_precio.rows[x].length; k++){
+          if ( data.estadisticas.dcto_precio.rows[x][k] < 0 )
+              data.estadisticas.dcto_precio.rows[x][k] = [0];
+      }
+  }
     var data_unidades = data.estadisticas.unidades;
     var data_venta = data.estadisticas.venta;
     var data_contribucion = data.estadisticas.contribucion;
@@ -232,6 +242,16 @@ el usuario.
 */
 function busquedaResumenComp(data){
 	console.log(data);
+  for(x=0; x<data.estadisticas.contribucion.rows.length; x++){
+      if ( data.estadisticas.contribucion.rows[x][0] < 0 )
+          data.estadisticas.contribucion.rows[x][0] = 0;
+      if ( data.estadisticas.costo.rows[x] < 0 )
+          data.estadisticas.costo.rows[x] = [0];
+      for(k=0; k<data.estadisticas.dcto_precio.rows[x].length; k++){
+          if ( data.estadisticas.dcto_precio.rows[x][k] < 0 )
+              data.estadisticas.dcto_precio.rows[x][k] = [0];
+      }
+  }
     var data_unidades = data.estadisticas.unidades;
     var data_venta = data.estadisticas.venta;
     var data_contribucion = data.estadisticas.contribucion;

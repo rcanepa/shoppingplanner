@@ -9,6 +9,7 @@
 
 <body>
     {% autoescape off %}{{ html_indice }}{% endautoescape %}
+    {% autoescape off %}{{ html_indice_ji }}{% endautoescape %}
     {% autoescape off %}{{ html }}{% endautoescape %}
     <!-- Rgraph -->
     <script type="text/javascript" src="{{STATIC_URL}}js/rgraph/RGraph.common.core.js"></script>
@@ -89,7 +90,7 @@
         el usuario.
         */
         generarContenedores = function (data){
-            console.log(data);
+            //console.log(data);
             $.each( data, function( key, value ) {
                 if ( key != "items" )
                     cargarGraficos(key, value);
@@ -98,7 +99,19 @@
         };
 
         function cargarGraficos(key, data){
-            //console.log(key, data);
+            //console.log(key, data.estadisticas);
+            // Se realizan correciones a los valores negativos ya que no pueden ser representados
+            // por un grafico de barras
+            for(x=0; x<data.estadisticas.contribucion.rows.length; x++){
+                if ( data.estadisticas.contribucion.rows[x][0] < 0 )
+                    data.estadisticas.contribucion.rows[x][0] = 0;
+                if ( data.estadisticas.costo.rows[x] < 0 )
+                    data.estadisticas.costo.rows[x] = [0];
+                for(k=0; k<data.estadisticas.dcto_precio.rows[x].length; k++){
+                    if ( data.estadisticas.dcto_precio.rows[x][k] < 0 )
+                        data.estadisticas.dcto_precio.rows[x][k] = [0];
+                }
+            }
             var data_unidades = data.estadisticas.unidades;
             var data_venta = data.estadisticas.venta;
             var data_contribucion = data.estadisticas.contribucion;

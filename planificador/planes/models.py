@@ -115,8 +115,9 @@ class Plan(models.Model):
             anio__gte=ant_anio,
             anio__lte=act_anio,
             periodo__in=periodos_temporada,
-            temporada=self.temporada,
-            vta_u__gt=0
+            #temporada=self.temporada,
+            vta_u__gt=0,
+            vta_n__gt=0
             ).values(
             'anio', 'item_id', 'item__precio').annotate(
             vta_n=Sum('vta_n'),
@@ -137,6 +138,10 @@ class Plan(models.Model):
                 venta['precio_vta_u'] += venta['vta_u'] * venta['item__precio']
             # Se calcula el precio blanco "promedio ponderado" para cada item
             # venta['precio_blanco'] = venta['precio_vta_u'] / venta['vta_u']
+            # Se corrigen valores negativos de contribucion ya que no pueden ser representados
+            # en un grafico de barras.
+            #if venta['ctb_n'] < 0:
+                #venta['ctb_n'] = 0
             dict_venta[venta['item_id']].append(venta)
         return dict_venta
 
@@ -178,8 +183,9 @@ class Plan(models.Model):
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
                 periodo__in=periodos_temporada,
-                temporada=temporada,
-                vta_u__gt=0).values(
+                #temporada=temporada,
+                vta_u__gt=0,
+                vta_n__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -192,7 +198,8 @@ class Plan(models.Model):
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
                 periodo__in=periodos_temporada,
-                vta_u__gt=0).values(
+                vta_u__gt=0,
+                vta_n__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -205,8 +212,9 @@ class Plan(models.Model):
                 anio__gte=ant_anio,
                 anio__lte=act_anio,
                 periodo__in=periodos_temporada,
-                temporada=temporada,
-                vta_u__gt=0).values(
+                #temporada=temporada,
+                vta_u__gt=0,
+                vta_n__gt=0).values(
                 'anio', 'item_id', 'item__precio').annotate(
                 vta_n=Sum('vta_n'),
                 vta_u=Sum('vta_u'),
@@ -235,6 +243,10 @@ class Plan(models.Model):
                 else:
                     resumen_anual['precio_vta_u'] += item['vta_u'] * item['item__precio']
             resumen_anual['precio_blanco'] = resumen_anual['precio_vta_u'] / resumen_anual['vta_u']
+            # Se corrigen valores negativos de contribucion ya que no pueden ser representados en un grafico
+            # de barra.
+            #if resumen_anual['ctb_n'] < 0:
+                #resumen_anual['ctb_n'] = 0
             lista_anual.append(resumen_anual)
         return lista_anual
 

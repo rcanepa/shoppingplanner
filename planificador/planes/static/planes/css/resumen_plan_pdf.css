@@ -25,6 +25,7 @@ h4{
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     overflow: hidden;*/
+    width: 100%;
     page-break-after: always;
 }
 
@@ -42,12 +43,19 @@ h4{
     text-align: center;
 }
 
+.tabla-indice
+{
+    width: 100%;
+}
+
 .col-item
 {
     text-align: left;
+    width: 85%;
 }
 
 .col-pagina
 {
     text-align: right;
+    width: 15%;
 }

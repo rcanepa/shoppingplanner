@@ -26,6 +26,7 @@ from planificador.views import UserInfoMixin
 import cStringIO as StringIO
 import json
 import math
+import pprint
 import time
 
 
@@ -1398,6 +1399,7 @@ class ResumenPlanDataGraficosView(View):
 
     def get(self, request, *args, **kwargs):
         if request.GET:
+            pp = pprint.PrettyPrinter(indent=4)
             response = defaultdict()
             data_json = {}
             data_jsonp = {}
@@ -1414,6 +1416,8 @@ class ResumenPlanDataGraficosView(View):
             ant_anio = plan_obj.anio - 3
 
             venta_planificacion = plan_obj.resumen_venta_planificacion()
+
+            #pp.pprint(venta_planificacion)
 
             resumen_item = defaultdict()
             # Por cada itemplan de la planificacion almacena un arreglo con los itemplan padres
@@ -1449,7 +1453,59 @@ class ResumenPlanDataGraficosView(View):
                         venta_anual_item['precio_blanco'] = 0
                     arr_venta_anual_item.append(venta_anual_item)
                 resumen_item[itemplan.item.id] = arr_venta_anual_item
-
+            #
+            # A continuacion se encuentra la logica que genera los datos de venta para el resumen por Categoria con jerarquia independiente
+            #
+            dict_item_ind = defaultdict(list)
+            # Arreglo que contiene los nombres de los Item de Categoria con jerarquia independiente. Utilizado
+            # para la construccion del indice respectivo.
+            cat_independiente = Categoria.objects.get(
+                organizacion=plan_obj.usuario_creador.get_profile().organizacion,
+                jerarquia_independiente=True)
+            nivel_cat_independiente = cat_independiente.get_nivel()
+            itemplan_raiz = itemplan_planificados.filter(item_padre=None)
+            for itemplan in itemplan_raiz:
+                # Distancia para ser utilizada en la busqueda de los objetos Itemjerarquia
+                distancia = nivel_cat_independiente - itemplan.item.categoria.get_nivel()
+                # Lista de ID de los Item que son de categoria con jerarquia independiente
+                id_item_independientes = Itemjerarquia.objects.filter(
+                    ancestro=itemplan.item,
+                    distancia=distancia).values_list('descendiente', flat=True)
+                # Lista de objetos Item que son de categoria con jerarquia independiente
+                item_independientes = Item.objects.filter(pk__in=id_item_independientes)
+                # Se itera por cada objeto Item para buscar los nodos con venta
+                for item in item_independientes:
+                    dict_item_ind[item.nombre] += Itemjerarquia.objects.filter(
+                        ancestro=item).values_list('descendiente', flat=True)
+                #pp.pprint(dict_item_ind)
+                for item, descendientes in dict_item_ind.items():
+                    arr_venta_anual_item_ind = []
+                    for anio_plan in range(ant_anio, act_anio + 1):
+                        venta_anual_item_ind = defaultdict(int)
+                        venta_anual_item_ind['anio'] = anio_plan
+                        venta_anual_item_ind['item'] = item
+                        # Se busca la venta de los Item descendientes
+                        ventas_item_independientes = [venta_planificacion[x] for x in descendientes]
+                        # Se eliminan de la lista los Item sin venta
+                        ventas_item_independientes = [x for x in ventas_item_independientes if x]
+                        # Se itera por cada item (cada item contiene un arreglo de ventas anuales)
+                        for item_ventas in ventas_item_independientes: 
+                            # Se itera por cada año de venta de cada item
+                            for anio in item_ventas:
+                                if anio['anio'] == anio_plan:
+                                    venta_anual_item_ind['vta_n'] += anio['vta_n']
+                                    venta_anual_item_ind['vta_u'] += anio['vta_u']
+                                    venta_anual_item_ind['ctb_n'] += anio['ctb_n']
+                                    venta_anual_item_ind['costo'] += anio['costo']
+                                    venta_anual_item_ind['precio_vta_u'] += anio['precio_vta_u']
+                        if venta_anual_item_ind['vta_u'] != 0:  # Se calcula el precio blanco promedio
+                            venta_anual_item_ind['precio_blanco'] = venta_anual_item_ind['precio_vta_u'] / venta_anual_item_ind['vta_u']
+                        else:
+                            venta_anual_item_ind['precio_blanco'] = 0
+                        arr_venta_anual_item_ind.append(venta_anual_item_ind)
+                        #pp.pprint(arr_venta_anual_item_ind)
+                    resumen_item[item] = arr_venta_anual_item_ind
+                #pp.pprint(resumen_item)
             for item, estadisticas in resumen_item.iteritems():
                 resumen = {}
                 # Label para todos los graficos (años)
@@ -2050,6 +2106,26 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         # Lista de itemplan de la planificacion
         itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria')
         padres_dict = defaultdict()
+        # Arreglo que contiene los nombres de los Item de Categoria con jerarquia independiente. Utilizado para la construccion
+        # del indice respectivo.
+        items_jerarquia_independiente = []
+        cat_independiente = Categoria.objects.get(
+            organizacion=plan_obj.usuario_creador.get_profile().organizacion,
+            jerarquia_independiente=True)
+        nivel_cat_independiente = cat_independiente.get_nivel()
+        itemplan_raiz = itemplan_planificados.filter(item_padre=None)
+        for itemplan in itemplan_raiz:
+            # Distancia para ser utilizada en la busqueda de los objetos Itemjerarquia
+            distancia = nivel_cat_independiente - itemplan.item.categoria.get_nivel()
+            # Lista de ID de los Item hijos del Item pasado como parametro y que son de categoria con jerarquia independiente
+            id_item_independientes = Itemjerarquia.objects.filter(
+                ancestro=itemplan.item,
+                distancia=distancia).values_list('descendiente', flat=True)
+            # Se agregan los nombres de los Item de la categoria con jerarquia independientes pertenecientes a la planificacion
+            items_jerarquia_independiente += Item.objects.filter(id__in=id_item_independientes).values_list('nombre', flat=True)
+        # Se eliminan los elementos duplicados
+        items_jerarquia_independiente = set(items_jerarquia_independiente)
+        cant_paginas_indice_ji = int(math.ceil(len(items_jerarquia_independiente) / 30.0))
         # Variables para configurar el tamaño de los graficos
         height_mar = str(80)
         height_con = str(175)
@@ -2060,13 +2136,13 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         html, html_indice = "", ""
         html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"
         html_indice += "Creado por " + request.user.first_name + " " + request.user.last_name + ", " + time.strftime("%d/%m/%Y")
-        html_indice += "<h4>TABLA DE CONTENIDOS</h4>"
-        html_indice += "<table id=\"tabla-contenidos\"><tr><th class=\"col-item\">ITEM</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
+        html_indice += "<h4>RESUMEN GENERAL</h4>"
+        html_indice += "<table id=\"tabla-contenidos\" class=\"tabla-indice\"><tr><th class=\"col-item\">ITEM</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
         for contador, itemplan in enumerate(itemplan_planificados):
             key = itemplan.item_id
             lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
             padres_dict[itemplan.item_id] = lista_nombres_padres[::-1]
-            html_indice += "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + 1) + "</td></tr>"
+            html_indice += "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji + 1) + "</td></tr>"
             html += "<div id=\"" + str(key) + "\" class=\"accordion\">"
             html += "<h4 id=\"" + str(key) + "-titulo-item\">" + str(1 + contador) + ") " + " | ".join(reversed(lista_nombres_padres)) + "</h4>"
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
@@ -2083,8 +2159,31 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             html += "</div>"
         html_indice += "</table></div>"
 
+        html_indice_ji = ""
+        html_indice_ji += "<div class=\"accordion\">"
+        html_indice_ji += "<h4>RESUMEN POR " + cat_independiente.nombre + "</h4>"
+        html_indice_ji += "<table id=\"tabla-contenidos-ji\" class=\"tabla-indice\"><tr><th class=\"col-item\">" + cat_independiente.nombre + "</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
+        for contador_ji, nombre in enumerate(sorted(items_jerarquia_independiente, key=lambda t: t[0])):
+            html_indice_ji += "<tr><td class=\"col-item\">" + nombre + "</td><td class=\"col-pagina\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 2) + "</td></tr>"
+            html += "<div id=\"" + nombre + "\" class=\"accordion\">"
+            html += "<h4 id=\"" + nombre + "-titulo-item\">" + str(1 + contador_ji) + ") " + nombre + "</h4>"
+            html += "<div class=\"pure-g\" style=\"text-align:center\">"
+            for i in range(0, 4):
+                html += "<div class=\"pure-u-1-2\">"
+                html += "<div class=\"titulo-chart\"><h3>" + getTitulo(i) + "</h3></div>"
+                if i != 1:
+                    html += "<div><canvas id=\"" + nombre + "-" + str(i) + "-chart\" width=\"" + width + "\" height=\"" + height + "\">[No canvas support]</canvas></div>"
+                else:
+                    html += "<div><canvas id=\"" + nombre + "-1a-chart\" width=\"" + width + "\" height=\"" + height_mar + "\">[No canvas support]</canvas></div>"
+                    html += "<div><canvas id=\"" + nombre + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
+                html += "</div>"
+            html += "</div>"
+            html += "</div>"
+        html_indice_ji += "</table></div>"
+
         self.context['html'] = html
         self.context['html_indice'] = html_indice
+        self.context['html_indice_ji'] = html_indice_ji
 
         cmd_options = {
             'quiet': True,
@@ -2094,7 +2193,9 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             'margin-right': '10mm',
             'margin-top': '10mm',
             'orientation': 'landscape',
-            'page-size': 'Letter'
+            'page-size': 'Letter',
+            #'javascript-delay': '10',
+            #'no-stop-slow-scripts': True
         }
         #return self.render_to_response(self.context)
 
@@ -2103,7 +2204,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             template=self.template_name,
             filename=str(self.context['plan'].anio) + "-" + str(self.context['plan'].temporada.nombre) + ".pdf",
             context=self.context,
-            show_content_in_browser=False,
+            show_content_in_browser=True,
             cmd_options=cmd_options
         )
         return response
