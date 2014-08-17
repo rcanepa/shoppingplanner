@@ -2063,8 +2063,8 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             self.context['id_item'] = Itemplan.objects.get(plan=self.context['plan'], item__id=self.context['id_item'])
             self.context['id_items'] = ""
         else:  # es un arreglo de objetos Item (tipo_obj == 3)
-            self.context['id_items'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split(','))).values_list('item_id', flat=True)
-            self.context['id_item'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split(',')))[0]
+            self.context['id_items'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split('x'))).values_list('item_id', flat=True)
+            self.context['id_item'] = Itemplan.objects.filter(plan=self.context['plan'], item__in=map(int, self.context['id_item'].split('x')))[0]
         self.context['tipo_obj'] = tipo_obj
         cmd_options = {
             'quiet': True,
@@ -2077,7 +2077,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             'page-size': 'Letter',
             'dpi': '300'
         }
-        #return self.render_to_response(self.context)
+        return self.render_to_response(self.context)
         response = PDFTemplateResponse(
             request=request,
             template=self.template_name,
@@ -2104,7 +2104,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         self.context['plan'] = plan_obj
         self.context['usuario'] = request.user
         # Lista de itemplan de la planificacion
-        itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria')
+        itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria', 'nombre', 'precio')
         padres_dict = defaultdict()
         # Arreglo que contiene los nombres de los Item de Categoria con jerarquia independiente. Utilizado para la construccion
         # del indice respectivo.
@@ -2133,16 +2133,27 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         width = str(470)
         # Aproximadamente caben 50 lineas en la tabla de contenidos
         cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 30.0))
-        html, html_indice = "", ""
+        categoria_pivote = ""
+        html, html_indice, temp = "", "", ""
         html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"
         html_indice += "Creado por " + request.user.first_name + " " + request.user.last_name + ", " + time.strftime("%d/%m/%Y")
-        html_indice += "<h4>RESUMEN GENERAL</h4>"
-        html_indice += "<table id=\"tabla-contenidos\" class=\"tabla-indice\"><tr><th class=\"col-item\">ITEM</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
+        html_indice += "<table id=\"tabla-contenidos\" class=\"tabla-indice\">"
         for contador, itemplan in enumerate(itemplan_planificados):
             key = itemplan.item_id
             lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
             padres_dict[itemplan.item_id] = lista_nombres_padres[::-1]
-            html_indice += "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji + 1) + "</td></tr>"
+            # Si el item pertenece a una categoria planificable entonces se agrupa con el nombre ITEM
+            if itemplan.item.categoria.planificable:
+                categoria_item = "ITEM"
+                # Se agrega el precio del item
+                temp = "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + " [ " + "{:,}".format(itemplan.precio) + " ]" + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</td></tr>"
+            else:  # En caso contrario se agrupa con el nombre original de categoria a la que pertenece
+                categoria_item = itemplan.item.categoria.nombre
+                temp = "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</td></tr>"
+            if categoria_pivote != categoria_item:
+                html_indice += "<tr><td colspan=\"2\"><h4>RESUMEN " + categoria_item + "</h4></td></tr>"
+                categoria_pivote = categoria_item
+            html_indice += temp
             html += "<div id=\"" + str(key) + "\" class=\"accordion\">"
             html += "<h4 id=\"" + str(key) + "-titulo-item\">" + str(1 + contador) + ") " + " | ".join(reversed(lista_nombres_padres)) + "</h4>"
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
@@ -2157,14 +2168,11 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                 html += "</div>"
             html += "</div>"
             html += "</div>"
-        html_indice += "</table></div>"
-
-        html_indice_ji = ""
-        html_indice_ji += "<div class=\"accordion\">"
-        html_indice_ji += "<h4>RESUMEN POR " + cat_independiente.nombre + "</h4>"
-        html_indice_ji += "<table id=\"tabla-contenidos-ji\" class=\"tabla-indice\"><tr><th class=\"col-item\">" + cat_independiente.nombre + "</th><th class=\"col-pagina\">P&Aacute;GINA</th></tr>"
+        # Aqui comienza la construccion del indice por categoria con jerarquia independiente
         for contador_ji, nombre in enumerate(sorted(items_jerarquia_independiente, key=lambda t: t[0])):
-            html_indice_ji += "<tr><td class=\"col-item\">" + nombre + "</td><td class=\"col-pagina\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 2) + "</td></tr>"
+            if contador_ji == 0:
+                html_indice += "<tr><td colspan=\"2\"><h4>RESUMEN TOTAL POR " + cat_independiente.nombre + "</h4></td></tr>"
+            html_indice += "<tr><td class=\"col-item\">" + nombre + "</td><td class=\"col-pagina\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 1) + "</td></tr>"
             html += "<div id=\"" + nombre + "\" class=\"accordion\">"
             html += "<h4 id=\"" + nombre + "-titulo-item\">" + str(1 + contador_ji) + ") " + nombre + "</h4>"
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
@@ -2179,11 +2187,10 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                 html += "</div>"
             html += "</div>"
             html += "</div>"
-        html_indice_ji += "</table></div>"
+        html_indice += "</table></div>"
 
         self.context['html'] = html
         self.context['html_indice'] = html_indice
-        self.context['html_indice_ji'] = html_indice_ji
 
         cmd_options = {
             'quiet': True,

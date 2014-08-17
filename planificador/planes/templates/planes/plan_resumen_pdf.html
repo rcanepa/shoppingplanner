@@ -331,7 +331,7 @@
         if( obj_trabajo.getTipoObj() != 3 )
             data = {'id_item':obj_trabajo.getItem(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'itemplan', 'tipo_response':'jsonp'};
         else  // Caso analisis Categoria con jerarquia independiente (arreglo de Item)
-            data = {'id_item':obj_trabajo.getItems(), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'jsonp'};
+            data = {'id_item':obj_trabajo.getItems().replace(/x/g,","), 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'jsonp'};
         url = 'http://{{ server_name }}:{{ server_port }}/planes/plan/buscar-datos-resumen/';
         
         $.ajax({                                                                        

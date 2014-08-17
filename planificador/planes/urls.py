@@ -44,5 +44,5 @@ urlpatterns = patterns('',
     # Vista para la generacion de un informe PDF de planificacion
     url(r'^plan/plan_exportar_plan_pdf/(?P<pk>\d+)/$', views.ResumenPlanificacionPDFView.as_view(), name='plan_exportar_plan_pdf_detail'),
     url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
-    url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/(?P<slug1>[0-9]+)/(?P<slug2>[0-9,]+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
+    url(r'^plan/plan_exportar_pdf/(?P<pk>\d+)/(?P<slug1>[0-9]+)/(?P<slug2>[0-9x]+)/$', views.ResumenPDFView.as_view(), name='plan_exportar_pdf_detail'),
 )

@@ -263,6 +263,7 @@ function busquedaAJAXdatosIndependiente(){
     /* Se determina el tipo de tarea que esta realizando el usuario para
     buscar la informacion necesaria (proyeccion, planificacion o resumen) */
     id_items = $(this).val();
+    console.log(id_items);
     obj_trabajo.setItemIndependiente(id_items);
     switch(obj_trabajo.getActividad()){
         case 1:
@@ -292,7 +293,7 @@ function busquedaAJAXdatosIndependiente(){
             data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'json'};
             url = '/planes/plan/buscar-datos-resumen/';
             busqueda = busquedaResumenComp;
-            $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemIndependiente() + "" + obj_trabajo.getItemIndependiente() + "/");
+            $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemIndependiente() + "" + id_items.replace(/,/g,"x") + "/");
             break;
     }
 
