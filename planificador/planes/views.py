@@ -2069,7 +2069,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
         cmd_options = {
             'quiet': True,
             'encoding': 'utf8',
-            'margin-bottom': '5mm',
+            'margin-bottom': '10mm',
             'margin-left': '10mm',
             'margin-right': '10mm',
             'margin-top': '10mm',
@@ -2159,7 +2159,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
             for i in range(0, 4):
                 html += "<div class=\"pure-u-1-2\">"
-                html += "<div class=\"titulo-chart\"><h3>" + getTitulo(i) + "</h3></div>"
+                html += "<div class=\"titulo-chart\"><h5>" + getTitulo(i) + "</h5></div>"
                 if i != 1:
                     html += "<div><canvas id=\"" + str(key) + "-" + str(i) + "-chart\" width=\"" + width + "\" height=\"" + height + "\">[No canvas support]</canvas></div>"
                 else:
@@ -2179,7 +2179,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
             for i in range(0, 4):
                 html += "<div class=\"pure-u-1-2\">"
-                html += "<div class=\"titulo-chart\"><h3>" + getTitulo(i) + "</h3></div>"
+                html += "<div class=\"titulo-chart\"><h5>" + getTitulo(i) + "</h5></div>"
                 if i != 1:
                     html += "<div><canvas id=\"" + nombre + "-" + str(i) + "-chart\" width=\"" + width + "\" height=\"" + height + "\">[No canvas support]</canvas></div>"
                 else:
