@@ -2069,7 +2069,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
         cmd_options = {
             'quiet': True,
             'encoding': 'utf8',
-            'margin-bottom': '10mm',
+            'margin-bottom': '5mm',
             'margin-left': '10mm',
             'margin-right': '10mm',
             'margin-top': '10mm',
@@ -2167,6 +2167,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                     html += "<div><canvas id=\"" + str(key) + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
                 html += "</div>"
             html += "</div>"
+            html += "<div style=\"width:100%;text-align: center;\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</div>"
             html += "</div>"
         # Aqui comienza la construccion del indice por categoria con jerarquia independiente
         for contador_ji, nombre in enumerate(sorted(items_jerarquia_independiente, key=lambda t: t[0])):
@@ -2186,6 +2187,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                     html += "<div><canvas id=\"" + nombre + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
                 html += "</div>"
             html += "</div>"
+            html += "<div style=\"width:100%;text-align: center;\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 1) + "</div>"
             html += "</div>"
         html_indice += "</table></div>"
 
