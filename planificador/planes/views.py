@@ -2125,19 +2125,15 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             items_jerarquia_independiente += Item.objects.filter(id__in=id_item_independientes).values_list('nombre', flat=True)
         # Se eliminan los elementos duplicados
         items_jerarquia_independiente = set(items_jerarquia_independiente)
-        cant_paginas_indice_ji = int(math.ceil(len(items_jerarquia_independiente) / 30.0))
+        #cant_paginas_indice_ji = int(math.ceil(len(items_jerarquia_independiente) / 30.0))
         # Variables para configurar el tamaño de los graficos
-        height_mar = str(80)
-        height_con = str(175)
+        height_mar = str(90)
+        height_con = str(155)
         height = str(int(height_mar) + int(height_con))
         width = str(470)
-        # Aproximadamente caben 50 lineas en la tabla de contenidos
-        cant_paginas_indice = int(math.ceil(len(itemplan_planificados) / 30.0))
         categoria_pivote = ""
-        html, html_indice, temp = "", "", ""
-        html_indice += "<div class=\"accordion\"><h1>RESUMEN PLANIFICACI&Oacute;N " + plan_obj.nombre + "</h1>"
-        html_indice += "Creado por " + request.user.first_name + " " + request.user.last_name + ", " + time.strftime("%d/%m/%Y")
-        html_indice += "<table id=\"tabla-contenidos\" class=\"tabla-indice\">"
+        html = ""
+
         for contador, itemplan in enumerate(itemplan_planificados):
             key = itemplan.item_id
             lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
@@ -2145,15 +2141,17 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             # Si el item pertenece a una categoria planificable entonces se agrupa con el nombre ITEM
             if itemplan.item.categoria.planificable:
                 categoria_item = "ITEM"
-                # Se agrega el precio del item
-                temp = "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + " [ " + "{:,}".format(itemplan.precio) + " ]" + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</td></tr>"
             else:  # En caso contrario se agrupa con el nombre original de categoria a la que pertenece
                 categoria_item = itemplan.item.categoria.nombre
-                temp = "<tr><td class=\"col-item\">" + " | ".join(reversed(lista_nombres_padres)) + "</td><td class=\"col-pagina\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</td></tr>"
+            # Se evalua si se tiene que escribir un titulo porque comienza una nueva categoria
             if categoria_pivote != categoria_item:
-                html_indice += "<tr><td colspan=\"2\"><h4>RESUMEN " + categoria_item + "</h4></td></tr>"
+                html += "<div class=\"accordion\">"
+                html += "<div class=\"pagina-categoria\">"
+                html += "<div class=\"texto-pagina-categoria\"><h1 >RESUMEN " + categoria_item + "</h1></div>"
+                html += "</div>"
+                html += "</div>"
                 categoria_pivote = categoria_item
-            html_indice += temp
+            # Aqui se genera el codigo HTML para los divs del item sobre el cual se esta iterando
             html += "<div id=\"" + str(key) + "\" class=\"accordion\">"
             html += "<h4 id=\"" + str(key) + "-titulo-item\">" + str(1 + contador) + ") " + " | ".join(reversed(lista_nombres_padres)) + "</h4>"
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
@@ -2167,13 +2165,17 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                     html += "<div><canvas id=\"" + str(key) + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
                 html += "</div>"
             html += "</div>"
-            html += "<div style=\"width:100%;text-align: center;\">" + str(contador + cant_paginas_indice + cant_paginas_indice_ji) + "</div>"
+            # Se agrega el pie de pagina con el numero de pagina
+            html += "<div style=\"width:100%;text-align: center;\"><div class=\"page\"></div></div>"
             html += "</div>"
         # Aqui comienza la construccion del indice por categoria con jerarquia independiente
+        html += "<div class=\"accordion\">"
+        html += "<div class=\"pagina-categoria\">"
+        html += "<div class=\"texto-pagina-categoria\"><h1>RESUMEN TOTAL POR " + cat_independiente.nombre + "</h1></div>"
+        html += "</div>"
+        html += "</div>"
         for contador_ji, nombre in enumerate(sorted(items_jerarquia_independiente, key=lambda t: t[0])):
-            if contador_ji == 0:
-                html_indice += "<tr><td colspan=\"2\"><h4>RESUMEN TOTAL POR " + cat_independiente.nombre + "</h4></td></tr>"
-            html_indice += "<tr><td class=\"col-item\">" + nombre + "</td><td class=\"col-pagina\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 1) + "</td></tr>"
+            # Aqui se generan los divs de los item que pertenecen a la categoria con jerarquia independiente
             html += "<div id=\"" + nombre + "\" class=\"accordion\">"
             html += "<h4 id=\"" + nombre + "-titulo-item\">" + str(1 + contador_ji) + ") " + nombre + "</h4>"
             html += "<div class=\"pure-g\" style=\"text-align:center\">"
@@ -2187,12 +2189,11 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
                     html += "<div><canvas id=\"" + nombre + "-1b-chart\" width=\"" + width + "\" height=\"" + height_con + "\">[No canvas support]</canvas></div>"
                 html += "</div>"
             html += "</div>"
-            html += "<div style=\"width:100%;text-align: center;\">" + str(contador_ji + contador + cant_paginas_indice_ji + cant_paginas_indice + 1) + "</div>"
+            # Se agrega el pie de pagina con el numero de pagina
+            html += "<div style=\"width:100%;text-align: center;\"><div class=\"page\"></div></div>"
             html += "</div>"
-        html_indice += "</table></div>"
 
         self.context['html'] = html
-        self.context['html_indice'] = html_indice
 
         cmd_options = {
             'quiet': True,
@@ -2203,8 +2204,12 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             'margin-top': '10mm',
             'orientation': 'landscape',
             'page-size': 'Letter',
-            #'javascript-delay': '10',
-            #'no-stop-slow-scripts': True
+            'footer-right':  'P. [page] / [topage]',
+            'footer-line': True,
+            'toc': True,
+            'toc-depth': 2,
+            'toc-header-text': 'Tabla de Contenidos',
+            'cover': request.build_absolute_uri(reverse('planes:plan_portada_pdf', args=(plan_obj.id,)))
         }
         #return self.render_to_response(self.context)
 
@@ -2266,3 +2271,11 @@ class BuscarItemIndependientesView(View):
             # Se devuelve un diccionario ordenado por el nombre del item
             dict_ordenado = OrderedDict(sorted(dict_item.items(), key=lambda t: t[0]))
             return HttpResponse(json.dumps(dict_ordenado), mimetype='application/json')
+
+
+class PortadaPDFView(DetailView):
+    '''
+    Vista que genera la portada del resumen de planificaciones en formato PDF.
+    '''
+    model = Plan
+    template_name = "planes/plan_portada_pdf.html"

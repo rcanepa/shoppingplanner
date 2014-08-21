@@ -1,0 +1,21 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>PDF</title>
+    <link rel="stylesheet" type="text/css" href="{{STATIC_URL}}css/purecss/pure-min.css" >
+    <link rel="stylesheet" type="text/css" href="{{STATIC_URL}}planes/css/resumen_plan_pdf.css">
+</head>
+
+<body>
+    <div>
+        <div class="pagina-categoria">
+            <div class="texto-pagina-categoria">
+                <h1>RESUMEN PLANIFICACI&Oacute;N {{ plan.nombre }}</h1>
+                <p>Creado por {{ plan.usuario_creador }}</p>
+                <p>{% now "d-m-o" %}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
