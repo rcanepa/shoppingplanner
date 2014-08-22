@@ -60,13 +60,13 @@
         <table id="combos-comparativo" style="width:100%;">
             {% for categoria in combo_categorias_comp %}
             <tr>
-                <td style="width:80%">
+                <td style="width:100%">
                     <label>{{ categoria.nombre }}</label>
                 </td>
-                <td style="width:20%"></td>
+                <!--td style="width:20%"></td-->
             </tr>
             <tr>
-                <td style="width:80%">
+                <td style="width:100%">
                     <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
                         <option value="-1" selected></option>
                         {% for item in items_categoria_raiz %}
@@ -76,9 +76,9 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="width:20%">
+                <!--td style="width:20%">
                     <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
-                </td>
+                </td-->
             </tr>
             {% endfor %}
         </table>
@@ -277,6 +277,9 @@ $(function() {
         var url_item_trabajo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "1/";
         var url_item_comparativo = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "2/";
         var url_item_independiente = "{% url 'planes:plan_exportar_pdf_detail' plan.id %}" + "3/";
+
+        // Contiene el numero de elementos select creados para la busqueda por comparativo.
+        var num_combo_categorias_comp = parseInt({{ num_combo_categorias_comp }});
         
         function setItem(id){id_item = id;}
         function getItem(){return id_item;}
@@ -318,6 +321,8 @@ $(function() {
 
         function getURLItemIndependiente(){return url_item_independiente;}
         function setURLItemIndependiente(url){url_item_independiente = url;}
+
+        function getNumComboCategoriasComp(){return num_combo_categorias_comp;}
 
         function limpiarItem(){
             datos = null;
@@ -366,6 +371,7 @@ $(function() {
             setURLItemComparativo:setURLItemComparativo,
             getURLItemIndependiente:getURLItemIndependiente,
             setURLItemIndependiente:setURLItemIndependiente,
+            getNumComboCategoriasComp:getNumComboCategoriasComp,
         }
     }();
 
@@ -484,8 +490,17 @@ $(function() {
         }
     });
 
-    $("#combo_resultado").change(busquedaAJAXdatos);
-    $("[id^=button_cat_comp_]").click(function(){
+    $( "#combo_resultado" ).change(busquedaAJAXdatos);
+    $( "[id^=combo_cat_comp_]" ).click(function(){
+        var id_item_comparativo = $(this).val();
+        if( id_item_comparativo != -1 ){
+            obj_trabajo.setItemComp(id_item_comparativo);
+            busquedaAJAXdatosComp(id_item_comparativo);
+        }
+        else{
+        }
+    });
+    /*$( "[id^=button_cat_comp_]" ).click(function(){
         var id_item;
         var id_this = $(this).attr("id");
         // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
@@ -497,7 +512,7 @@ $(function() {
             return 0;
         }
         busquedaAJAXdatosComp(id_item);
-    });
+    });*/
     $( "[id^=combo_cat_proy_]" ).change(buscarCategoria);
     $( "[id^=combo_cat_comp_]" ).change(buscarCategoriaComparacion);
     $( "#combo_cat_independiente_busqueda" ).change(buscarCategoriaIndependiente);

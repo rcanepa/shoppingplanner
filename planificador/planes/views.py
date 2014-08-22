@@ -265,6 +265,7 @@ class TrabajarPlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
 
             context['combo_categorias'] = combo_categorias
             context['combo_categorias_comp'] = sorted(combo_categorias_comp, key=lambda t: t.get_nivel())
+            context['num_combo_categorias_comp'] = len(combo_categorias_comp)
             context['items_categoria_raiz'] = items_categoria_raiz
 
             # Si la organizacion cuenta con una categoria con jerarquia independiente (ver modelo), entonces
@@ -2224,6 +2225,14 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
         return response
 
 
+class PortadaPDFView(DetailView):
+    """
+    Vista utilizada para generar la portada del resumen de una planificacion en formato PDF.
+    """
+    model = Plan
+    template_name = "planes/plan_portada_pdf.html"
+
+
 def getTitulo(x):
     """
     Funcion utilizada definir el titulo de los graficos del resumen de la planificacion en PDF
@@ -2271,11 +2280,3 @@ class BuscarItemIndependientesView(View):
             # Se devuelve un diccionario ordenado por el nombre del item
             dict_ordenado = OrderedDict(sorted(dict_item.items(), key=lambda t: t[0]))
             return HttpResponse(json.dumps(dict_ordenado), mimetype='application/json')
-
-
-class PortadaPDFView(DetailView):
-    '''
-    Vista que genera la portada del resumen de planificaciones en formato PDF.
-    '''
-    model = Plan
-    template_name = "planes/plan_portada_pdf.html"

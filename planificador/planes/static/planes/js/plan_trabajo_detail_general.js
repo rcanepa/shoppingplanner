@@ -340,11 +340,12 @@ function buscarCategoria(){
                         + data.items[x].nombre + ' | ' 
                         + numeral(data.items[x].precio).format('0,0') + '</option>';
                 }
+                limpiarCombosPivote("combos-proyeccion", "combo_cat_proy_" + data.categoria.id_categoria);
                 // Se revisa si la categoria es planificable (por lo tanto carga el resultado en el combo de items)
                 if (!data.categoria.planificable)
                     $("#combo_cat_proy_" + data.categoria.id_categoria).html(html);
                 else
-                    $("#combo_resultado").html(html);       
+                    $("#combo_resultado").html(html);
             }
         });
     }
@@ -378,6 +379,7 @@ function buscarCategoriaComparacion(){
                             html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
                     }
                     $("#combo_cat_comp_" + data.categoria.id_categoria).html(html);
+                    limpiarCombosPivote("combos-comparativo", "combo_cat_comp_" + data.categoria.id_categoria);
                 }
                 else{
                 }
@@ -743,15 +745,34 @@ function saveAJAXDone(data){
         busquedaAJAXdatosComp(obj_trabajo.getItemComp());
 }
 
+/*
+Funcion que elimina todas las opciones de los elementos select que esten dentro del ID
+entregado como parametro.
+*/
 function limpiarCombos(id){
-    //$( "#"+ id ).find( "option[value!=-1]" ).remove();
     var combos = $( "#"+ id ).find( "select" );
 
     combos.each(function( index ) {
-        console.log(index);
+        // El primer select no debe ser limpiado nunca!
         if( index > 0 )
             $( this ).find( "option[value!=-1]" ).remove();
         else
             $( this ).val("-1");
+    });
+}
+
+/*
+Funcion que elimina todas las opciones de los elementos select que esten dentro del ID
+entregado como parametro y que esten bajo el select entregado como parametro.
+*/
+function limpiarCombosPivote(id, id_pivote){
+    
+    var combos = $( "#"+ id ).find( "select" );
+
+    combos.each(function( index ) {
+            if( id_pivote < $(this).attr("id") ){
+                console.log("Voy a limpiar el combo: " + $(this).attr("id"));
+                $( this ).find( "option[value!=-1]" ).remove();
+            }
     });
 }
