@@ -23,7 +23,10 @@ function busquedaPlanificacionTV(data){
 
 function busquedaPlanificacionTVComp(data){
     if( data.ventas != null ){
-        $("#nombre_item_comp").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+        if( data.itemplan.precio != 0 )
+            $("#nombre_item_comp").text(data.itemplan.nombre + " (" + numeral(data.itemplan.precio).format('0,0') + ")");
+        else
+            $("#nombre_item_comp").text(data.itemplan.nombre);
         obj_trabajo.setDatosComp(data);
         crearTablaPlanificacionTVComp(data);
     }

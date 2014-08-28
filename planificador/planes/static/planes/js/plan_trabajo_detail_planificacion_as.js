@@ -18,7 +18,10 @@ Recibe la respuesta tipo AJAX que se genera al seleccionar un item a proyectar.
 */
 function busquedaPlanificacionASComp(data){
     if( data.ventas != null ){
-        $("#nombre_item_comp").text("Item: " + data.itemplan.nombre + " | " + numeral(data.itemplan.precio).format('0,0'));
+        if( data.itemplan.precio != 0 )
+            $("#nombre_item_comp").text(data.itemplan.nombre + " (" + numeral(data.itemplan.precio).format('0,0') + ")");
+        else
+            $("#nombre_item_comp").text(data.itemplan.nombre);
         obj_trabajo.setDatosComp(data);
         crearTablaPlanificacionASComp(data);
     }

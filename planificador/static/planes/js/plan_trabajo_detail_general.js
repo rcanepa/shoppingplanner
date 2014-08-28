@@ -163,6 +163,7 @@ function controlActividades(event){
         if ( obj_trabajo.getItemIndependiente() != -1)
             $( "#combo_cat_independiente_resultado" ).trigger( "change" );
     }
+    console.log("ID comparativo: ", obj_trabajo.getItemComp());
 }
 
 /*
@@ -220,6 +221,7 @@ function busquedaAJAXdatosComp(id_item){
     /* Se determina el tipo de tarea que esta realizando el usuario para
     buscar la informacion necesaria (proyeccion, planificacion o resumen) */
     obj_trabajo.setItemComp(id_item);
+    console.log("Actividad: ", obj_trabajo.getActividad());
     switch(obj_trabajo.getActividad()){
         case 1:
             data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan()};
@@ -237,7 +239,7 @@ function busquedaAJAXdatosComp(id_item){
             busqueda = busquedaPlanificacionASComp;
             break;
         case 4:
-            data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'item', 'tipo_response':'json'};
+            data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'json'};
             url = '/planes/plan/buscar-datos-resumen/';
             busqueda = busquedaResumenComp;
             $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemComparativo() + "" + obj_trabajo.getItemComp() + "/");
@@ -368,7 +370,7 @@ function buscarCategoriaComparacion(){
             type: 'get',
             success: function(data){
                 limpiarHTML(1);
-                obj_trabajo.limpiarItemComparativo();
+                //obj_trabajo.limpiarItemComparativo();
                 if ( data.items != null ){
                     html = '';
                     html += "<option value=\"-1\"></option>"
@@ -771,7 +773,6 @@ function limpiarCombosPivote(id, id_pivote){
 
     combos.each(function( index ) {
             if( id_pivote < $(this).attr("id") ){
-                console.log("Voy a limpiar el combo: " + $(this).attr("id"));
                 $( this ).find( "option[value!=-1]" ).remove();
             }
     });

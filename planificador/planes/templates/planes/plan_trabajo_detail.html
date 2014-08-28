@@ -63,11 +63,14 @@
                 <td style="width:100%">
                     <label>{{ categoria.nombre }}</label>
                 </td>
-                <!--td style="width:20%"></td-->
             </tr>
             <tr>
                 <td style="width:100%">
+                    {% if categoria.jerarquia_independiente %}
+                    <select id="combo_cat_comp_{{ categoria.id }}" class="buscador independiente">
+                    {% else %}
                     <select id="combo_cat_comp_{{ categoria.id }}" class="buscador">
+                    {% endif %}
                         <option value="-1" selected></option>
                         {% for item in items_categoria_raiz %}
                             {% if item.categoria = categoria %}
@@ -76,47 +79,9 @@
                         {% endfor %}
                     </select>
                 </td>
-                <!--td style="width:20%">
-                    <button type="button" id="button_cat_comp_{{ categoria.id }}" class="pure-button pure-button-active" style="font-size: 70%;background: rgb(66, 184, 221);">></button>
-                </td-->
             </tr>
             {% endfor %}
         </table>
-        <!-- 
-            Se genera el buscador por Categoria con jerarquia_independiente (ver modelo).
-        -->
-        {% if categoria_independiente %}
-        <a class="caja-header cat-independiente">POR {{ categoria_independiente.nombre }}</a>
-        <table id="combos-independiente" style="width:100%;" class="cat-independiente">
-            <tr>
-                <td>
-                    <label>{{ categoria_raiz.categoria.nombre }}</label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <select id="combo_cat_independiente_busqueda" class="buscador">
-                        <option value="-1" selected></option>
-                        {% for item in items_categoria_raiz %}
-                        <option value="{{ item.id }}">{{ item.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label>{{ categoria_independiente.nombre }}</label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <select id="combo_cat_independiente_resultado" class="buscador">
-                        <option value="-1" selected></option>
-                    </select>
-                </td>
-            </tr>
-        </table>
-        {% endif %}
     </div>
 </div>
 
@@ -247,8 +212,6 @@ $(function() {
         var id_item = -1;
         /* ID del item sobre el cual esta comparando */
         var id_item_comp = -1;
-        /* ID del item sobre el cual esta comparando (tipo independiente) */
-        var id_item_independiente = -1;
         var precio_item = 0;
         var costo_item = 0;
         /*
@@ -319,9 +282,6 @@ $(function() {
         function getURLItemComparativo(){return url_item_comparativo;}
         function setURLItemComparativo(url){url_item_comparativo = url;}
 
-        function getURLItemIndependiente(){return url_item_independiente;}
-        function setURLItemIndependiente(url){url_item_independiente = url;}
-
         function getNumComboCategoriasComp(){return num_combo_categorias_comp;}
 
         function limpiarItem(){
@@ -333,11 +293,6 @@ $(function() {
         function limpiarItemComparativo(){
             datos_comp = null;
             id_item_comp = -1;
-        }
-
-        function limpiarItemIndependiente(){
-            datos_independiente = null;
-            id_item_independiente = -1;
         }
 
         return{
@@ -364,13 +319,10 @@ $(function() {
             setCeldaEditada:setCeldaEditada,
             limpiarItem:limpiarItem,
             limpiarItemComparativo:limpiarItemComparativo,
-            limpiarItemIndependiente:limpiarItemIndependiente,
             getURLItemTrabajo:getURLItemTrabajo,
             setURLItemTrabajo:setURLItemTrabajo,
             getURLItemComparativo:getURLItemComparativo,
             setURLItemComparativo:setURLItemComparativo,
-            getURLItemIndependiente:getURLItemIndependiente,
-            setURLItemIndependiente:setURLItemIndependiente,
             getNumComboCategoriasComp:getNumComboCategoriasComp,
         }
     }();
@@ -500,23 +452,8 @@ $(function() {
         else{
         }
     });
-    /*$( "[id^=button_cat_comp_]" ).click(function(){
-        var id_item;
-        var id_this = $(this).attr("id");
-        // Se divide el ID del elemento BUTTON para generar el ID del elemento SELECT asociado
-        // El cuarto valor del array es el ID asociado que se busca ya que el ID del elemento sigue la forma button_cat_comp_X
-        id_button_array = id_this.split("_");
-        id_item = $("#combo_cat_comp_" + id_button_array[3]).val();
-        if ( id_item == -1 ){
-            alert("Seleccione una opción válida.");
-            return 0;
-        }
-        busquedaAJAXdatosComp(id_item);
-    });*/
     $( "[id^=combo_cat_proy_]" ).change(buscarCategoria);
     $( "[id^=combo_cat_comp_]" ).change(buscarCategoriaComparacion);
-    $( "#combo_cat_independiente_busqueda" ).change(buscarCategoriaIndependiente);
-    $( "#combo_cat_independiente_resultado" ).change(busquedaAJAXdatosIndependiente);
     actualizarActividad();
 
 });
