@@ -14,7 +14,6 @@ function actualizarActividad(){
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
             $( "#btnCU" ).hide();
-            $( ".cat-independiente" ).hide();
             break;
         case 2:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -27,7 +26,6 @@ function actualizarActividad(){
                 $( "#btnPB" ).show();
                 $( "#btnCU" ).show();
             }
-            $( ".cat-independiente" ).hide();
             break;
         case 3:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -38,7 +36,6 @@ function actualizarActividad(){
             $( "#tab_item_resumen_comp" ).hide();
             $( "#btnPB" ).hide();
             $( "#btnCU" ).hide();
-            $( ".cat-independiente" ).hide();
             break;
         case 4:
             $( ".enlace-actividades" ).removeClass( "opcion-seleccionada" );
@@ -81,7 +78,6 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
-                $( ".cat-independiente" ).hide();
                 RGraph.Reset(document.getElementById("venta-chart"));
                 RGraph.Reset(document.getElementById("unidades-chart"));
                 RGraph.Reset(document.getElementById("contribucion-chart"));
@@ -101,7 +97,6 @@ function controlActividades(event){
                 $( "#tab_comparativo" ).show();
                 $( "#tab_item_resumen" ).hide();
                 $( "#tab_item_resumen_comp" ).hide();
-                $( ".cat-independiente" ).hide();
                 if ( obj_trabajo.getItem() != -1 ){
                     $( "#btnPB" ).show();
                     $( "#btnCU" ).show();
@@ -127,7 +122,6 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).hide();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
-                $( ".cat-independiente" ).hide();
                 RGraph.Reset(document.getElementById("venta-chart"));
                 RGraph.Reset(document.getElementById("unidades-chart"));
                 RGraph.Reset(document.getElementById("contribucion-chart"));
@@ -149,7 +143,6 @@ function controlActividades(event){
                 $( "#tab_item_resumen_comp" ).show();
                 $( "#btnPB" ).hide();
                 $( "#btnCU" ).hide();
-                $( ".cat-independiente" ).show();
                 break;
             default:
                 alert("No se ha escogido ninguna actividad!");
@@ -160,10 +153,7 @@ function controlActividades(event){
             $( "#combo_resultado" ).trigger( "change" );
         if ( obj_trabajo.getItemComp() != -1 )
             busquedaAJAXdatosComp(obj_trabajo.getItemComp());
-        if ( obj_trabajo.getItemIndependiente() != -1)
-            $( "#combo_cat_independiente_resultado" ).trigger( "change" );
     }
-    console.log("ID comparativo: ", obj_trabajo.getItemComp());
 }
 
 /*
@@ -221,7 +211,6 @@ function busquedaAJAXdatosComp(id_item){
     /* Se determina el tipo de tarea que esta realizando el usuario para
     buscar la informacion necesaria (proyeccion, planificacion o resumen) */
     obj_trabajo.setItemComp(id_item);
-    console.log("Actividad: ", obj_trabajo.getActividad());
     switch(obj_trabajo.getActividad()){
         case 1:
             data = {'id_item':id_item, 'id_plan':obj_trabajo.getPlan()};
@@ -253,62 +242,6 @@ function busquedaAJAXdatosComp(id_item){
     });
 
     request.done(busqueda);
-    limpiarCombos("combos-independiente");
-    obj_trabajo.setItemIndependiente(-1);
-}
-
-/*
-    Controla los cambios hechos sobre el combobox de Item de comparacion independiente.
-    Gatilla una busqueda sobre la informacion comercial del Item seleccionado.
-*/
-function busquedaAJAXdatosIndependiente(){
-    /* Se determina el tipo de tarea que esta realizando el usuario para
-    buscar la informacion necesaria (proyeccion, planificacion o resumen) */
-    id_items = $(this).val();
-    console.log(id_items);
-    obj_trabajo.setItemIndependiente(id_items);
-    switch(obj_trabajo.getActividad()){
-        case 1:
-            break;
-            /*
-            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
-            url = '/planes/plan/buscar-datos-proyeccion-comp/';
-            busqueda = busquedaProyeccionComp;
-            break;
-            */
-        case 2:
-            break;
-            /*data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
-            url = '/planes/plan/buscar-datos-planificacion-tv-comp/';
-            busqueda = busquedaPlanificacionTVComp;
-            break;
-            */
-        case 3:
-            break;
-            /*
-            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan()};
-            url = '/planes/plan/buscar-datos-planificacion-as-comp/';
-            busqueda = busquedaPlanificacionASComp;
-            break;
-            */
-        case 4:
-            data = {'id_item':id_items, 'id_plan':obj_trabajo.getPlan(), 'id_temporada':0, 'tipo_obj_item':'arr_item', 'tipo_response':'json'};
-            url = '/planes/plan/buscar-datos-resumen/';
-            busqueda = busquedaResumenComp;
-            $( "#exportar-pdf-comparativo" ).attr('href', obj_trabajo.getURLItemIndependiente() + "" + id_items.replace(/,/g,"x") + "/");
-            break;
-    }
-
-    var request = $.ajax({
-        data: data,
-        url: url,
-        type: 'get'
-    });
-
-    request.done(busqueda);
-    limpiarCombos("combos-comparativo");
-    obj_trabajo.limpiarItemComparativo();
-    limpiarHTML(1);
 }
 
 /*
@@ -363,7 +296,28 @@ function buscarCategoriaComparacion(){
     var id_this_arry = id_this.split("_");
     var id_item = $("#combo_cat_comp_" + id_this_arry[3]).val();
     var id_plan = obj_trabajo.getPlan();
+    var $selectIndependiente = $( ".independiente", "#combos-comparativo" );
     if(id_item != -1){
+        // Aqui se llena el combo asociado a la categoria con jerarquia independiente
+        if( id_this < $selectIndependiente.attr( "id" ) ){
+            $.ajax({
+                data: {'id_item':id_item, 'id_plan':id_plan},
+                url: '/planes/plan/buscar-lista-items-independientes/',
+                type: 'get',
+                success: function(data){
+                    limpiarHTML(1);
+                    //obj_trabajo.limpiarItemIndependiente();
+                    var html = "";
+                    html += "<option value=\"-1\"></option>"
+                    $.each( data, function( key, value ) {
+                        html += '<option value="' + value + "" + '">' + key + '</option>';
+                    });
+                    $selectIndependiente.html(html);
+                    $selectIndependiente.effect("highlight", {color: "#ef4929"}, 2000);
+                }
+            });
+        }
+        // Aqui se llena el combo que viene inmediatamente por abajo del usado
         $.ajax({
             data: {'id_item':id_item, 'id_plan':id_plan},
             url: '/planes/plan/buscar-lista-items-comparacion/',
@@ -372,7 +326,7 @@ function buscarCategoriaComparacion(){
                 limpiarHTML(1);
                 //obj_trabajo.limpiarItemComparativo();
                 if ( data.items != null ){
-                    html = '';
+                    var html = "";
                     html += "<option value=\"-1\"></option>"
                     for (var x=0; x<data.items.length; x++){
                         if ( data.items[x].precio != 0 )
@@ -380,41 +334,18 @@ function buscarCategoriaComparacion(){
                         else
                             html += '<option value="' + data.items[x].id + '">' + data.items[x].nombre + '</option>';
                     }
-                    $("#combo_cat_comp_" + data.categoria.id_categoria).html(html);
-                    limpiarCombosPivote("combos-comparativo", "combo_cat_comp_" + data.categoria.id_categoria);
+                    var $selectComparativo = $("#combo_cat_comp_" + data.categoria.id_categoria);
+                    // Si el combo inferior es el combo con jerarquia independiente, entonces no se debe modificar
+                    if( $selectIndependiente.attr( "id" ) != $selectComparativo.attr( "id" ) ){
+                        $selectComparativo.html(html);
+                        $selectComparativo.effect("highlight", {color: "#ef4929"}, 2000);
+                    }
+                    //limpiarCombosPivote("combos-comparativo", "combo_cat_comp_" + data.categoria.id_categoria);
                 }
                 else{
                 }
             }
         });
-    }
-}
-
-/*
-Se preocupa de cargar los elementos SELECT para la seleccion del item comparativo independiente.
-*/
-function buscarCategoriaIndependiente(){
-    var id_this = $(this).attr("id");
-    var id_item = $(this).val();
-    var id_plan = obj_trabajo.getPlan();
-    if(id_item != -1){
-        $.ajax({
-            data: {'id_item':id_item, 'id_plan':id_plan},
-            url: '/planes/plan/buscar-lista-items-independientes/',
-            type: 'get',
-            success: function(data){
-                limpiarHTML(2);
-                obj_trabajo.limpiarItemIndependiente();
-                html = "";
-                html += "<option value=\"-1\"></option>"
-                $.each( data, function( key, value ) {
-                    html += '<option value="' + value + "" + '">' + key + '</option>';
-                });
-                $( "#combo_cat_independiente_resultado" ).html(html);
-            }
-        });
-    }
-    else{
     }
 }
 
@@ -497,9 +428,6 @@ function limpiarHTML(tipo){
             break;
         case 1:  /* Cambio en el combobox de comparativo */
             $( ".tabla_datos_actividad_comp" ).html("");
-            break;
-        case 2:  /* Cambio en el combobox de comparativo independiente */
-            $( ".tabla_datos_actividad_independiente" ).html("");
             break;
     }
 }
