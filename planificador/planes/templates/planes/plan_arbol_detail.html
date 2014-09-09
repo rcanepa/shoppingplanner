@@ -14,14 +14,7 @@
 {% block sidebar %}
 <!-- Menu general -->
 <div class="menu_lateral_flotante">
-    <!--div class="pure-menu pure-menu-open">
-        <a class="pure-menu-heading">M&oacute;dulos</a>
-        <ul>
-            <li><a href="{% url 'planes:plan_detail' plan.id %}">Volver</a></li>
-        </ul>
-    </div-->
     <p></p>
-    <!-- Menu general -->
     <form class="pure-form pure-form" id="save_form" method="post" action="/planes/plan/guardar-arbol/">
         {% csrf_token %}
         <input id="input_json_data" type="hidden" name="plan" value="" />

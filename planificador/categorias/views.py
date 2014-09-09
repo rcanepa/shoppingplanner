@@ -13,10 +13,9 @@ from django.views.generic import UpdateView
 from django.views.generic import View
 from braces.views import LoginRequiredMixin
 from braces.views import GroupRequiredMixin
-from .models import Categoria, Item, Grupoitem
+from .models import Categoria, Item, Grupoitem, Itemjerarquia
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
-from planes.models import Itemplan
-from planes.models import Plan
+from planes.models import Itemplan, Plan
 from planificador.views import UserInfoMixin
 from ventas.models import Ventaperiodo
 import json
@@ -338,10 +337,9 @@ class ItemQuitarVigenciaView(LoginRequiredMixin, View):
             data['msg'] = "El item NO pudo ser actualizado, por favor intentelo nuevamente."
             data['tipo_msg'] = "msg_error"
             return HttpResponse(json.dumps(data), mimetype='application/json')
-        # Se quita la vigencia al item y a sus posibles hijos.
-        for i in item.hijos_recursivos():
-            i.vigencia = False
-            i.save()
+        # Se quita la vigencia al item y a sus hijos
+        descendientes = Itemjerarquia.objects.filter(ancestro=item).values_list('descendiente', flat=True)
+        Item.objects.filter(pk__in=descendientes).update(vigencia=False)
         data['msg'] = "El item ha sido removido exitosamente."
         data['tipo_msg'] = "msg_success"
         data['id_item'] = item.id

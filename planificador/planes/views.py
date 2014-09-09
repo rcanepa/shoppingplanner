@@ -2065,7 +2065,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
             'page-size': 'Letter',
             'dpi': '300'
         }
-        return self.render_to_response(self.context)
+        #return self.render_to_response(self.context)
         response = PDFTemplateResponse(
             request=request,
             template=self.template_name,
@@ -2209,7 +2209,7 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
             template=self.template_name,
             filename=str(self.context['plan'].anio) + "-" + str(self.context['plan'].temporada.nombre) + ".pdf",
             context=self.context,
-            show_content_in_browser=True,
+            show_content_in_browser=False,
             cmd_options=cmd_options
         )
         return response
