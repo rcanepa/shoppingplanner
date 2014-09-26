@@ -7,7 +7,7 @@
 	CAFE OSCURO (FONDO): #554E44;
 
 */
-body{
+body {
 	margin:0;
 	padding:0;
 	border:0;			/* This removes the border around the viewport in old versions of IE */
@@ -19,16 +19,13 @@ body{
 	font-size:70%;
 	font-family:sans-serif;
 }
-a{
+
+a {
 	color:#ef4929;
 }
-a:hover{
-	color:#9b9181;
-}
 
-p{
-	margin:.4em 0 .8em 0;
-	padding:0;
+a:hover {
+	color:#9b9181;
 }
 
 h4{
@@ -312,4 +309,31 @@ ol ol{
 .menu_flotante_completo{
 	position:fixed;
 	z-index:100;	
+}
+
+.alignRight {
+    text-align: right;
+}
+
+.alignCenter{
+	text-align: center;
+}
+
+.alignLeft {
+	text-align: left;	
+}
+
+.max-width {
+	width: 100%;
+}
+
+.l-box {
+    padding-left: 1em;
+}
+
+/* Se sobreescriben algunas propiedades de PureCSS */
+.pure-g [class *= "pure-u"],
+.pure-g-r [class *= "pure-u"] {
+	color:#9b9181;
+	font-family:sans-serif;	
 }

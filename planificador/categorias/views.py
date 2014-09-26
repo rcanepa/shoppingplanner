@@ -40,18 +40,10 @@ class CategoriaListView(LoginRequiredMixin, UserInfoMixin, ListView):
         """Override get_querset so we can filter on request.user """
         return Categoria.objects.filter(categoria_padre=None, organizacion=self.request.user.get_profile().organizacion)
 
-    def get_context_data(self, **kwargs):
-        context = super(CategoriaListView, self).get_context_data(**kwargs)
-        return context
-
 
 class CategoriaDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     model = Categoria
     template_name = "categorias/categoria_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(CategoriaDetailView, self).get_context_data(**kwargs)
-        return context
 
 
 class CategoriaUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, UpdateView):
@@ -59,10 +51,6 @@ class CategoriaUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
     template_name = "categorias/categoria_update.html"
     form_class = CategoriaForm
     group_required = u'Administrador'
-
-    def get_context_data(self, **kwargs):
-        context = super(CategoriaUpdateView, self).get_context_data(**kwargs)
-        return context
 
     def get_initial(self):
         self.initial.update({'usuario': self.request.user})
@@ -79,10 +67,6 @@ class CategoriaCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
         form.instance.organizacion = self.request.user.get_profile().organizacion
         return super(CategoriaCreateView, self).form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super(CategoriaCreateView, self).get_context_data(**kwargs)
-        return context
-
     def get_initial(self):
         self.initial.update({'usuario': self.request.user})
         return self.initial
@@ -94,9 +78,6 @@ class CategoriaDeleteView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
     success_url = reverse_lazy('categorias:categoria_list')
     group_required = u'Administrador'
 
-    def get_context_data(self, **kwargs):
-        context = super(CategoriaDeleteView, self).get_context_data(**kwargs)
-        return context
 
 """
 ########################### Items ###########################
@@ -113,7 +94,7 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
             nodos = []
             id_item_seleccionado = request.GET['key']
             id_plan = request.GET['plan']
-            item_obj = Item.vigente.get(pk=id_item_seleccionado, categoria__organizacion=self.request.user.get_profile().organizacion)
+            item_obj = Item.objects.vigente().get(pk=id_item_seleccionado, categoria__organizacion=self.request.user.get_profile().organizacion)
             plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
@@ -153,11 +134,7 @@ class ItemListView(LoginRequiredMixin, UserInfoMixin, ListView):
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
-        return Item.vigente.filter(usuario_responsable=self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super(ItemListView, self).get_context_data(**kwargs)
-        return context
+        return Item.objects.vigente().responsable(self.request.user)
 
 
 class ItemDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
@@ -178,10 +155,6 @@ class ItemUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, Upda
     form_class = ItemForm
     group_required = u'Administrador'
 
-    def get_context_data(self, **kwargs):
-        context = super(ItemUpdateView, self).get_context_data(**kwargs)
-        return context
-
 
 class ItemCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, CreateView):
     model = Item
@@ -193,20 +166,12 @@ class ItemCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, Crea
         form.instance.usuario_creador = self.request.user
         return super(ItemCreateView, self).form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super(ItemCreateView, self).get_context_data(**kwargs)
-        return context
-
 
 class ItemDeleteView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, DeleteView):
     model = Item
     template_name = "categorias/item_delete.html"
     success_url = reverse_lazy('categorias:item_list')
     group_required = u'Administrador'
-
-    def get_context_data(self, **kwargs):
-        context = super(ItemDeleteView, self).get_context_data(**kwargs)
-        return context
 
 
 class ItemResponsablesView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -215,11 +180,7 @@ class ItemResponsablesView(LoginRequiredMixin, UserInfoMixin, ListView):
 
     def get_queryset(self):
         """Override get_querset so we can filter on request.user """
-        return Item.vigente.filter(usuario_responsable=self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super(ItemResponsablesView, self).get_context_data(**kwargs)
-        return context
+        return Item.objects.vigente().responsable(self.request.user)
 
 
 class ItemResponsableUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, UpdateView):
@@ -227,10 +188,6 @@ class ItemResponsableUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfo
     template_name = "categorias/item_responsable_update.html"
     form_class = ItemResponsableForm
     group_required = u'Administrador'
-
-    def get_context_data(self, **kwargs):
-        context = super(ItemResponsableUpdateView, self).get_context_data(**kwargs)
-        return context
 
 
 class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
@@ -265,16 +222,15 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                 item.vigencia = False
                 item.save()
             # Se crea el nuevo item
-            nuevo_item = Item(nombre=solicitud['nombre'].upper(), precio=int(grupo_items[0].precio), 
-                item_padre=grupo_items[0].item_padre, categoria=grupo_items[0].categoria,
-                temporada=grupo_items[0].temporada)
+            nuevo_item = Item(nombre=solicitud['nombre'].upper(), precio=int(grupo_items[0].precio),
+                              item_padre=grupo_items[0].item_padre, categoria=grupo_items[0].categoria,
+                              temporada=grupo_items[0].temporada)
             # Se guarda a la BD el nuevo item
             nuevo_item.save()
             # Se verifica que el nuevo item haya sido creado (que exista su ID)
             if bool(nuevo_item.id):
                 # Se crean los registros de Grupoitem para mantener la historia de la agrupacion
                 # Se utiliza para hacer un rollback de la situacion
-                grupo_item_list = list()
                 grupo_item_list = [Grupoitem(item_nuevo=nuevo_item, item_agrupado=item) for item in grupo_items]
                 Grupoitem.objects.bulk_create(grupo_item_list)
                 # Se buscan todas las ventas asociadas a los items agrupados
@@ -289,9 +245,8 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
                 # Se crean los objetos Itemjerarquia asociados al nuevo Item
                 nuevo_item.generar_relaciones()
 
-            data = {}
-            data['msg'] = "El grupo ha sido creado exitosamente."
-            data['item_padre_id'] = nuevo_item.item_padre.id
+            data = {'item_padre_id': nuevo_item.item_padre.id,
+                    'item': nuevo_item.id}
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
 

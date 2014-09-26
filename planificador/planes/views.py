@@ -2,12 +2,14 @@
 from collections import defaultdict
 from collections import OrderedDict
 from decimal import Decimal
-from django import db
-from django.http import HttpResponseRedirect, HttpResponse
+from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Q, F, Sum, Avg, Min
+from django.http import HttpResponseRedirect, HttpResponse
+from django import db
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.views.generic import CreateView, UpdateView, DeleteView
@@ -25,9 +27,17 @@ from forms import PlanForm, TemporadaForm
 from planificador.views import UserInfoMixin
 import cStringIO as StringIO
 import json
-import math
 import pprint
-import time
+
+
+class UsuarioCreadorMixin(object):
+    """ Mixin que se preocupa de verificar que el usuario esta viendo un objecto
+    creado por el, en caso contrario arroja un error PermissionDenied """
+    def get_object(self, *args, **kwargs):
+        obj = super(UsuarioCreadorMixin, self).get_object(*args, **kwargs)
+        if not obj.usuario_creador == self.request.user:
+            raise PermissionDenied
+        return obj
 
 
 class TemporadaListView(LoginRequiredMixin, UserInfoMixin, ListView):
@@ -49,18 +59,10 @@ class TemporadaCreateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
         form.instance.organizacion = self.request.user.get_profile().organizacion
         return super(TemporadaCreateView, self).form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super(TemporadaCreateView, self).get_context_data(**kwargs)
-        return context
-
 
 class TemporadaDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
     model = Temporada
     template_name = "planes/temporada_detail.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(TemporadaDetailView, self).get_context_data(**kwargs)
-        return context
 
 
 class TemporadaUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, UpdateView):
@@ -68,10 +70,6 @@ class TemporadaUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
     template_name = "planes/temporada_update.html"
     form_class = TemporadaForm
     group_required = u'Administrador'
-
-    def get_context_data(self, **kwargs):
-        context = super(TemporadaUpdateView, self).get_context_data(**kwargs)
-        return context
 
 
 class TemporadaDeleteView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, DeleteView):
@@ -90,58 +88,101 @@ class PlanListView(LoginRequiredMixin, UserInfoMixin, ListView):
     template_name = "planes/plan_list.html"
 
     def get_queryset(self):
-        """Override get_querset so we can filter on request.user """
+        """Override get_queryset so we can filter on request.user """
         return Plan.objects.filter(usuario_creador=self.request.user).order_by('-anio', 'temporada__nombre')
+
+    def get_context_data(self, **kwargs):
+        context = super(PlanListView, self).get_context_data(**kwargs)
+        # Se almacena true o false dependiendo de si el usuario es responsable de algun item
+        context['tengo_items'] = bool(Item.objects.filter(usuario_responsable=self.request.user))
+        # Se almacena la lista de nombres de las categorias
+        context['nombres_categorias'] = ' / '.join(Categoria.objects.exclude(categoria_padre=None).values_list('nombre', flat=True))
+        return context
 
 
 class PlanCreateView(LoginRequiredMixin, UserInfoMixin, CreateView):
     """
-    Vista para la creacion de un Plan.
+    Vista para la creacion de un Plan. c3047ee614
     """
     model = Plan
     template_name = "planes/plan_create.html"
     form_class = PlanForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if not bool(Item.objects.filter(usuario_responsable=self.request.user)):
+            return HttpResponseRedirect('/planes/plan/list/')
+        return super(PlanCreateView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.usuario_creador = self.request.user
         form.instance.nombre = str(form.instance.anio) + " - " + form.instance.temporada.nombre
         return super(PlanCreateView, self).form_valid(form)
 
+    def get_success_url(self):
+        """ Esta funcion es ejecutada justo despues de que el objeto plan es creado. La idea es crear todos los objetos
+        itemplan que correspondan al plan, es decir, asociados a todos los objetos item que el usuario es responsable. """
+        db.reset_queries()
+        plan_obj = self.object
+        descendientes = list()  # lista con todos los items del usuario
+        items_responsable = Item.objects.responsable(self.request.user)  # items del usuario (solo nodos raiz)
+        for item in items_responsable:
+            descendientes += Itemjerarquia.objects.filter(ancestro=item).values_list('descendiente', flat=True)
+        itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio) for x in Item.objects.filter(pk__in=descendientes)]
+        #itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio, costo=x.calcular_costo_unitario(plan_obj.anio-1)) for x in Item.objects.filter(pk__in=descendientes)]
+        Itemplan.objects.bulk_create(itemplan_obj_arr)  # se insertan masivamente todos los obj. itemplan
+        # a continuacion la logica que actualiza el campo item_padre de cada obj itemplan
+        itemplan_obj_arr_creados = Itemplan.objects.filter(plan=plan_obj).prefetch_related('item')
+        rel_item_itemplan = dict(itemplan_obj_arr_creados.values_list('item__id', 'pk'))
+        rel_itemhijo_itempadre = dict(Itemjerarquia.objects.filter(descendiente__in=descendientes, distancia=1).values_list('descendiente_id', 'ancestro_id'))  # se obtienen los padres de cada uno de los items
+        print "N° executed queries: {}".format(len(db.connection.queries))
+        db.reset_queries()
+        for itemplan in itemplan_obj_arr_creados:
+            # 1 buscar id item padre
+            # 2 buscar id itemplan del padre
+            id_item_padre = rel_itemhijo_itempadre[itemplan.item.id]  # id item padre
+            id_itemplan_padre = rel_item_itemplan.get(id_item_padre, None)  # id itemplan padre
+            itemplan.item_padre_id = id_itemplan_padre  # se asigna el id itemplan padre
+            itemplan.save()  # esto debe ser optimizado
+        print "N° executed queries after updates: {}".format(len(db.connection.queries))
+
+        return super(PlanCreateView, self).get_success_url()
+
     def get_initial(self):
         self.initial.update({'usuario': self.request.user})
         return self.initial
 
 
-class PlanDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
+class PlanDetailView(LoginRequiredMixin, UsuarioCreadorMixin, UserInfoMixin, DetailView):
+    """
     Vista para visualizar la ficha de una planificacion.
-    '''
+    """
     model = Plan
     template_name = "planes/plan_detail.html"
 
 
-class PlanDeleteView(LoginRequiredMixin, UserInfoMixin, DeleteView):
-    '''
+class PlanDeleteView(LoginRequiredMixin, UsuarioCreadorMixin, UserInfoMixin, DeleteView):
+    """
     Vista para eliminar una planificacion.
-    '''
+    """
     model = Plan
     template_name = "planes/plan_delete.html"
     success_url = reverse_lazy('planes:plan_list')
 
 
-class PlanTreeDetailView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
+class PlanTreeDetailView(LoginRequiredMixin, UsuarioCreadorMixin, UserInfoMixin, DetailView):
+    """
     1era fase del proceso de planificacion.
     Vista principal para la seleccion del arbol de planificacion.
-    '''
+    """
     model = Plan
     template_name = "planes/plan_arbol_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(PlanTreeDetailView, self).get_context_data(**kwargs)
         # Se incorporan datos estadisticos a la vista
-        context['nodos_visibles'] = Itemplan.objects.filter(plan=context['plan'].id).count()
-        context['nodos_planificables'] = Itemplan.objects.filter(plan=context['plan'].id, planificable=True).count()
+        context['nodos_visibles'] = Itemplan.objects.filter(plan=context['plan'].id).visible().count()
+        context['nodos_planificables'] = Itemplan.objects.filter(plan=context['plan'].id).planificable().visible().count()
+        context['nodos_eliminados'] = Itemplan.objects.filter(plan=context['plan'].id).eliminado().values_list('id', flat=True)
         return context
 
 
@@ -163,66 +204,106 @@ class BuscarEstructuraArbolView(LoginRequiredMixin, View):
             return HttpResponse(data, mimetype='application/json')
 
 
-class GuardarArbolView(LoginRequiredMixin, View):
-    '''
+class BuscarItemplanEliminados(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        if request.GET:
+            data = {}
+            id_plan = request.GET['id_plan']
+            try:
+                plan_obj = Plan.objects.get(pk=id_plan)
+            except ObjectDoesNotExist:
+                return HttpResponse(json.dumps(data), mimetype='application/json')
+            itemplan_eliminados = Itemplan.objects.filter(plan=plan_obj).eliminado().values_list('item_id', flat=True)
+            data = serializers.serialize("json", Item.objects.filter(id__in=itemplan_eliminados))
+            print data
+            return HttpResponse(data, mimetype='application/json')
+
+
+class RecuperarItemplanEliminados(LoginRequiredMixin, View):
+    """
     Vista que recibe como parametros el plan y un arreglo de ID con todos los
-    items que deben ser planificados.
-    '''
+    items que deben ser recuperados.
+    """
     def post(self, request, *args, **kwargs):
         if request.POST:
-            data = json.loads(request.POST['plan'])
-            # Reset queries
             db.reset_queries()
-            # Si el arbol existe, debe ser eliminado
-            if bool(Itemplan.objects.filter(plan=data['plan'])):
-                Itemplan.objects.filter(plan=data['plan']).delete()
+            data = json.loads(request.POST['recuperar-itemplan-id'])
+            id_item_recuperar = data['recuperar_item_id']
             plan_obj = Plan.objects.get(pk=data['plan'])
-            #items_obj_arr = [Item.objects.get(pk=val) for val in data['items']]
-            items_obj_arr = Item.objects.filter(pk__in=data['items']).prefetch_related('item_padre', 'venta_item')
-            itemplan_obj_arr = [Itemplan(nombre=x.nombre, plan=plan_obj, item=x, item_padre=None, precio=x.precio, costo=x.calcular_costo_unitario(plan_obj.anio-1)) for x in items_obj_arr]
-            # Se marcan los itemplan que pueden ser planificados
-            for itemplan_obj in itemplan_obj_arr:
-                if itemplan_obj.item.id in data['items_planificables']:
-                    itemplan_obj.planificable = True
-            plan_obj.estado = 1
-            plan_obj.save()
+            item_recuperar = Item.objects.filter(pk__in=id_item_recuperar)
+            Itemplan.objects.filter(plan=plan_obj, item__in=item_recuperar).update(eliminado=False, visible=True)
+            print "Executed queries {}".format(len(db.connection.queries))
+            return HttpResponse(serializers.serialize("json", item_recuperar), mimetype='application/json')
 
-            # Se guardar los itemplan que componen el arbol de planificacion
-            Itemplan.objects.bulk_create(itemplan_obj_arr)
-            print "QUERIES PRIMERA FASE: " + str(len(db.connection.queries))
 
-            # Reset queries
+class EliminarItemplan(LoginRequiredMixin, View):
+    """
+    Vista que recibe como parametros el plan y un ID de un item
+    que debe ser eliminado de la planificacion.
+    """
+    def post(self, request, *args, **kwargs):
+        if request.POST:
             db.reset_queries()
-
-            # A continuacion se deben actualizar el campo item_padre, el cual tiene el ID del itemplan padre de
-            # cada uno de los itemplan del arbol. Es un proceso posterior, ya que se requiere que cada itemplan
-            # tenga ID, es decir, haya sido almacenado anteriormente en la base de datos
-
-            # Se genera nuevamente la lista con los itemplan creados a nivel de BD, es decir, ahora tienen ID
-            #Itemplan.objects.filter(plan=plan_obj).update(item_padre=F('item__item_padre__item_proyectados'))
-            itemplan_obj_arr = Itemplan.objects.filter(plan=plan_obj).prefetch_related('item__item_padre')
-            for itemplan_obj in itemplan_obj_arr:
-                #item_padre = itemplan_obj.item.item_padre
-                #print itemplan_obj.item.item_padre.item_proyectados.filter(plan=plan_obj)
-                try:
-                    #itemplan_padre = Itemplan.objects.get(plan=plan_obj,item=item_padre)
-                    itemplan_padre = itemplan_obj.item.item_padre.item_proyectados.get(plan=plan_obj)
-                except ObjectDoesNotExist:
-                    itemplan_padre = None
-                itemplan_obj.item_padre = itemplan_padre
-                # Se guarda la asignacion del itemplan padre
-                itemplan_obj.save()
-            print "QUERIES SEGUNDA FASE: " + str(len(db.connection.queries))
-            # Reset queries
-            db.reset_queries()
+            data = json.loads(request.POST['eliminar-itemplan-id'])
+            id_item_recuperar = int(data['eliminar_item_id'])
+            plan_obj = Plan.objects.get(pk=data['plan'])
+            item_recuperar = Item.objects.get(pk=id_item_recuperar)
+            Itemplan.objects.filter(plan=plan_obj, item=item_recuperar).update(eliminado=True, visible=False)
+            print "Executed queries {}".format(len(db.connection.queries))
+            msg = "El Item: " + item_recuperar.nombre + " ha sido eliminado del plan."
+            data = {'msg': msg, 'tipo_msg': 'success'}
+            return HttpResponse(json.dumps(data), mimetype='application/json')
         return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
 
-class TrabajarPlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
-    '''
+class CrearGrupoItemplan(LoginRequiredMixin, View):
+    """
+    Vista que recibe como parametros el plan y un ID de un item
+    que debe ser creado en la planificacion. Se ejecuta al momento
+    de crear un Grupoitem.
+    """
+    def post(self, request, *args, **kwargs):
+        if request.POST:
+            db.reset_queries()
+            solicitud = request.POST
+            nuevo_item = Item.objects.get(pk=solicitud['item_creado'])
+            plan = Plan.objects.get(pk=solicitud['plan_id'])
+            itemplan_padre = Itemplan.objects.get(item=nuevo_item.item_padre)
+            itemplan = Itemplan(nombre=nuevo_item.nombre, plan=plan, item=nuevo_item,
+                                item_padre=itemplan_padre, precio=nuevo_item.precio)
+            itemplan.save()
+            data = {'item_padre_id': nuevo_item.item_padre.id}
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+
+
+class GuardarArbolView(LoginRequiredMixin, View):
+    """
+    Vista que recibe como parametros el plan y un arreglo de ID con todos los
+    items que deben ser planificados.
+    """
+    def post(self, request, *args, **kwargs):
+        if request.POST:
+            db.reset_queries()
+            data = json.loads(request.POST['plan'])
+            id_item_visibles = data['items']
+            id_item_planificables = data['items_planificables']
+            id_items_eliminados = data['items_eliminados']
+            plan_obj = Plan.objects.get(pk=data['plan'])
+            Itemplan.objects.filter(plan=plan_obj, visible=True).update(visible=False, planificable=False)
+            Itemplan.objects.filter(plan=plan_obj, item_id__in=id_item_visibles).update(visible=True, eliminado=False)
+            Itemplan.objects.filter(plan=plan_obj, item_id__in=id_item_planificables).update(planificable=True)
+            Itemplan.objects.filter(plan=plan_obj, item_id__in=id_items_eliminados).update(eliminado=True, visible=False)
+            plan_obj.estado = 1
+            plan_obj.save()
+            print "Executed queries {}".format(len(db.connection.queries))
+        return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
+
+
+class TrabajarPlanificacionView(LoginRequiredMixin, UsuarioCreadorMixin, UserInfoMixin, DetailView):
+    """
     2da fase del proceso de planificacion.
     Vista principal para la proyeccion de datos historicos de items.
-    '''
+    """
     model = Plan
     template_name = "planes/plan_trabajo_detail.html"
 
@@ -280,7 +361,7 @@ class TrabajarPlanificacionView(LoginRequiredMixin, UserInfoMixin, DetailView):
         return context
 
 
-class GuardarProyeccionView(UserInfoMixin, View):
+class GuardarProyeccionView(View):
     """
     Guarda la proyección asociada al item recibido como pararametro.
     """
@@ -350,10 +431,10 @@ class GuardarProyeccionView(UserInfoMixin, View):
 
 
 class BuscarListaItemView(View):
-    '''
+    """
     Recibe como parametro un ID de item y devuelve la lista de items hijos del item, y que el usuario
     puede ver, es decir, pertenecen a una rama sobre la cual tiene visibilidad
-    '''
+    """
     def get(self, request, *args, **kwargs):
         if request.GET:
             data = {}
@@ -2024,7 +2105,7 @@ def ExportarPlanificacionExcelView(request, pk=None):
     return response
 
 
-class ResumenPDFView(LoginRequiredMixin, DetailView):
+class ResumenPDFView(LoginRequiredMixin, UsuarioCreadorMixin, DetailView):
     """
     Vista para generar el resumen PDF de un item en particular.
     """
@@ -2077,7 +2158,7 @@ class ResumenPDFView(LoginRequiredMixin, DetailView):
         return response
 
 
-class ResumenPlanificacionPDFView(LoginRequiredMixin, DetailView):
+class ResumenPlanificacionPDFView(LoginRequiredMixin, UsuarioCreadorMixin, DetailView):
     """
     Vista para generar el resumen completo de la planificacion en formato PDF.
     """

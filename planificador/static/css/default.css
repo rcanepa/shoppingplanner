@@ -19,16 +19,17 @@ body{
 	font-size:70%;
 	font-family:sans-serif;
 }
-a{
-	color:#ef4929;
-}
-a:hover{
-	color:#9b9181;
+
+p {
+	text-align: justify;
 }
 
-p{
-	margin:.4em 0 .8em 0;
-	padding:0;
+a {
+	color:#ef4929;
+}
+
+a:hover {
+	color:#9b9181;
 }
 
 h4{
@@ -312,4 +313,26 @@ ol ol{
 .menu_flotante_completo{
 	position:fixed;
 	z-index:100;	
+}
+
+.alignRight {
+    text-align: right;
+}
+
+.alignCenter{
+	text-align: center;
+}
+
+.alignLeft {
+	text-align: left;	
+}
+
+.max-width {
+	width: 100%;
+}
+
+.ui-dialog { 
+	color:#9b9181;
+	font-size:70%;
+	font-family:sans-serif;
 }

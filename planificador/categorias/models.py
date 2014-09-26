@@ -90,10 +90,32 @@ class Categoria(models.Model):
     get_nivel.admin_order_field = 'id'
 
 
-class VigenteManager(models.Manager):
-    """docstring for VigenteManager"models.Manager"""
-    def get_queryset(self):
-        return super(VigenteManager, self).get_queryset().filter(vigencia=True)
+class ItemQueryset(models.query.QuerySet):
+    def responsable(self, usuario):
+        return self.filter(usuario_responsable=usuario)
+
+    def vigente(self):
+        return self.filter(vigencia=True)
+
+
+class ItemManager(models.Manager):
+    """
+    Managers para la clase Item.
+    """
+    def get_query_set(self):
+        return ItemQueryset(self.model, using=self._db)
+
+    def responsable(self, usuario):
+        """
+        Devuelve los Item en donde el parametro usuario == usuario_responsable
+        """
+        return self.get_query_set().responsable(usuario)
+
+    def vigente(self):
+        """
+        Devuelve los Item en donde el campo vigente == True
+        """
+        return self.get_query_set().vigente()
 
 
 class Item(models.Model):
@@ -106,8 +128,7 @@ class Item(models.Model):
     temporada = models.ForeignKey('planes.Temporada', blank=True, null=True, related_name='items_temporada')
     precio = models.PositiveIntegerField(default=0)
 
-    objects = models.Manager()
-    vigente = VigenteManager()
+    objects = ItemManager()
 
     def __unicode__(self):
         return self.nombre
@@ -316,7 +337,7 @@ class Itemjerarquia(models.Model):
     distancia = models.PositiveIntegerField(default=0)
 
     def __unicode__(self):
-        return str(self.ancestro) + " " + str(self.descendiente) + " " + str(self.distancia)
+        return str(self.ancestro.nombre) + " " + str(self.descendiente.nombre) + " " + str(self.distancia)
 
 
 class Grupoitem(models.Model):

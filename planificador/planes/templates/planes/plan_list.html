@@ -11,16 +11,26 @@
 {% endblock %}
 
 {% block sidebar %}
+{% if tengo_items %}
 <div class="pure-menu pure-menu-open">
     <a class="pure-menu-heading">M&oacute;dulos</a>
     <ul>
 	    <li><a href="{% url 'planes:plan_create' %}">Crear Planificaci&oacute;n</a></li>
-	    <!--li><a href="{% url 'planes:index' %}">Volver</a></li-->
 	</ul>
 </div>
+{% endif%}
 {% endblock %}
 
 {% block content %}
+{% if not tengo_items %}
+<div class="ui-widget">
+    <div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: .7em;">
+        <p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+        <strong>Alerta:</strong> Usted no es responsable de ningún miembro de las categor&iacute;as {{ nombres_categorias }}, por lo tanto, no puede crear planificaciones. Por favor, contactar a un usuario administrador. </p>
+    </div>
+</div>
+{% endif %}
+{% if planes %}
 <h3>Planes</h3>
 
 <ol class="rectangle-list">
@@ -30,11 +40,10 @@
 
     {% endfor %}
 </ol>
-
+{% endif %}
 {% endblock %}
 
 {% block js %}
-
 
 <script>
 

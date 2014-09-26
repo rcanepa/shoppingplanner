@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import auth
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
@@ -150,3 +149,7 @@ class UserDetailView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, Deta
     template_name = "user_detail.html"
     context_object_name = "usuario"
     group_required = u'Administrador'
+
+
+class C404View(LoginRequiredMixin, UserInfoMixin, TemplateView):
+    template_name = "404.html"

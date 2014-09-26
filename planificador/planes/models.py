@@ -253,17 +253,20 @@ class Plan(models.Model):
     def obtener_arbol(self, user):
         # Se obtiene la lista de items sobre los cuales el usuario es resposanble
         # (las distintas raices que pueda tener su arbol)
-        items_responsable = Item.objects.filter(usuario_responsable=user)
+        items_responsable = Item.objects.responsable(user)
         # Se busca el itemplan asociado a cada raiz
         itemplan_raices = Itemplan.objects.filter(
             plan=self,
             item__in=items_responsable
             ).prefetch_related('item__categoria')
-        # Si existen itemplan asociados al plan, entonces el arbol ha sido definido y debe ser cargado inicialmente
-        if bool(itemplan_raices):
+        itemplan_visibles = Itemplan.objects.filter(
+            plan=self,
+            visible=True)  # verifica que el arbol fue creado
+        # Si existen itemplan visibles, entonces el arbol ya fue definido
+        if bool(itemplan_visibles):
             arbol_json = "["
             for itemplan in itemplan_raices:
-                for branch, obj in itemplan.as_tree():
+                for branch, obj in itemplan.as_tree_visibles():
                     if obj:
                         if obj.item.categoria.venta_arbol:
                             venta = obj.item.get_venta_temporada(self.anio-1, self.temporada)
@@ -345,19 +348,19 @@ class Plan(models.Model):
         """
             Devuelve la cantidad de Items que no han sido planificados.
         """
-        return Itemplan.objects.filter(plan=self, planificable=True).exclude(estado=2).count()
+        return Itemplan.objects.filter(plan=self).planificable().visible().exclude(estado=2).count()
 
     def get_num_planificados(self):
         """
             Devuelve la cantidad de Items que han sido planificados.
         """
-        return Itemplan.objects.filter(plan=self, estado=2, planificable=True).count()
+        return Itemplan.objects.filter(plan=self, estado=2).planificable().visible().count()
 
     def get_num_total(self):
         """
             Devuelve la cantidad total de Items que contiene el plan.
         """
-        return Itemplan.objects.filter(plan=self, planificable=True).count()
+        return Itemplan.objects.filter(plan=self).visible().count()
 
     def get_progreso(self):
         """
@@ -377,6 +380,52 @@ class Plan(models.Model):
         return reverse('planes:plan_detail', kwargs={'pk': self.pk})
 
 
+class ItemplanQueryset(models.query.QuerySet):
+    def eliminado(self):
+        return self.filter(eliminado=True)
+
+    def noEliminado(self):
+        return self.filter(eliminado=False)
+
+    def visible(self):
+        return self.filter(visible=True)
+
+    def planificable(self):
+        return self.filter(planificable=True)
+
+
+class ItemplanManager(models.Manager):
+    """
+    Managers para la clase Itemplan.
+    """
+    def get_query_set(self):
+        return ItemplanQueryset(self.model, using=self._db)
+
+    def eliminado(self):
+        """
+        Devuelve los Item en donde el parametro eliminado == True
+        """
+        return self.get_query_set().eliminado()
+
+    def noEliminado(self):
+        """
+        Devuelve los Item en donde el parametro eliminado == False
+        """
+        return self.get_query_set().noEliminado()
+
+    def visible(self):
+        """
+        Devuelve los Item en donde el campo visible == True
+        """
+        return self.get_query_set().visible()
+
+    def planificable(self):
+        """
+        Devuelve los Item en donde el campo planificable == True
+        """
+        return self.get_query_set().planificable()
+
+
 class Itemplan(models.Model):
     ESTADOS = (
         (0, 'Pendiente'),
@@ -385,12 +434,16 @@ class Itemplan(models.Model):
         )
     nombre = models.CharField(max_length=70)
     estado = models.PositiveSmallIntegerField(choices=ESTADOS, default=ESTADOS[0][0])
-    planificable = models.BooleanField(default=False)
+    planificable = models.BooleanField(default=False)  # de categorias planificables
     item_padre = models.ForeignKey('self', blank=True, null=True, related_name='items_hijos')
     item = models.ForeignKey(Item, related_name='item_proyectados')
     plan = models.ForeignKey(Plan, related_name='item_planificados')
     precio = models.PositiveIntegerField(default=0)
     costo = models.PositiveIntegerField(default=0)
+    visible = models.BooleanField(default=False)  # visible en el arbol
+    eliminado = models.BooleanField(default=False)  # eliminados del arbol
+
+    objects = ItemplanManager()
 
     def get_children(self):
         """
@@ -399,15 +452,23 @@ class Itemplan(models.Model):
         """
         return self.items_hijos.all().prefetch_related('item__categoria').order_by('nombre', 'precio')
 
-    def as_tree(self):
+    def get_children_visible(self):
+        """
+        Devuelve la lista de itemplan hijos del itemplan. Se utiliza para recorrer en forma inversa
+        la relacion padre-hijo (item_padre).
+        """
+        return self.items_hijos.filter(visible=True, eliminado=False).prefetch_related('item__categoria').order_by('nombre', 'precio')
+
+    def as_tree_visibles(self):
         """
         Obtiene recursivamente la lista de hijos en forma de arbol
+        que son visibles (visible = True)
         """
-        children = list(self.get_children())
+        children = list(self.get_children_visible())
         branch = bool(children)
         yield branch, self
         for child in children:
-            for next in child.as_tree():
+            for next in child.as_tree_visibles():
                 yield next
         yield branch, None
 
@@ -418,7 +479,7 @@ class Itemplan(models.Model):
         para ser planificados, es decir, self.planificable == True.
         """
         children = list(self.get_children())
-        if self.item.categoria.planificable and self.planificable:
+        if self.item.categoria.planificable and self.planificable and self.eliminado is False:
             yield self
         for child in children:
             for next in child.get_hijos_planificables():
@@ -446,15 +507,5 @@ class Itemplan(models.Model):
             padre = padre.item_padre
         return arreglo_padres
 
-    def iterar_hijos(self):
-        """
-        Itera sobre los hijos del item. Se devuelve a si mismo inicialmente.
-        """
-        children = list(self.get_children())
-        yield self
-        for child in children:
-            for next in child.iterar_hijos():
-                yield next
-
     def __unicode__(self):
-        return self.item.nombre
+        return self.nombre

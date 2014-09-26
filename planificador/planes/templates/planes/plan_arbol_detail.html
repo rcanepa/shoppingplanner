@@ -26,31 +26,45 @@
             <li><a id="btnExpand">Expandir Nodos</a></li>
             <li><a id="btnCollapse">Collapsar Nodos</a></li>
             <li><a id="btnSave">Guardar</a></li>
+            <li id="li-nodos-eliminados"><a id="btnVerEliminados">Ver Items Eliminados</a></li>
             <li id="li-nuevo-nodo" style="display:none;"><a id="btnSaveNuevoNodo">Crear Item</a></li>
-            <li id="li-vigencia-nodo" style="display:none;"><a id="btnVigencia">Remover Item</a></li>
+            <li id="li-remover-nodo" style="display:none;"><a id="btnRemover">Remover Item</a></li>
             <li id="li-agrupar-nodos" style="display:none;"><a id="btnAgrupar">Agrupar Items</a></li>
         </ul>
-    </div>        
+    </div>
+    <div id="db-nodos" style="display:none;">
+        <button id="db-nodos-button">Nodos Eliminados</button>
+        <button id="db-nodos-recuperar-button">Nodos a Recuperar</button>
+    </div>
 </div>
 <!-- Menu de acciones -->
+
 {% endblock %}
 
 {% block content %}
 <h3>Arbol de Planificaci&oacute;n</h3>
 <div style="width:100%; float:left">
-    {% if plan.estado == 1 %}<strong>Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar, reemplazará permanentemente la versión anterior.</strong>{% endif %}<span id="msg_visibles"><p>Items Totales: {{ nodos_visibles }} | Items a Planificar: {{ nodos_planificables }}</p></span>
+    {% if plan.estado == 1 %}
+        <strong>
+            Cuidado: Este árbol ya ha sido definido. Si presiona el botón guardar,
+            reemplazará permanentemente la versión anterior.
+        </strong>
+    {% endif %}
+    <span id="msg_visibles">
+        <p>Items Totales: {{ nodos_visibles }} | Items a Planificar: {{ nodos_planificables }}</p>
+    </span>
 </div>
 <div id="div_arbol" style="width:90%; float:left">
     <table id="treetable">
         <colgroup>
-            <col width="30px"></col>
-            <col width="30px"></col>
-            <col width="*"></col>
-            <col width="100px"></col>
-            <col width="100px"></col>
-            <col width="100px"></col>
-            <col width="100px"></col>
-            <col width="70px"></col>
+            <col width="30px">&nbsp;</col>
+            <col width="30px">&nbsp;</col>
+            <col width="*">&nbsp;</col>
+            <col width="100px">&nbsp;</col>
+            <col width="100px">&nbsp;</col>
+            <col width="100px">&nbsp;</col>
+            <col width="100px">&nbsp;</col>
+            <col width="70px">&nbsp;</col>
         </colgroup>
         <thead>
           <tr> <th></th> <th>#</th> <th>ITEM</th> <th>PRECIO BLANCO</th> <th>{{ plan.anio|add:"-3" }}</th> <th>{{ plan.anio|add:"-2" }}</th> <th>{{ plan.anio|add:"-1" }}</th> <th>ESTADO</th> </tr>
@@ -62,44 +76,120 @@
 </div>
 
 <!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN GRUPOITEM -->
-<div id="dialog-form" title="Crear nuevo Item">
-    <p class="validateTips">Todos los campos son requeridos.</p>
-    <form id="crear_grupoitem_form">
-        {% csrf_token %}
-        <fieldset>
-            <label for="nombre">Nombre</label>
-            <input type="text" name="nombre" id="nombre-grupoitem" class="text ui-widget-content ui-corner-all">
-            <input type="hidden" name="grupo_items" id="grupo_items">
-            <input type="hidden" name="plan_id" value="{{plan.id}}">
-        </fieldset>
-    </form>
-    <div class="pure-menu pure-menu-open">
-        <a class="pure-menu-heading">ITEMS AGRUPADOS</a>
-        <ul id="lista-seleccion-items">
-        </ul>
+<div id="dialog-form" title="Agrupar Items">
+    <div class="pure-g"> 
+        <div class="pure-u-1">       
+            <h4>Agrupar Items</h4>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <p class="validateTips">Todos los campos son requeridos.</p>
+            </div>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <form id="crear_grupoitem_form">
+                    {% csrf_token %}
+                    <fieldset>
+                        <label for="nombre-grupoitem">Nombre</label>
+                        <input type="text" name="nombre" id="nombre-grupoitem" class="text ui-widget-content ui-corner-all">
+                        <input type="hidden" name="grupo_items" id="grupo_items">
+                        <input type="hidden" name="item_creado" id="item_creado">
+                        <input type="hidden" name="plan_id" value="{{plan.id}}">
+                    </fieldset>
+                </form>
+                <table id="tabla-seleccion-items" class="pure-table pure-table-bordered max-width">
+                    <thead>
+                        <tr>
+                            <th class="alignCenter">#</th>
+                            <th>ITEM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    
 </div>
+<!-- DIALOG CON FORMULARIO PARA LA CREACION DE UN NUEVO ITEM -->
 <div id="dialog-form-nuevo-item" title="Crear nuevo Item" style="display:none;">
-    <p class="validateTips">Todos los campos son requeridos.</p>
-    <form id="crear_item_form">
+    <div class="pure-g">
+        <div class="pure-u-1"> 
+            <h4>Crear nuevo Item</h4>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <p class="validateTips">Todos los campos son requeridos.</p>
+            </div>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <form id="crear_item_form">
+                    {% csrf_token %}
+                    <fieldset>
+                        <label for="nombre-item">Nombre</label>
+                        <input type="text" name="nombre" id="nombre-item" class="text ui-widget-content ui-corner-all">
+                        <label for="precio-item">Precio</label>
+                        <input type="text" name="precio" id="precio-item" class="text ui-widget-content ui-corner-all">
+                        <input type="hidden" name="plan_id" value="{{plan.id}}">
+                        <input type="hidden" name="item_padre_id" id="item_padre_id">
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="dialog-quitar-item" title="Remover Item" style="display:none;">
+    <div class="pure-g">
+        <div class="pure-u-1">
+            <h4>Remover Item</h4>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <p></p>
+            </div>
+        </div>
+    </div>
+    <form id="eliminar-itemplan-form">
         {% csrf_token %}
         <fieldset>
-            <label for="nombre">Nombre</label>
-            <input type="text" name="nombre" id="nombre-item" class="text ui-widget-content ui-corner-all">
-            <label for="nombre">Precio</label>
-            <input type="text" name="precio" id="precio-item" class="text ui-widget-content ui-corner-all">
-            <input type="hidden" name="plan_id" value="{{plan.id}}">
-            <input type="hidden" name="item_padre_id" id="item_padre_id">
+            <input type="hidden" name="eliminar-itemplan-id" id="eliminar-itemplan-id">
         </fieldset>
     </form>
 </div>
-<div id="dialog-quitar-vigencia-item" title="Remover Item" style="display:none;">
-    <p>¿Est&aacute; seguro de querer continuar?. Esto quitar&aacute; permanentemente el item y no podr&aacute; volver a ser utilizado dentro de la planificaci&oacute;n.</p>
-    <form id="quitar_vigencia_item_form">
+<div id="dialog-lista-eliminados-item" title="Items Eliminados" style="display:none;">
+    <div class="pure-g">
+        <div class="pure-u-1">
+            <h4>Items Eliminados</h4>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <p>Los Items que se muestran a continuaci&oacute;n han sido eliminados, y por lo tanto, no ser&aacute;n parte del proceso de planificaci&oacute;n.</p>
+                <p>Si desea volver a incorporar alguno de los items de la lista, m&aacute;rquelo y luego, presione el bot&oacute;n <strong>Recuperar</strong>.</p>
+            </div>
+        </div>
+        <div class="pure-u-1">
+            <div class="l-box">
+                <table id="tabla-nodos-eliminados" class="pure-table pure-table-bordered max-width">
+                    <thead>
+                        <tr>
+                            <th class="alignCenter">#</th>
+                            <th></th>
+                            <th>ITEM</th>
+                            <th class="alignRight">PRECIO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <form id="recuperar-itemplan-form">
         {% csrf_token %}
         <fieldset>
-            <input type="hidden" name="item_id" id="item_id">
+            <input type="hidden" name="recuperar-itemplan-id" id="recuperar-itemplan-id">
         </fieldset>
     </form>
 </div>
@@ -110,10 +200,183 @@
 
 {% block js %}
 {% load static %}
+
 <script>
+"use strict";
+
+/*  Clase para almacenar nodos que se 
+    encuentran eliminados. */
+var Nodo = function(title, key, parent_key, precio){
+    this.title = title;
+    this.key = key;
+    this.parent_key = parent_key;
+    this.precio = precio;
+};
+
+var arbol_obj = function(){
+    var plan = {{ plan.id }};
+    /*  Almacena el estado de la proyeccion:
+            - false = no ha sido modificada
+            - true = ha sido modificada y los cambios no han sido guardados */
+    var modificada = false;
+    var tips = $( ".validateTips" );
+    var nodos = [];  // Almacena la lista de objetos nodos eliminados
+    var nodos_recuperar = [];  // Almancena una lista de IDs (tipo Item) de los nodos que seran recuperados
+
+    function getPlan(){
+        return plan;
+    }
+
+    function setModificada(estado){
+        modificada = estado;
+    }
+
+    function getModificada(){
+        return modificada;
+    }
+
+    function getTips(){
+        return tips;
+    }
+
+    function agregarNodo(nodo){
+        nodos[nodos.length] = nodo;
+    }
+
+    function sacarNodo(nodo){
+        var index = nodos.indexOf(nodo);
+        if ( index > -1 ){ // Nodo existe
+            nodos.splice(index, 1);
+            return true;
+        }
+        else // el Nodo no fue encontrado
+            return false;
+    }
+
+    function sacarNodoKey(key){
+        for(var i = 0; i < nodos.length; i++ ){
+            if( nodos[i].key == key )
+                nodos.splice(i, 1);
+        }
+    }
+
+    function getNodos(){
+        return nodos;
+    }
+
+    function getNodosKeys(){
+        var arreglo_ids = [];
+        $.each(nodos, function( index, nodo ) {
+            arreglo_ids.push(nodo.key);
+        });
+        return arreglo_ids;
+    }
+
+    function checkEliminado(key){
+        var resultado = false;
+        $.each(nodos, function( index, nodo ) {
+            if( nodo.key == key )
+                resultado = true;
+        });
+        return resultado;
+    }
+
+    function mostrarBotonVerEliminados(mostrar){
+        if ( mostrar == true )
+            $( "#li-nodos-eliminados" ).show().effect( "highlight", {}, 300 );
+        else
+            $( "#li-nodos-eliminados" ).hide();
+    }
+
+    function agregarNodoRecuperar(nodo){
+        nodos_recuperar[nodos_recuperar.length] = nodo;
+    }
+
+    function sacarNodoRecuperar(key){
+        var index = nodos_recuperar.indexOf(key);
+        if ( index > -1 ){ // Nodo existe
+            nodos_recuperar.splice(index, 1);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    function getNodosRecuperar(){
+        return nodos_recuperar;
+    }
+
+    function crearTablaEliminados(){
+        var html = "";
+        $( "#tabla-nodos-eliminados tbody" ).html(html);
+        for(var i = 0; i < nodos.length; i++){
+            html += "<tr id=\"nodo-key-" + nodos[i].key + "\">";
+            html += "<td class=\"alignCenter\">" + (i + 1) + "</td>";
+            html += "<td class=\"alignCenter\"><input class=\"eliminados-check\" type=\"checkbox\"></td>";
+            html += "<td>" + nodos[i].title + "</td>";
+            html += "<td class=\"alignRight\">" + numeral(nodos[i].precio).format('0,0') + "</td>";
+            html += "</tr>";
+        }
+        $( "#tabla-nodos-eliminados tbody" ).append(html);
+        $( "#tabla-nodos-eliminados input:checkbox" ).unbind( "change" ).change(seleccionRecuperar);
+    }
+
+    function cargaInicialEliminados(){
+        $.ajax({
+            data: {id_plan: {{plan.id}}},
+            url: "{% url 'planes:plan_buscar_itemplan_eliminados' %}",
+            type: 'get',
+            success: function(data){
+                if( data.length > 0 ){
+                    $.each(data, function( index, nodo ){
+                        var nodo = new Nodo(
+                            nodo.fields.nombre, 
+                            nodo.pk, 
+                            nodo.fields.item_padre, 
+                            nodo.fields.precio
+                        );
+                        arbol_obj.agregarNodo(nodo);
+                    });
+                    arbol_obj.crearTablaEliminados();
+                }
+            }
+        });
+    }
+
+    return{
+        getPlan:getPlan,
+        setModificada:setModificada,
+        getModificada:getModificada,
+        getTips:getTips,
+        agregarNodo:agregarNodo,
+        sacarNodo:sacarNodo,
+        sacarNodoKey:sacarNodoKey,
+        getNodos:getNodos,
+        mostrarBotonVerEliminados:mostrarBotonVerEliminados,
+        getNodosKeys:getNodosKeys,
+        checkEliminado:checkEliminado,
+        crearTablaEliminados:crearTablaEliminados,
+        cargaInicialEliminados:cargaInicialEliminados,
+        agregarNodoRecuperar:agregarNodoRecuperar,
+        sacarNodoRecuperar:sacarNodoRecuperar,
+        getNodosRecuperar:getNodosRecuperar
+    }
+}();
+
+function seleccionRecuperar(){
+    // Esta funcion agrega y quita al arreglo nodos_recuperar del objeto arbol_obj
+    // los ids de los nodos que se deben recuperar.
+    var id_eliminado = parseInt( $(this).closest( "tr").attr( "id").split( "-" )[2] );
+    if( !isNaN(id_eliminado) ){
+        if( $(this).is(':checked') )
+            arbol_obj.agregarNodoRecuperar(id_eliminado);
+        else
+            arbol_obj.sacarNodoRecuperar(id_eliminado);
+    }
+}
 
 $(function() {
-
+    arbol_obj.cargaInicialEliminados();
     /*
         Configuracion del arbol de items.
     */
@@ -138,6 +401,12 @@ $(function() {
             };  
         },
         postProcess: function(event,data){
+            var nodos_validos = [];
+            $.each(data.response, function( index, nodo ) {
+                if( arbol_obj.checkEliminado(nodo.key) == false )
+                    nodos_validos.push(nodo);
+            });
+            data.result = nodos_validos;
         },
         expand: function(event, data){
             arbol_obj.setModificada(true);
@@ -158,28 +427,24 @@ $(function() {
             // Se obtiene la lista de nodos seleccionados
             var selNodes = data.tree.getSelectedNodes();
             if (selNodes.length != 0){
-                for (x=0; x<selNodes.length; x++){
-                    html += "<li><a>" + parseInt(x+1) + ". " + selNodes[x].title + "</a></li>";
+                for(var x = 0; x < selNodes.length; x++){
+                    html += "<tr><td class=\"text-align:center;\">" + parseInt(x+1) + "</td><td>" + selNodes[x].title + "</td>";
                 }
             }
-            $("#lista-seleccion-items").html(html);
+            $("#tabla-seleccion-items tbody").html(html);
             if ( $( "#li-agrupar-nodos" ).is(":hidden") )
-                $( "#li-agrupar-nodos" ).show().effect( "highlight", options, 300 );
+                $( "#li-agrupar-nodos" ).show().effect( "highlight", {}, 300 );
         },
         activate: function(event, data){
             var node = data.node;
-            var options = {};
             if( ( node.folder ) && ( node.extraClasses == "planificable" ) ){
-                $( "#li-nuevo-nodo" ).show().effect( "highlight", options, 300 );
+                $( "#li-nuevo-nodo" ).show().effect( "highlight", {}, 300 );
             }
-            /*if( !node.folder ){
-                $( "#li-vigencia-nodo" ).show().effect( "highlight", options, 300 );
-            }*/
-            $( "#li-vigencia-nodo" ).show().effect( "highlight", options, 300 );
+            $( "#li-remover-nodo" ).show().effect( "highlight", {}, 300 );
         },
         deactivate: function(event, data){
             $( "#li-nuevo-nodo" ).hide();
-            $( "#li-vigencia-nodo" ).hide();
+            $( "#li-remover-nodo" ).hide();
         },
         renderColumns: function(event, data) {
             var node = data.node,
@@ -230,34 +495,6 @@ $(function() {
     });
 
     $( "#plan_tree_detail" ).addClass( "opcion-seleccionada" );
-    
-    arbol_obj = function(){    
-        /*
-        Almacena el estado de la proyeccion:
-            - false = no ha sido modificada
-            - true = ha sido modificada y los cambios no han sido guardados
-        */
-        var modificada = false;
-        var tips = $( ".validateTips" );
-
-        function setModificada(estado){
-            modificada = estado;
-        }
-
-        function getModificada(){
-            return modificada;
-        }
-
-        function getTips(){
-            return tips;
-        }
-
-        return{
-            setModificada:setModificada,
-            getModificada:getModificada,
-            getTips:getTips
-        }
-    }();
 
     // Para que al hacer click en la tecla ENTER, los formularios de los dialogs sean enviados
     $('body').on('keypress', '.ui-dialog', function(event) { 
@@ -267,10 +504,8 @@ $(function() {
         }
     });
     
-    /* 
-        Controla la aparicion y desaparicion de la imagen animada que indica que
-        hay un proceso en ejecucion.
-    */
+    /*  Controla la aparicion y desaparicion de la imagen animada que indica que
+        hay un proceso en ejecucion. */
     $( document ).ajaxStart(function() {
         $("#dvLoading").show();
     });
@@ -279,21 +514,19 @@ $(function() {
         $("#dvLoading").hide();
     });
     
-    /*
-        Configuracion del dialog para la creacion de un objeto Grupoitem.
-    */
+    /*  Configuracion del dialog para la creacion de un objeto Grupoitem. */
     $( "#dialog-form" ).dialog({
         autoOpen: false,
-        //height: 300,
-        width: 400,
+        height: 350,
+        width: 450,
         modal: true,
         buttons: {
             "Guardar": guardarGrupoItem,
             Cancelar: function() {
                 $( this ).dialog( "close" );
-                tree = $("#treetable").fancytree("getTree");
-                items_arr = tree.getSelectedNodes();
-                for (var x=0; x<items_arr.length; x++){
+                var tree = $("#treetable").fancytree("getTree");
+                var items_arr = tree.getSelectedNodes();
+                for(var x = 0; x < items_arr.length; x++){
                     items_arr[x].setSelected(false);
                 }
             }
@@ -303,15 +536,13 @@ $(function() {
                 allFields = $( [] ).add( nombre );
             allFields.val( "" ).removeClass( "ui-state-error" );
         }
-    });
+    }).prev('.ui-dialog-titlebar').hide();
 
-    /*
-        Configuracion del dialog para la creacion de un nuevo Item.
-    */
+    /*  Configuracion del dialog para la creacion de un nuevo Item. */
     $( "#dialog-form-nuevo-item" ).dialog({
         autoOpen: false,
         height: 270,
-        width: 300,
+        width: 350,
         modal: true,
         buttons: {
             "Guardar": guardarNuevoItem,
@@ -322,29 +553,115 @@ $(function() {
                     allFields = $( [] ).add( nombre ).add( precio );
                 allFields.val( "" ).removeClass( "ui-state-error" );
                 $( ".validateTips" ).html("Todos los campos son requeridos.");
-            },
+            }
         }
-    });
+    }).prev('.ui-dialog-titlebar').hide();
     
-    /*
-        Configuracion del dialog para quitar la vigencia (remover) a un Item.
-    */
-    $( "#dialog-quitar-vigencia-item" ).dialog({
+    /*  Configuracion del dialog para quitar la vigencia (remover) a un Item. */
+    $( "#dialog-quitar-item" ).dialog({
         autoOpen: false,
-        height: 170,
-        width: 300,
+        height: 250,
+        width: 350,
         modal: true,
+        resizable: false,
         buttons: {
-            "Remover": quitarVigenciaItem,
-            Cancelar: function() {
+            Remover: function(){
+                var nodo_eliminado = $(this).data('node');
+                var nodo = new Nodo(
+                    nodo_eliminado.title, 
+                    nodo_eliminado.key, 
+                    nodo_eliminado.parent.key, 
+                    nodo_eliminado.data.precio
+                );
+                arbol_obj.agregarNodo(nodo);
+
+                //arbol_obj.agregarNodoTablaEliminados(nodo);
+                arbol_obj.crearTablaEliminados();
+
+                var json_data = JSON.stringify({
+                    'plan': arbol_obj.getPlan(),
+                    'eliminar_item_id': nodo_eliminado.key
+                });
+
+                $( "#eliminar-itemplan-id" ).val(json_data);
+
+                $.ajax({
+                    data: $( "#eliminar-itemplan-form" ).serialize(),
+                    url: "{% url 'planes:plan_eliminar_itemplan' %}",
+                    type: 'post',
+                    success: function(data){
+                        mostrarMensaje(data.msg, data.tipo_msg);
+                        definirVisibles();
+                    }
+                });
+                nodo_eliminado.remove();
                 $( this ).dialog( "close" );
             },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
         }
-    });
+    }).prev('.ui-dialog-titlebar').hide();
 
-    /* 
-        Se vincula el boton con la funcion que permite crear nodos/item.
-    */
+    /*  Configuracion del dialog que muestra la lista de Items/Nodos del arbol
+        que han sido eliminados. Desde este dialog tambien se pueden volver
+        a reintegrar al arbol. */
+    $( "#dialog-lista-eliminados-item" ).dialog({
+        autoOpen: false,
+        height: 400,
+        width: 700,
+        modal: true,
+        buttons: {
+            Recuperar: function(){
+                if( arbol_obj.getNodosRecuperar().length > 0 ){
+                    var json_data = JSON.stringify({
+                        'plan': arbol_obj.getPlan(),
+                        'recuperar_item_id': arbol_obj.getNodosRecuperar()
+                    });
+                    $( "#recuperar-itemplan-id" ).val(json_data);
+                    $.ajax({
+                        data: $( "#recuperar-itemplan-form" ).serialize(),
+                        url: "{% url 'planes:plan_recuperar_itemplan_eliminados' %}",
+                        type: 'post',
+                        success: function(data){
+                            var tipo_msg = "success";
+                            var msg = "Recuperado(s): ";
+                            var lista_id_padres = [];
+                            var tree = $("#treetable").fancytree("getTree");
+                            for(var i = 0; i < data.length; i++){
+                                arbol_obj.sacarNodoKey(data[i].pk); // Se remueven de la lista de nodos eliminados
+                                arbol_obj.sacarNodoRecuperar(data[i].pk); // Se remueven de la lista de nodos a recuperar
+                                msg += data[i].fields.nombre + ",";
+                                lista_id_padres.push(data[i].fields.item_padre);
+                            }
+                            msg.slice(0,-1); // Remover el ultimo caracter
+                            msg += ".";
+                            // Se eliminan posibles duplicados (no se quiere recargar un padre dos veces).
+                            lista_id_padres = lista_id_padres.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                            // Se recargan los nodos padres para reintegrar a los recuperados
+                            for(var j = 0; j < lista_id_padres.length; j++){
+                                var nodo_padre = tree.getNodeByKey(lista_id_padres[j] + "");
+                                nodo_padre.load(true).done(function(){
+                                    nodo_padre.setExpanded();
+                                });
+                            }
+                            arbol_obj.crearTablaEliminados();
+                            mostrarMensaje(msg, tipo_msg);
+                            definirVisibles();
+                        }
+                    });
+                }
+                else
+                    console.log("No hay nodos para recuperar!");
+                $( this ).dialog( "close" );
+            },
+            Cancelar: function() {
+                $( this ).dialog( "close" );
+            }
+        }
+    }).prev('.ui-dialog-titlebar').hide();
+
+    /*  Se vincula el boton con la funcion que permite crear nodos/item. */
     $( "#btnSaveNuevoNodo" ).click(function(){
         var tree = $("#treetable").fancytree("getTree"),
         activeNode = tree.getActiveNode();
@@ -354,22 +671,21 @@ $(function() {
         }
     });
 
-    /*
-        Se vincula el boton Remover Item con el dialog respectivo.
-    */
-    $( "#btnVigencia" ).click(function(){
+    /*  Se vincula el boton Remover Item con el dialog respectivo. */
+    $( "#btnRemover" ).click(function(){
         var tree = $("#treetable").fancytree("getTree"),
         activeNode = tree.getActiveNode();
-        /* Se valida que el nodo seleccionado sea un nodo hoja */
-        /*if( !activeNode.folder ){
-            $( "#dialog-quitar-vigencia-item" ).data('node', activeNode).dialog( "open" );
-        }*/
-        $( "#dialog-quitar-vigencia-item" ).data('node', activeNode).dialog( "open" );
+        var mensaje_alerta = "El &iacute;tem " + activeNode.title + " no ser&aacute; considerado en la planificaci&oacute;n. <strong>¿Est&aacute; seguro de querer continuar?.</strong>";
+        $( "#dialog-quitar-item" ).find( "p" ).first().html(mensaje_alerta);
+        $( "#dialog-quitar-item" ).data('node', activeNode).dialog( "open" );
     });
 
-    /* 
-        Expandir todos los nodos un nivel.
-    */
+    /*  Se vincula el boton Ver Items Eliminados con el dialog respectivo. */
+    $( "#btnVerEliminados" ).click(function(){
+        $( "#dialog-lista-eliminados-item" ).dialog( "open" );
+    });
+
+    /*  Expandir todos los nodos un nivel. */
     $("#btnExpand").click(function(){
         $("#treetable").fancytree("getRootNode").visit(function(node){
             if ( node.isVisible() )
@@ -378,9 +694,7 @@ $(function() {
         return false;
     });
 
-    /*
-        Collapsar todos los nodos un nivel.
-    */
+    /*  Collapsar todos los nodos un nivel. */
     $("#btnCollapse").click(function(){
         $("#treetable").fancytree("getRootNode").visit(function(node){
             if (!node.hasChildren()){
@@ -399,7 +713,6 @@ $(function() {
     */
     $("#btnSave").click(function(){
         var nodos_lista = [];
-        var nodos_lista_padres = [];
         var nodos_planificables_lista = [];
         var plan = parseInt({{plan.id}});
         /* Se obtiene la lista de ID de nodos que deben ser planificados/proyectados */
@@ -408,9 +721,6 @@ $(function() {
                 var nodo = {};
                 nodo.id = parseInt(node.key);
                 nodo.padre_id = parseInt(node.parent.key);
-                /*nodo.uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });
-                nodo.padre_uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });*/
-                nodos_lista_padres.push(nodo);
                 nodos_lista.push(parseInt(node.key));
                 if ( (node.extraClasses == "planificable") ){
                     if (node.hasChildren()){
@@ -424,11 +734,11 @@ $(function() {
                 }
             }
         });
-        json_data = JSON.stringify({
+        var json_data = JSON.stringify({
             plan: plan,
             items: nodos_lista,
             items_planificables: nodos_planificables_lista,
-            items_padres: nodos_lista_padres
+            items_eliminados: arbol_obj.getNodosKeys()
         });
         $("#input_json_data").val(json_data);
         arbol_obj.setModificada(false);
@@ -436,6 +746,13 @@ $(function() {
     });
     
     $("#btnAgrupar").click(crearGrupoitem);
+
+    $( "#db-nodos-button" ).click(function(){
+        console.log( arbol_obj.getNodos() );
+    });
+    $( "#db-nodos-recuperar-button" ).click(function(){
+        console.log( arbol_obj.getNodosRecuperar() );
+    });
 });
 
 </script>

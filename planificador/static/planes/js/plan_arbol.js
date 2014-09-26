@@ -121,6 +121,8 @@ function guardarGrupoItem(){
     del arbol de planificacion. Es implica setear el campo vigencia
     en False.
 */
+
+// DEPRECADA
 function quitarVigenciaItem(){
     var nodo = $(this).data('node');
     $( "#item_id" ).val(nodo.key);

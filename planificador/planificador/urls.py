@@ -7,9 +7,9 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', views.LoginView.as_view(), name="login"),
+    url(r'^$', views.LoginView.as_view(), name='login'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/login/$', views.LoginView.as_view(), name="login"),
+    url(r'^accounts/login/$', views.LoginView.as_view(), name='login'),
     url(r'^accounts/logout/$', views.LogoutView.as_view(), name='user_logout'),
     url(r'^accounts/loggedin/$', views.LoggedInView.as_view(), name='home'),
     url(r'^accounts/register/$', views.RegisterUserView.as_view(), name='user_register'),
@@ -28,7 +28,5 @@ urlpatterns = patterns('',
 # Configuracion para templates genericos de codigos de error
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'^500/$', TemplateView.as_view(template_name="404.html")),
-        (r'^404/$', TemplateView.as_view(template_name="404.html")),
-        (r'^403/$', TemplateView.as_view(template_name="404.html")),
+        url(r'^404/$', views.C404View.as_view(), name="404"),
     )
