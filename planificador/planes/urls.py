@@ -26,8 +26,8 @@ urlpatterns = patterns('',
         name='plan_recuperar_itemplan_eliminados'),
     url(r'^plan/eliminar-itemplan/$', views.EliminarItemplan.as_view(),
         name='plan_eliminar_itemplan'),
-    url(r'^plan/crear_grupo_itemplan/$', views.CrearGrupoItemplan.as_view(),
-        name='plan_crear_grupo_itemplan'),
+    url(r'^plan/crear_itemplan/$', views.CrearItemplan.as_view(),
+        name='plan_crear_itemplan'),
 
     # Vistas para el workflow de trabajo (proyeccion, planificacion y resumen)
     url(r'^plan/trabajar-planificacion/(?P<pk>\d+)/$', views.TrabajarPlanificacionView.as_view(),

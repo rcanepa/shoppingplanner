@@ -94,7 +94,7 @@
                         <label for="nombre-grupoitem">Nombre</label>
                         <input type="text" name="nombre" id="nombre-grupoitem" class="text ui-widget-content ui-corner-all">
                         <input type="hidden" name="grupo_items" id="grupo_items">
-                        <input type="hidden" name="item_creado" id="item_creado">
+                        <input type="hidden" name="item" id="item_creado">
                         <input type="hidden" name="plan_id" value="{{plan.id}}">
                     </fieldset>
                 </form>
@@ -134,6 +134,7 @@
                         <input type="text" name="precio" id="precio-item" class="text ui-widget-content ui-corner-all">
                         <input type="hidden" name="plan_id" value="{{plan.id}}">
                         <input type="hidden" name="item_padre_id" id="item_padre_id">
+                        <input type="hidden" name="item" id="item_id">
                     </fieldset>
                 </form>
             </div>
@@ -641,9 +642,14 @@ $(function() {
                             // Se recargan los nodos padres para reintegrar a los recuperados
                             for(var j = 0; j < lista_id_padres.length; j++){
                                 var nodo_padre = tree.getNodeByKey(lista_id_padres[j] + "");
-                                nodo_padre.load(true).done(function(){
-                                    nodo_padre.setExpanded();
-                                });
+                                if( nodo_padre != null ){
+                                    nodo_padre.resetLazy();
+                                    /*
+                                    nodo_padre.load(true).done(function(){
+                                        //nodo_padre.setExpanded();
+                                    });
+                                    */
+                                }
                             }
                             arbol_obj.crearTablaEliminados();
                             mostrarMensaje(msg, tipo_msg);

@@ -111,7 +111,7 @@ function guardarGrupoItem(){
                 $( "#item_creado").val(data.item); // Se agrega el ID del nuevo Item (grupoitem)
                 $.ajax({ // Se crea el Itemplan asociado al Item
                     data: $("#crear_grupoitem_form").serialize(),
-                    url: '/planes/plan/crear_grupo_itemplan/',
+                    url: '/planes/plan/crear_itemplan/',
                     type: 'post',
                     success: function(data){
                         var nodo_padre = tree.getNodeByKey(data.item_padre_id + "");
@@ -174,10 +174,20 @@ function guardarNuevoItem(){
             url: '/categorias/item/create-ajax/',
             type: 'post',
             success: function(data){
-                var tree = $("#treetable").fancytree("getTree");
-                var nodo_padre = tree.getNodeByKey(String(data.id_item_padre));
-                nodo_padre.load(true);
-                mostrarMensaje(data.msg, "msg_success");
+                $( "#item_id").val(data.id_item); // Se agrega el ID del nuevo Item
+                $.ajax({ // Se crea el Itemplan asociado al Item
+                    data: $("#crear_item_form").serialize(),
+                    url: '/planes/plan/crear_itemplan/',
+                    type: 'post',
+                    success: function(data){
+                        var tree = $("#treetable").fancytree("getTree");
+                        var nodo_padre = tree.getNodeByKey(data.item_padre_id + "");
+                        nodo_padre.load(true).done(function(){
+                            nodo_padre.setExpanded();
+                        });
+                        mostrarMensaje("El Item ha sido creado exitosamente.", "msg_success");
+                    }
+                });
             }
         });
         $( this ).dialog( "close" );

@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy, reverse
-from django.db.models import Q, F, Sum, Avg, Min
+from django.db.models import Q, F, Sum, Avg, Min, Count
 from django.http import HttpResponseRedirect, HttpResponse
 from django import db
 from django.shortcuts import get_object_or_404
@@ -215,7 +215,6 @@ class BuscarItemplanEliminados(LoginRequiredMixin, View):
                 return HttpResponse(json.dumps(data), mimetype='application/json')
             itemplan_eliminados = Itemplan.objects.filter(plan=plan_obj).eliminado().values_list('item_id', flat=True)
             data = serializers.serialize("json", Item.objects.filter(id__in=itemplan_eliminados))
-            print data
             return HttpResponse(data, mimetype='application/json')
 
 
@@ -230,7 +229,7 @@ class RecuperarItemplanEliminados(LoginRequiredMixin, View):
             data = json.loads(request.POST['recuperar-itemplan-id'])
             id_item_recuperar = data['recuperar_item_id']
             plan_obj = Plan.objects.get(pk=data['plan'])
-            item_recuperar = Item.objects.filter(pk__in=id_item_recuperar)
+            item_recuperar = Item.objects.filter(pk__in=id_item_recuperar).order_by('categoria')
             Itemplan.objects.filter(plan=plan_obj, item__in=item_recuperar).update(eliminado=False, visible=True)
             print "Executed queries {}".format(len(db.connection.queries))
             return HttpResponse(serializers.serialize("json", item_recuperar), mimetype='application/json')
@@ -245,18 +244,21 @@ class EliminarItemplan(LoginRequiredMixin, View):
         if request.POST:
             db.reset_queries()
             data = json.loads(request.POST['eliminar-itemplan-id'])
-            id_item_recuperar = int(data['eliminar_item_id'])
+            id_item_eliminar = int(data['eliminar_item_id'])
             plan_obj = Plan.objects.get(pk=data['plan'])
-            item_recuperar = Item.objects.get(pk=id_item_recuperar)
-            Itemplan.objects.filter(plan=plan_obj, item=item_recuperar).update(eliminado=True, visible=False)
+            item_eliminar = Item.objects.get(pk=id_item_eliminar)
+            item_descendientes = Itemjerarquia.objects.filter(ancestro=item_eliminar, distancia__gt=0).values('descendiente')
+            Itemplan.objects.filter(plan=plan_obj, item=item_eliminar).update(eliminado=True, visible=False,
+                                                                              planificable=False)
+            Itemplan.objects.filter(plan=plan_obj, item__in=item_descendientes).update(planificable=False,
+                                                                                       visible=False)
             print "Executed queries {}".format(len(db.connection.queries))
-            msg = "El Item: " + item_recuperar.nombre + " ha sido eliminado del plan."
+            msg = "El Item: " + item_eliminar.nombre + " ha sido eliminado del plan."
             data = {'msg': msg, 'tipo_msg': 'success'}
             return HttpResponse(json.dumps(data), mimetype='application/json')
-        return HttpResponseRedirect(reverse('planes:plan_detail', args=(plan_obj.id,)))
 
 
-class CrearGrupoItemplan(LoginRequiredMixin, View):
+class CrearItemplan(LoginRequiredMixin, View):
     """
     Vista que recibe como parametros el plan y un ID de un item
     que debe ser creado en la planificacion. Se ejecuta al momento
@@ -266,11 +268,13 @@ class CrearGrupoItemplan(LoginRequiredMixin, View):
         if request.POST:
             db.reset_queries()
             solicitud = request.POST
-            nuevo_item = Item.objects.get(pk=solicitud['item_creado'])
+            nuevo_item = Item.objects.get(pk=solicitud['item'])
             plan = Plan.objects.get(pk=solicitud['plan_id'])
             itemplan_padre = Itemplan.objects.get(item=nuevo_item.item_padre)
+            planificable = nuevo_item.categoria.planificable
             itemplan = Itemplan(nombre=nuevo_item.nombre, plan=plan, item=nuevo_item,
-                                item_padre=itemplan_padre, precio=nuevo_item.precio)
+                                item_padre=itemplan_padre, precio=nuevo_item.precio,
+                                visible=True, planificable=planificable)
             itemplan.save()
             data = {'item_padre_id': nuevo_item.item_padre.id}
             return HttpResponse(json.dumps(data), mimetype='application/json')

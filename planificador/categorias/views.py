@@ -94,7 +94,8 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
             nodos = []
             id_item_seleccionado = request.GET['key']
             id_plan = request.GET['plan']
-            item_obj = Item.objects.vigente().get(pk=id_item_seleccionado, categoria__organizacion=self.request.user.get_profile().organizacion)
+            item_obj = Item.objects.vigente().get(pk=id_item_seleccionado,
+                                                  categoria__organizacion=self.request.user.get_profile().organizacion)
             plan_obj = Plan.objects.get(pk=id_plan)
             items_obj = item_obj.get_children()
             for children in items_obj:
@@ -259,7 +260,7 @@ class ItemCreateAjaxView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         data = {}
         id_item_padre = request.POST['item_padre_id']
-        nombre_nuevo_item = request.POST['nombre']
+        nombre_nuevo_item = request.POST['nombre'].upper()
         precio_nuevo_item = request.POST['precio']
         try:
             item_padre = Item.objects.get(id=id_item_padre)
@@ -275,6 +276,7 @@ class ItemCreateAjaxView(LoginRequiredMixin, View):
             nuevo_item.generar_relaciones()
         data['msg'] = "El item ha sido creado exitosamente."
         data['id_item_padre'] = id_item_padre
+        data['id_item'] = nuevo_item.id
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
