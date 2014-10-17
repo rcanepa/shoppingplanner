@@ -7,7 +7,7 @@
 	CAFE OSCURO (FONDO): #554E44;
 
 */
-body{
+body {
 	margin:0;
 	padding:0;
 	border:0;			/* This removes the border around the viewport in old versions of IE */
@@ -18,10 +18,6 @@ body{
 	/* The min-width property does not work in old versions of Internet Explorer */
 	font-size:70%;
 	font-family:sans-serif;
-}
-
-p {
-	text-align: justify;
 }
 
 a {
@@ -331,8 +327,13 @@ ol ol{
 	width: 100%;
 }
 
-.ui-dialog { 
+.l-box {
+    padding-left: 1em;
+}
+
+/* Se sobreescriben algunas propiedades de PureCSS */
+.pure-g [class *= "pure-u"],
+.pure-g-r [class *= "pure-u"] {
 	color:#9b9181;
-	font-size:70%;
-	font-family:sans-serif;
+	font-family:sans-serif;	
 }

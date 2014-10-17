@@ -46,7 +46,7 @@ class Ventaperiodo(models.Model):
     margen = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
     precio_real = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
     costo_unitario = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
-    dcto = models.DecimalField(max_digits=15, decimal_places=3, default=0, blank=True, null=True)
+    dcto = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="descuento", default=0, blank=True, null=True)
 
     def __unicode__(self):
         return self.item.nombre + " " + str(self.anio) + " " + self.periodo

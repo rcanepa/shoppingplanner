@@ -8,3 +8,9 @@ class AdminView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, TemplateV
     """Vista pagina de inicio Administradores"""
     template_name = 'administracion/index.html'
     group_required = u'Administrador'
+
+
+class AdminAngularView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin, TemplateView):
+    """Vista pagina de inicio Administradores"""
+    template_name = 'administracion/admin.html'
+    group_required = u'Administrador'

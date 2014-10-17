@@ -1,3 +1,4 @@
+"use strict";
 /*
     Realiza un conteo de los nodos a planificar
 */
@@ -50,8 +51,8 @@ function crearGrupoitem(){
     // Se verifica que el usuario haya seleccionado al menos dos items para crear una agrupacion
     if ( num_items <= 1 ){
         agrupacion_valida = false;
-        msg = "Una agrupación debe contener al menos 2 items.";
-        tipo = "msg_warning";
+        var msg = "Una agrupación debe contener al menos 2 items.";
+        var tipo = "msg_warning";
         mostrarMensaje(msg, tipo);
         return false;
     }
@@ -75,7 +76,6 @@ function crearGrupoitem(){
     for(var x = 0; x<num_items; x++){
         items_arr_keys.push(items_arr[x].key);
     }
-    items_arr[0].title
 
     $("#grupo_items").val(items_arr_keys);
     $( "#dialog-form" ).dialog( "open" );
@@ -102,14 +102,25 @@ function guardarGrupoItem(){
     if ( bValid ) {
         var tree = $("#treetable").fancytree("getTree");
         nombre.val("(GRUPO) " + nombre.val());
+        // Se crea el Item asociado al grupo
         $.ajax({
             data: $("#crear_grupoitem_form").serialize(),
             url: '/categorias/grupoitem/create/',
             type: 'post',
             success: function(data){
-                var nodo_padre = tree.getNodeByKey(String(data.item_padre_id));
-                nodo_padre.load(true);
-                mostrarMensaje(data.msg, "msg_success");
+                $( "#item_creado").val(data.item); // Se agrega el ID del nuevo Item (grupoitem)
+                $.ajax({ // Se crea el Itemplan asociado al Item
+                    data: $("#crear_grupoitem_form").serialize(),
+                    url: '/planes/plan/crear_itemplan/',
+                    type: 'post',
+                    success: function(data){
+                        var nodo_padre = tree.getNodeByKey(data.item_padre_id + "");
+                        nodo_padre.load(true).done(function(){
+                            nodo_padre.setExpanded();
+                        });
+                        mostrarMensaje("El grupo ha sido creado exitosamente.", "msg_success");
+                    }
+                });
             }
         });
         $( this ).dialog( "close" );
@@ -121,8 +132,6 @@ function guardarGrupoItem(){
     del arbol de planificacion. Es implica setear el campo vigencia
     en False.
 */
-
-// DEPRECADA
 function quitarVigenciaItem(){
     var nodo = $(this).data('node');
     $( "#item_id" ).val(nodo.key);
@@ -165,10 +174,20 @@ function guardarNuevoItem(){
             url: '/categorias/item/create-ajax/',
             type: 'post',
             success: function(data){
-                var tree = $("#treetable").fancytree("getTree");
-                var nodo_padre = tree.getNodeByKey(String(data.id_item_padre));
-                nodo_padre.load(true);
-                mostrarMensaje(data.msg, "msg_success");
+                $( "#item_id").val(data.id_item); // Se agrega el ID del nuevo Item
+                $.ajax({ // Se crea el Itemplan asociado al Item
+                    data: $("#crear_item_form").serialize(),
+                    url: '/planes/plan/crear_itemplan/',
+                    type: 'post',
+                    success: function(data){
+                        var tree = $("#treetable").fancytree("getTree");
+                        var nodo_padre = tree.getNodeByKey(data.item_padre_id + "");
+                        nodo_padre.load(true).done(function(){
+                            nodo_padre.setExpanded();
+                        });
+                        mostrarMensaje("El Item ha sido creado exitosamente.", "msg_success");
+                    }
+                });
             }
         });
         $( this ).dialog( "close" );

@@ -247,11 +247,19 @@ class EliminarItemplan(LoginRequiredMixin, View):
             id_item_eliminar = int(data['eliminar_item_id'])
             plan_obj = Plan.objects.get(pk=data['plan'])
             item_eliminar = Item.objects.get(pk=id_item_eliminar)
-            item_descendientes = Itemjerarquia.objects.filter(ancestro=item_eliminar, distancia__gt=0).values('descendiente')
-            Itemplan.objects.filter(plan=plan_obj, item=item_eliminar).update(eliminado=True, visible=False,
-                                                                              planificable=False)
-            Itemplan.objects.filter(plan=plan_obj, item__in=item_descendientes).update(planificable=False,
-                                                                                       visible=False)
+            item_descendientes = Itemjerarquia.objects.filter(
+                ancestro=item_eliminar,
+                distancia__gt=0
+            ).values('descendiente')
+            Itemplan.objects.filter(plan=plan_obj, item=item_eliminar).update(
+                eliminado=True,
+                visible=False,
+                planificable=False
+            )
+            Itemplan.objects.filter(plan=plan_obj, item__in=item_descendientes).update(
+                planificable=False,
+                visible=False
+            )
             print "Executed queries {}".format(len(db.connection.queries))
             msg = "El Item: " + item_eliminar.nombre + " ha sido eliminado del plan."
             data = {'msg': msg, 'tipo_msg': 'success'}
@@ -270,11 +278,17 @@ class CrearItemplan(LoginRequiredMixin, View):
             solicitud = request.POST
             nuevo_item = Item.objects.get(pk=solicitud['item'])
             plan = Plan.objects.get(pk=solicitud['plan_id'])
-            itemplan_padre = Itemplan.objects.get(item=nuevo_item.item_padre)
+            itemplan_padre = Itemplan.objects.get(plan=plan, item=nuevo_item.item_padre)
             planificable = nuevo_item.categoria.planificable
-            itemplan = Itemplan(nombre=nuevo_item.nombre, plan=plan, item=nuevo_item,
-                                item_padre=itemplan_padre, precio=nuevo_item.precio,
-                                visible=True, planificable=planificable)
+            itemplan = Itemplan(
+                nombre=nuevo_item.nombre,
+                plan=plan,
+                item=nuevo_item,
+                item_padre=itemplan_padre,
+                precio=nuevo_item.precio,
+                visible=True,
+                planificable=planificable
+            )
             itemplan.save()
             data = {'item_padre_id': nuevo_item.item_padre.id}
             return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -329,10 +343,14 @@ class TrabajarPlanificacionView(LoginRequiredMixin, UsuarioCreadorMixin, UserInf
 
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a proyectar
             # Las categorias no pueden ser planificables ni ser la ultima (organizacion)
-            combo_categorias = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(Q(categoria_padre=None) | Q(planificable=True))
+            combo_categorias = Categoria.objects.filter(
+                organizacion=self.request.user.get_profile().organizacion
+            ).exclude(Q(categoria_padre=None) | Q(planificable=True))
 
             # Se busca la lista de categorias que se usaran como combobox para la busqueda de items a comparar
-            combo_categorias_comp = Categoria.objects.filter(organizacion=self.request.user.get_profile().organizacion).exclude(categoria_padre=None)
+            combo_categorias_comp = Categoria.objects.filter(
+                organizacion=self.request.user.get_profile().organizacion
+            ).exclude(categoria_padre=None)
 
             # Se obtiene la categoria mas alta que cumple con estos requisitos (sera el primer combobox)
             categoria_raiz = sorted(items_responsable, key=lambda t: t.categoria.get_nivel())[0]
@@ -369,9 +387,6 @@ class GuardarProyeccionView(View):
     """
     Guarda la proyección asociada al item recibido como pararametro.
     """
-    def get(self, request, *args, **kwargs):
-        return HttpResponseRedirect(reverse('planes:plan_list'))
-
     def post(self, request, *args, **kwargs):
         if request.POST:
             data = json.loads(request.POST['datos_tarea'])
@@ -412,7 +427,8 @@ class GuardarProyeccionView(View):
                             periodo=venta['periodo'],
                             temporada=temporada_obj,
                             tipo=1,  # Tipo = 1 -> Proyectada
-                            defaults=defaults)
+                            defaults=defaults
+                        )
                         if created is False:
                             obj.vta_n = venta['vta_n']
                             obj.vta_u = venta['vta_u']
@@ -428,7 +444,9 @@ class GuardarProyeccionView(View):
                             obj.save()
             # Estado = 0 -> Pendiente
             # Estado = 1 -> Proyectado
-            itemplan_obj.estado = 1
+            # Estado = 2 -> Planificado
+            if itemplan_obj.estado == 0:
+                itemplan_obj.estado = 1
             itemplan_obj.save()
         data = {'msg': "Proyección guardada."}
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -461,15 +479,27 @@ class BuscarListaItemView(View):
                 if items_temp[0].categoria.planificable is False:
                     for item_validar in items_temp:
                         # Solo se devuelven los items que pueden ser vistos por el usuario
-                        #if self.request.user.get_profile().validar_visibles(item_validar):
                         if bool(Itemplan.objects.filter(item=item_validar, plan=plan_obj)):
-                                items.append({'id': item_validar.id, 'nombre': item_validar.nombre, 'id_cat': item_validar.categoria.id})
+                                items.append({
+                                    'id': item_validar.id,
+                                    'nombre': item_validar.nombre,
+                                    'id_cat': item_validar.categoria.id
+                                })
                 else:
                     # Se itera sobre la lista de hijos planificables del item seleccionado en el combobox
                     for itemplan in itemplan_seleccionado.get_hijos_planificables():
-                        items.append({'id':itemplan.id, 'nombre': itemplan.nombre, 'estado': itemplan.get_estado_display(), 'precio': itemplan.item.precio, 'categoria_nombre': itemplan.item.categoria.nombre})
+                        items.append({
+                            'id':itemplan.id,
+                            'nombre': itemplan.nombre,
+                            'estado': itemplan.get_estado_display(),
+                            'precio': itemplan.item.precio,
+                            'categoria_nombre': itemplan.item.categoria.nombre
+                        })
                 data['items'] = items
-                data['categoria'] = {'id_categoria': items_temp[0].categoria.id, 'planificable': items_temp[0].categoria.planificable}
+                data['categoria'] = {
+                    'id_categoria': items_temp[0].categoria.id,
+                    'planificable': items_temp[0].categoria.planificable
+                }
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
@@ -484,7 +514,10 @@ class BuscarListaItemCompView(View):
             items = []
             get_item = request.GET['id_item']
             id_item_busqueda = map(int, get_item.split(','))
-            id_descendientes = Itemjerarquia.objects.filter(ancestro__in=id_item_busqueda, distancia=1).values_list('descendiente', flat=True)
+            id_descendientes = Itemjerarquia.objects.filter(
+                ancestro__in=id_item_busqueda,
+                distancia=1
+            ).values_list('descendiente', flat=True)
             item_descendientes = Item.objects.filter(pk__in=id_descendientes).order_by('nombre')
             # Se valida que el item seleccionado tenga hijos
             if bool(item_descendientes):
@@ -494,9 +527,12 @@ class BuscarListaItemCompView(View):
                         'nombre': item.nombre,
                         'precio': item.precio,
                         'id_cat': item.categoria.id
-                        })
+                    })
                 data['items'] = items
-                data['categoria'] = {'id_categoria': item_descendientes[0].categoria.id, 'planificable': item_descendientes[0].categoria.planificable}
+                data['categoria'] = {
+                    'id_categoria': item_descendientes[0].categoria.id,
+                    'planificable': item_descendientes[0].categoria.planificable
+                }
             else:
                 data['items'] = None
                 data['categoria'] = None
@@ -530,12 +566,12 @@ class BuscarDatosProyeccionView(View):
                 'id': plan_obj.temporada.id,
                 'nombre': plan_obj.temporada.nombre,
                 'anio': plan_obj.anio
-                }
+            }
             # Se busca la lista de items del item a proyectar. Si el item es un nivel agrupado
             # se devuelven todos sus hijos hojas (con venta), si el item es una hoja, se devuelve
             # a si mismo
             item = itemplan_obj.item
-            lista_hijos = []
+            lista_hijos = list()
             lista_hijos.append(item)
             for hijo in item.get_hijos():
                 lista_hijos.append(hijo)
@@ -553,8 +589,8 @@ class BuscarDatosProyeccionView(View):
 
             periodos = plan_obj.temporada.periodo.filter(
                 tiempo__anio=plan_obj.anio-1,
-                calendario__organizacion=self.request.user.get_profile().organizacion).order_by(
-                'tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
+                calendario__organizacion=self.request.user.get_profile().organizacion
+            ).order_by('tiempo__anio', 'nombre').values('tiempo__anio', 'nombre').distinct()
 
             # Se llena el diccionario proyeccion, temporada->periodo->venta
             for temporada in temporadas:
@@ -566,13 +602,13 @@ class BuscarDatosProyeccionView(View):
                         periodo=periodo['nombre'],
                         temporada__nombre=temporada['nombre'],
                         tipo__in=[0, 1]
-                        ).values('anio', 'periodo', 'temporada').annotate(
+                    ).values('anio', 'periodo', 'temporada').annotate(
                         vta_n=Sum('vta_n'), vta_u=Sum('vta_u'),
                         ctb_n=Sum('ctb_n'), costo=Sum('costo'),
                         margen=Avg('margen'), tipo=Min('tipo'),
                         dcto=Avg('dcto'), precio_real=Avg('precio_real'),
                         costo_unitario=Avg('costo_unitario')
-                        ).order_by('anio', 'periodo', 'temporada')
+                    ).order_by('anio', 'periodo', 'temporada')
                     # Se revisa si existe una venta asociada a la temporada y periodo en curso
                     if ventas.exists():
                         for venta in ventas:
@@ -615,7 +651,7 @@ class BuscarDatosProyeccionView(View):
                             # Venta no proyectable
                             venta_gap['tipo'] = 0
                         proyeccion[temporada['nombre']][periodo['nombre']] = venta_gap
-            itemplan_json = {}
+            itemplan_json = dict()
             itemplan_json['id_item'] = itemplan_obj.item.id
             itemplan_json['id_itemplan'] = itemplan_obj.id
             itemplan_json['nombre'] = itemplan_obj.nombre
@@ -1459,7 +1495,7 @@ class GuardarSaldosAvancesView(LoginRequiredMixin, View):
             # Estado = 0 -> Pendiente
             # Estado = 1 -> Proyectado
             # Estado = 2 -> Planificado
-            itemplan_obj.estado = 2
+            # itemplan_obj.estado = 2
             itemplan_obj.save()
         data = {'msg': "Planificación guardada."}
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -1475,8 +1511,6 @@ class ResumenPlanDataGraficosView(View):
         if request.GET:
             pp = pprint.PrettyPrinter(indent=4)
             response = defaultdict()
-            data_json = {}
-            data_jsonp = {}
 
             #color_texto_ingraph = "#777"
             color_texto_ingraph = "black"
@@ -1490,18 +1524,24 @@ class ResumenPlanDataGraficosView(View):
             ant_anio = plan_obj.anio - 3
 
             venta_planificacion = plan_obj.resumen_venta_planificacion()
+            itemplan_no_visibles = plan_obj.item_planificados.filter(visible=False)
 
-            #pp.pprint(venta_planificacion)
+            # Se quitan los item que han sido eliminados de la planificacion
+            for itemplan_no_visible in itemplan_no_visibles:
+                venta_planificacion.pop(itemplan_no_visible.item_id, None)
 
             resumen_item = defaultdict()
             # Por cada itemplan de la planificacion almacena un arreglo con los itemplan padres
             padres_dict = defaultdict()
-            itemplan_planificados = plan_obj.item_planificados.all()
+
+            itemplan_planificados = plan_obj.item_planificados.visible()
             for itemplan in itemplan_planificados:
                 lista_nombres_padres = [itemplan.nombre] + itemplan.get_padre_nombre()
                 padres_dict[itemplan.item_id] = lista_nombres_padres[::-1]
                 # Lista con los ID de todos los descendientes del Itemplan
-                descendientes = Itemjerarquia.objects.filter(ancestro=itemplan.item).values_list('descendiente', flat=True)
+                descendientes = Itemjerarquia.objects.filter(
+                    ancestro=itemplan.item
+                ).values_list('descendiente', flat=True)
                 arr_venta_anual_item = []
                 for anio_plan in range(ant_anio, act_anio + 1):
                     venta_anual_item = defaultdict(int)
@@ -1527,9 +1567,9 @@ class ResumenPlanDataGraficosView(View):
                         venta_anual_item['precio_blanco'] = 0
                     arr_venta_anual_item.append(venta_anual_item)
                 resumen_item[itemplan.item.id] = arr_venta_anual_item
-            #
-            # A continuacion se encuentra la logica que genera los datos de venta para el resumen por Categoria con jerarquia independiente
-            #
+
+            # A continuacion se encuentra la logica que genera los datos de venta
+            # para el resumen por Categoria con jerarquia independiente
             dict_item_ind = defaultdict(list)
             # Arreglo que contiene los nombres de los Item de Categoria con jerarquia independiente. Utilizado
             # para la construccion del indice respectivo.
@@ -1544,7 +1584,10 @@ class ResumenPlanDataGraficosView(View):
                 # Lista de ID de los Item que son de categoria con jerarquia independiente
                 id_item_independientes = Itemjerarquia.objects.filter(
                     ancestro=itemplan.item,
-                    distancia=distancia).values_list('descendiente', flat=True)
+                    distancia=distancia
+                ).exclude(
+                    descendiente__in=[x.item_id for x in itemplan_no_visibles]
+                ).values_list('descendiente', flat=True)
                 # Lista de objetos Item que son de categoria con jerarquia independiente
                 item_independientes = Item.objects.filter(pk__in=id_item_independientes)
                 # Se itera por cada objeto Item para buscar los nodos con venta
@@ -2177,9 +2220,11 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, UsuarioCreadorMixin, Detai
         self.context['plan'] = plan_obj
         self.context['usuario'] = request.user
         # Lista de itemplan de la planificacion
-        itemplan_planificados = plan_obj.item_planificados.all().order_by('item__categoria', 'item_padre__nombre', 'nombre', 'precio')
+        itemplan_planificados = plan_obj.item_planificados.visible().order_by('item__categoria', 'item_padre__nombre', 'nombre', 'precio')
+        itemplan_no_visibles = plan_obj.item_planificados.filter(visible=False)
         padres_dict = defaultdict()
-        # Arreglo que contiene los nombres de los Item de Categoria con jerarquia independiente. Utilizado para la construccion
+        # Arreglo que contiene los nombres de los Item de Categoria
+        # con jerarquia independiente. Utilizado para la construccion
         # del indice respectivo.
         items_jerarquia_independiente = []
         cat_independiente = Categoria.objects.get(
@@ -2190,11 +2235,16 @@ class ResumenPlanificacionPDFView(LoginRequiredMixin, UsuarioCreadorMixin, Detai
         for itemplan in itemplan_raiz:
             # Distancia para ser utilizada en la busqueda de los objetos Itemjerarquia
             distancia = nivel_cat_independiente - itemplan.item.categoria.get_nivel()
-            # Lista de ID de los Item hijos del Item pasado como parametro y que son de categoria con jerarquia independiente
+            # Lista de ID de los Item hijos del Item pasado como parametro
+            # y que son de categoria con jerarquia independiente
             id_item_independientes = Itemjerarquia.objects.filter(
                 ancestro=itemplan.item,
-                distancia=distancia).values_list('descendiente', flat=True)
-            # Se agregan los nombres de los Item de la categoria con jerarquia independientes pertenecientes a la planificacion
+                distancia=distancia
+            ).exclude(
+                descendiente__in=[x.item_id for x in itemplan_no_visibles]
+            ).values_list('descendiente', flat=True)
+            # Se agregan los nombres de los Item de la categoria con
+            # jerarquia independientes pertenecientes a la planificacion
             items_jerarquia_independiente += Item.objects.filter(id__in=id_item_independientes).values_list('nombre', flat=True)
         # Se eliminan los elementos duplicados
         items_jerarquia_independiente = set(items_jerarquia_independiente)

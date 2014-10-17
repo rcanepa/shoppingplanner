@@ -344,6 +344,12 @@ class Plan(models.Model):
         # Devuelve un diccionario con todos los itemplan de la planificacion, unidades y costos asociados
         return d_totales_venta
 
+    def get_num_planificables(self):
+        """
+            Devuelve la cantidad de Items que no han sido planificados.
+        """
+        return Itemplan.objects.filter(plan=self).planificable().visible().count()
+
     def get_num_pendientes(self):
         """
             Devuelve la cantidad de Items que no han sido planificados.
@@ -369,7 +375,7 @@ class Plan(models.Model):
         planificacion.
         """
         if self.get_num_total() != 0:
-            return str(round(float(self.get_num_planificados() / float(self.get_num_total())), 2)) + "%"
+            return str(round(float(self.get_num_planificados() / float(self.get_num_planificables())) * 100, 1)) + "%"
         else:
             return "0.0" + "%"
 

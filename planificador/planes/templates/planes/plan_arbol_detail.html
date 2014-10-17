@@ -478,7 +478,7 @@ $(function() {
                 $tdList.eq(4).text(numeral(node.data['venta_t2']).format('0,0')).addClass("alignRight");
             
             /* Se agrega un icono dependiendo del estado de planificacion */
-            if ( node['extraClasses'] == "planificable" ){
+            if ( ( node['extraClasses'] == "planificable" ) && ( node.countChildren() == 0 ) ){
                 if ( node.data['estado'] == 2 )
                     $tdList.eq(7).html("").addClass("icono-planificado");
                 else
