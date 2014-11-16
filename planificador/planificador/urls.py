@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
-from django.views.generic.base import TemplateView
 from planificador import views, settings
+from administracion.views import AdminAngularView
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -23,6 +23,9 @@ urlpatterns = patterns('',
     url(r'^organizaciones/',  include('organizaciones.urls', namespace="organizaciones")),
     url(r'^calendarios/',  include('calendarios.urls', namespace="calendarios")),
     url(r'^ventas/',  include('ventas.urls', namespace="ventas")),
+
+    # AngularJS admin SPA entry point
+    url(r'^adminspa/', AdminAngularView.as_view(), name='admin_spa')
 )
 
 # Configuracion para templates genericos de codigos de error
