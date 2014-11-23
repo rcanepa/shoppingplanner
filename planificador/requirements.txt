@@ -1,4 +1,5 @@
 Django==1.6.1
+PyYAML==3.11
 South==1.0
 Werkzeug==0.9.6
 XlsxWriter==0.5.9
@@ -7,6 +8,7 @@ diff-match-patch==20110725.1
 django-braces==1.4.0
 django-debug-toolbar==1.1
 django-extensions==1.4.3
+django-rest-swagger==0.2.1
 django-wkhtmltopdf==2.0.2
 djangorestframework==2.4.3
 gunicorn==18.0

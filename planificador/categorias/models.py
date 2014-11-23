@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from django import db
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from datetime import datetime
 from organizaciones.models import Organizacion
 from ventas.models import Ventaperiodo
 
@@ -22,9 +22,9 @@ class Categoria(models.Model):
     planificable = models.BooleanField(default=False)
     # Determina si en el arbol de planificacion se mostrara la venta de itemes pertenecientes a esta categoria.
     venta_arbol = models.BooleanField(default=False, verbose_name=u'Venta en arbol')
-    # Se utiliza para marcar una Categoria sobre la cual se pueden generar resumenes y busquedas independiente de la estructura
-    # jerarquica a la que pertenece. Por ejemplo, para generar un resumen a nivel de Marca, sin considerar al departamento al 
-    # que pertenece.
+    # Se utiliza para marcar una Categoria sobre la cual se pueden generar resumenes y busquedas independiente
+    # de la estructura jerarquica a la que pertenece. Por ejemplo, para generar un resumen a nivel de Marca,
+    # sin considerar al departamento al que pertenece.
     jerarquia_independiente = models.BooleanField(default=False)
 
     def __unicode__(self):
@@ -138,7 +138,10 @@ class Item(models.Model):
         Devuelve la lista de items hijos vigente del item. Se utiliza para recorrer en forma inversa
         la relacion padre-hijo (item_padre) filtrando los items no vigentes.
         """
-        return self.items_hijos.all().filter(vigencia=True).prefetch_related('item_padre', 'categoria').order_by('nombre', 'precio')
+        return self.items_hijos.all()\
+            .filter(vigencia=True)\
+            .prefetch_related('item_padre', 'categoria')\
+            .order_by('nombre', 'precio')
 
     def get_absolute_url(self):
         return reverse('categorias:item_detail', kwargs={'pk': self.pk})
@@ -315,7 +318,7 @@ class Item(models.Model):
         arr_itemjerarquia.append(itemjerarquia)
         #print itemjerarquia
         while nodo.item_padre is not None:
-            distancia = distancia + 1
+            distancia += 1
             itemjerarquia = Itemjerarquia(ancestro=nodo.item_padre, descendiente=self, distancia=distancia)
             #print itemjerarquia
             nodo = nodo.item_padre

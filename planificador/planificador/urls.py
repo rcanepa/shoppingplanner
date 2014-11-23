@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, include, url
 from planificador import views, settings
-from administracion.views import AdminAngularView
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -14,22 +13,20 @@ urlpatterns = patterns('',
     url(r'^accounts/loggedin/$', views.LoggedInView.as_view(), name='home'),
     url(r'^accounts/register/$', views.RegisterUserView.as_view(), name='user_register'),
     url(r'^accounts/register_success/$', views.RegisterSuccessView.as_view()),
-    url(r'^accounts/list/$', views.UserListView.as_view(), name="user_list"),
+    url(r'^accounts/list/$', views.UserListView.as_view(), name='user_list'),
     url(r'^accounts/detail/(?P<pk>\d+)/$', views.UserDetailView.as_view(), name='user_detail'),
 
-    url(r'^categorias/',  include('categorias.urls', namespace="categorias")),
-    url(r'^administracion/',  include('administracion.urls', namespace="administracion")),
-    url(r'^planes/',  include('planes.urls', namespace="planes")),
-    url(r'^organizaciones/',  include('organizaciones.urls', namespace="organizaciones")),
-    url(r'^calendarios/',  include('calendarios.urls', namespace="calendarios")),
-    url(r'^ventas/',  include('ventas.urls', namespace="ventas")),
+    url(r'^categorias/',  include('categorias.urls', namespace='categorias')),
+    url(r'^administracion/',  include('administracion.urls', namespace='administracion')),
+    url(r'^planes/',  include('planes.urls', namespace='planes')),
+    url(r'^organizaciones/',  include('organizaciones.urls', namespace='organizaciones')),
+    url(r'^calendarios/',  include('calendarios.urls', namespace='calendarios')),
+    url(r'^ventas/',  include('ventas.urls', namespace='ventas')),
 
-    # AngularJS admin SPA entry point
-    url(r'^adminspa/', AdminAngularView.as_view(), name='admin_spa')
 )
 
 # Configuracion para templates genericos de codigos de error
 if settings.DEBUG:
     urlpatterns += patterns('',
-        url(r'^404/$', views.C404View.as_view(), name="404"),
+        url(r'^404/$', views.C404View.as_view(), name='404'),
     )

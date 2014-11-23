@@ -13,6 +13,8 @@ from django.views.generic import UpdateView
 from django.views.generic import View
 from braces.views import LoginRequiredMixin
 from braces.views import GroupRequiredMixin
+from rest_framework import viewsets
+from rest_framework.response import Response
 from .models import Categoria, Item, Grupoitem, Itemjerarquia
 from .forms import CategoriaForm, ItemForm, ItemResponsableForm
 from planes.models import Itemplan, Plan
@@ -85,10 +87,8 @@ class CategoriaDeleteView(GroupRequiredMixin, LoginRequiredMixin, UserInfoMixin,
 
 
 class ItemAjaxNodeView(LoginRequiredMixin, View):
-    '''
-    Recibe el ID de un item y entrega una lista de nodos hijos
-    los cuales seran agregados a un FancyTree
-    '''
+    """ Recibe el ID de un item y entrega una lista de nodos hijos
+    los cuales seran agregados a un FancyTree """
     def get(self, request, *args, **kwargs):
         if request.GET:
             nodos = []
@@ -102,7 +102,8 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
                 nodo = {}
                 data = {}
                 if children.categoria.planificable:
-                    # Se busca si existe un itemplan asociado al item. La idea es verificar si el item fue planificado o no.
+                    # Se busca si existe un itemplan asociado al item. La idea es verificar
+                    # si el item fue planificado o no.
                     try:
                         itemplan_obj = Itemplan.objects.get(item=children, plan=plan_obj)
                         data['estado'] = itemplan_obj.estado
@@ -119,7 +120,7 @@ class ItemAjaxNodeView(LoginRequiredMixin, View):
                 data['venta_t2'] = venta_temporada_anual[0]
                 nodo['key'] = children.id
                 nodo['data'] = data
-                if (children.get_children()):
+                if children.get_children():
                     nodo['folder'] = True
                     nodo['lazy'] = True
                 if children.categoria.planificable:
@@ -192,7 +193,7 @@ class ItemResponsableUpdateView(GroupRequiredMixin, LoginRequiredMixin, UserInfo
 
 
 class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
-    '''
+    """
     Recibe como parametros una lista de IDs de items y los datos basicos para la creacion del nuevo item.
     Crea tantos objetos Grupoitem como objetos Item esten siendo agrupados.
 
@@ -201,17 +202,19 @@ class GrupoitemCreateAJAXView(LoginRequiredMixin, View):
         solicitud['nombre']: nombre del nuevo item
         solicitud['precio']: precio del nuevo item
         solicitud['grupo_items']: string con una lista de ID separados con "," con todos los items agrupados
-    '''
+    """
 
     def post(self, request, *args, **kwargs):
         """
         Flujo del proceso:
             1.- Se marcan los items agrupados como NO vigentes (vigencia=False)
             2.- Se crea y almacena el nuevo item utilizando las caracteristicas de los items agrupados
-            3.- Se crean los registros grupoitem que mantienen la relacion entre los items agrupados y el nuevo item 
-            4.- Se crean los registros de ventaperiodo asociados al nuevo item. Basicamente se copia la informacion de ventaperiodo
-                de los items agrupados y se imputan al nuevo item. No se borra informacion de ventaperiodo de los items agrupados
-            5.- Se eliminan todos los itemplan que puedan existir asociados a los items agrupados y se crea uno nuevo para el nuevo item (agrupado)
+            3.- Se crean los registros grupoitem que mantienen la relacion entre los items agrupados y el nuevo item
+            4.- Se crean los registros de ventaperiodo asociados al nuevo item. Basicamente se copia la informacion de
+                ventaperiodo de los items agrupados y se imputan al nuevo item. No se borra informacion de ventaperiodo
+                de los items agrupados
+            5.- Se eliminan todos los itemplan que puedan existir asociados a los items agrupados y se crea uno nuevo
+                para el nuevo item (agrupado)
         """
         if request.POST:
             solicitud = request.POST
